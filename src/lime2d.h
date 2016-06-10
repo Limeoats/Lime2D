@@ -7,25 +7,29 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "lime2d_internal.h"
+
 namespace l2d {
-    class Text {
+    class Graphics;
+
+    class Config {
     public:
-        Text(sf::Font* font, unsigned int size, sf::Vector2f position, std::string text);
-        sf::Text getText() const;
-        void setText(std::string text);
-        Text operator+=(const std::string &str);
-    private:
-        sf::Text _text;
+        static const sf::Keyboard::Key ShowHide = sf::Keyboard::Equal; //Show/Hide Lime2D
     };
 
     class Editor {
     public:
         explicit Editor(bool enabled, sf::RenderWindow* window);
+        void toggle();
         void render();
         void update(float elapsedTime, sf::Event &event);
         void exit();
     private:
         bool _enabled;
+        sf::RenderWindow* _window;
+        l2d_internal::Graphics _graphics;
+
+
     };
 }
 

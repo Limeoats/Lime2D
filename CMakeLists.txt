@@ -5,8 +5,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-compare -Wno-unused-parameter 
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-set(SOURCE_FILES main.cpp lime2d.cpp
-        imgui/imgui.cpp imgui/imgui_demo.cpp imgui/imgui_draw.cpp)
+set(SOURCE_FILES src/main.cpp src/lime2d.cpp
+        imgui/imgui.cpp imgui/imgui_demo.cpp imgui/imgui_draw.cpp src/lime2d_internal.cpp src/lime2d_internal.h)
 add_executable(Lime2D ${SOURCE_FILES})
 
 include(FindPkgConfig)
