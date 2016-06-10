@@ -17,6 +17,16 @@ namespace l2d {
     private:
         sf::Text _text;
     };
+
+    class Editor {
+    public:
+        explicit Editor(bool enabled, sf::RenderWindow* window);
+        void render();
+        void update(float elapsedTime, sf::Event &event);
+        void exit();
+    private:
+        bool _enabled;
+    };
 }
 
 

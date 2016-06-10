@@ -13,8 +13,12 @@ include(FindPkgConfig)
 find_package(SFML REQUIRED system window graphics network audio)
 include_directories(${SFML_INCLUDE_DIR})
 
+find_package(OpenGL REQUIRED)
+
+
+
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} ${SFML_LIBRARIES} -lopengl32 -lmingw32 -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid)
 else()
-    target_link_libraries(${PROJECT_NAME} ${SFML_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME} ${SFML_LIBRARIES} ${OPENGL_LIBRARY} )
 endif()
