@@ -7,8 +7,8 @@
 /*
     TODO:
         -Determine if l2d::Editor::render() is necessary or if we can put ImGui::Render() in l2d::Editor::update()
-        and just call l2d::Editor::update() from between window.clear() and window.display(). This would get rid of
-        an entire function and extra call to l2d from the game loop.
+         and just call l2d::Editor::update() from between window.clear() and window.display(). This would get rid of
+         an entire function and extra call to l2d from the game loop.
  */
 
 #include <sstream>
@@ -62,29 +62,69 @@ void l2d::Editor::update(float elapsedTime, sf::Event &event) {
 
     ImGui::SFML::ProcessEvent(event);
 
+    /*
+     *  Menu
+     *  File, View, Help
+     */
+    static bool cbMapEditor = false;
+    static bool cbAnimationEditor = false;
+    static bool aboutBoxVisible = false;
+
+    //About box
+    if (aboutBoxVisible) {
+        ImGui::SetNextWindowSize(ImVec2(300, 200));
+        ImGui::Begin("About Lime2D", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::Text("Lime2D Editor\n\nBy: Limeoats\nCopyright \u00a9 2016");
+        ImGui::Separator();
+        if (ImGui::Button("Close")) {
+            aboutBoxVisible = false;
+        }
+        ImGui::End();
+    }
+
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Exit")) {
-                std::cout << "Exiting!" << std::endl;
+                this->_enabled = false; //TODO: do you want to save?
             }
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu("Edit")) {
+        if (ImGui::BeginMenu("View")) {
+            if (ImGui::Checkbox("Map Editor", &cbMapEditor)) {
+                cbAnimationEditor = false;
+            }
+            if (ImGui::Checkbox("Animation Editor", &cbAnimationEditor)) {
+                cbMapEditor = false;
+            }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Help")) {
+            if (ImGui::MenuItem("About Lime2D")) {
+                aboutBoxVisible = true;
+            }
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
     }
-//        ImGui::Begin("Map Editor");
-//        ImGui::Text("The Lime2D Map Editor is still under development!");
-//        ImGui::Button("Okay!");
-//        ImGui::End();
-//        ImGui::Begin("Animation Editor");
-//        ImGui::Text("The Lime2D Animation Editor is still under development!");
-//        ImGui::Button("Okay!");
-//        ImGui::End();
-    ImGui::Begin("Background", nullptr, ImGui::GetIO().DisplaySize, 0.0f, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus );
-    ImGui::GetWindowDrawList()->AddText( ImVec2(10,30), ImColor(1.0f,1.0f,1.0f,1.0f), "Map Editor" );
-    ImGui::End();
+
+    if (cbMapEditor) {
+        ImGui::Begin("Background", nullptr, ImGui::GetIO().DisplaySize, 0.0f,
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                     ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse |
+                     ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs |
+                     ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus);
+        ImGui::GetWindowDrawList()->AddText(ImVec2(10, 30), ImColor(1.0f, 1.0f, 1.0f, 1.0f), "Map Editor");
+        ImGui::End();
+    }
+    else if (cbAnimationEditor) {
+        ImGui::Begin("Background", nullptr, ImGui::GetIO().DisplaySize, 0.0f,
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                     ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse |
+                     ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs |
+                     ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus);
+        ImGui::GetWindowDrawList()->AddText(ImVec2(10, 30), ImColor(1.0f, 1.0f, 1.0f, 1.0f), "Animation Editor");
+        ImGui::End();
+    }
 }
 
 void l2d::Editor::exit() {
