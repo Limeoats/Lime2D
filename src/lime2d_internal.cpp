@@ -2,6 +2,10 @@
 // Created by cw1650 on 6/10/2016.
 //
 
+#ifdef __APPLE__
+#include <glob.h>
+#endif
+
 #include <sstream>
 #include "lime2d_internal.h"
 
@@ -23,6 +27,20 @@ std::vector<std::string> l2d_internal::utils::split(std::string str, char c) {
         list.push_back(item);
     }
     return list;
+}
+
+std::vector<const char*> l2d_internal::utils::getFilesInDirectory(std::string directory) {
+#ifdef __APPLE__
+    glob_t glob_result;
+    std::vector<const char*> mapFiles;
+    glob(directory.c_str(), GLOB_TILDE, NULL, &glob_result);
+    for (unsigned int i = 0; i < glob_result.gl_pathc; ++i) {
+        mapFiles.push_back(glob_result.gl_pathv[i]);
+    }
+    return mapFiles;
+#elif WIN32
+    //Get the files on windows
+#endif
 }
 
 /*

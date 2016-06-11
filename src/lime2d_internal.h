@@ -19,6 +19,9 @@ namespace l2d_internal {
 
         std::vector<std::string> split(std::string str, char c);
 
+        std::vector<const char*> getFilesInDirectory(std::string directory);
+
+
     }
 
     //Internal graphics class

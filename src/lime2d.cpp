@@ -9,10 +9,21 @@
         -Determine if l2d::Editor::render() is necessary or if we can put ImGui::Render() in l2d::Editor::update()
          and just call l2d::Editor::update() from between window.clear() and window.display(). This would get rid of
          an entire function and extra call to l2d from the game loop.
+
+        -Change internal level's loadMap so that the function returns a string. Then, whenever I call loadMap
+         from l2d, check return value with if (!level->loadMap("asdf")) and show an ImGui popup with the
+         error message. Make sure in level loadMap to check every possible place it can break.
+         (make sure tileset exists, make sure map exists, make sure any sprites exist, etc)
+
+        -Draw grid lines on the map editor when a level is loaded. For this, we need to find out the level size,
+         which we should already have in level internal, as well as the tile size. From there, start at 0,0 and
+         draw the lines accordingly. NOTE: this could be difficult since ImGui doesn't have any idea what the camera is.
+         Meaning we need to implement an internal camera as well...
  */
 
+
 #include <sstream>
-#include <glob.h>
+
 #include "lime2d.h"
 
 #include "../libext/imgui.h"
@@ -45,6 +56,7 @@ void l2d::Editor::toggle() {
 void l2d::Editor::render() {
     if (this->_enabled) {
         ImGui::Render();
+        this->_level.draw();
     }
 }
 
@@ -62,6 +74,9 @@ void l2d::Editor::update(float elapsedTime, sf::Event &event) {
         static bool cbMapEditor = false;
         static bool cbAnimationEditor = false;
         static bool aboutBoxVisible = false;
+        static bool mapSelectBoxVisible = false;
+
+        static int mapSelectIndex = 0;
 
         //About box
         if (aboutBoxVisible) {
@@ -71,6 +86,32 @@ void l2d::Editor::update(float elapsedTime, sf::Event &event) {
             ImGui::Separator();
             if (ImGui::Button("Close")) {
                 aboutBoxVisible = false;
+            }
+            ImGui::End();
+        }
+
+        if (mapSelectBoxVisible) {
+            std::stringstream ss;
+            ss << l2d::Config::MapPath << "*";
+            std::vector<const char*> mapFiles = l2d_internal::utils::getFilesInDirectory(ss.str());
+            ImGui::SetNextWindowPosCenter();
+            ImGui::SetNextWindowSize(ImVec2(500, 400));
+            ImGui::Begin("Select a map", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::Text("Select a map from the list below.");
+            ImGui::Separator();
+            ImGui::PushItemWidth(-1);
+            ImGui::ListBox("", &mapSelectIndex, &mapFiles[0], mapFiles.size(), 10);
+            ImGui::Separator();
+            if (ImGui::Button("Open")) {
+                //Get the name of the file
+                std::vector<std::string> fullNameSplit = l2d_internal::utils::split(mapFiles[mapSelectIndex], '/');
+                std::vector<std::string> fileNameSplit = l2d_internal::utils::split(fullNameSplit.back(), '.');
+                this->_level.loadMap(fileNameSplit.front());
+                mapSelectBoxVisible = false;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                mapSelectBoxVisible = false;
             }
             ImGui::End();
         }
@@ -93,13 +134,7 @@ void l2d::Editor::update(float elapsedTime, sf::Event &event) {
             }
             if (ImGui::BeginMenu("Map", cbMapEditor)) {
                 if (ImGui::MenuItem("Load map")) {
-                    glob_t glob_result;
-                    std::stringstream ss;
-                    ss << l2d::Config::MapPath << "*";
-                    glob(ss.str().c_str(), GLOB_TILDE, NULL, &glob_result);
-                    for (unsigned int i = 0; i < glob_result.gl_pathc; ++i) {
-                        std::cout << "File: " << glob_result.gl_pathv[i] << std::endl;
-                    }
+                    mapSelectBoxVisible = true;
                 }
                 ImGui::EndMenu();
             }
@@ -145,6 +180,8 @@ void l2d::Editor::update(float elapsedTime, sf::Event &event) {
             ImGui::GetWindowDrawList()->AddText(ImVec2(10, 30), ImColor(1.0f, 1.0f, 1.0f, 1.0f), "Animation Editor");
             ImGui::End();
         }
+
+        this->_level.update(elapsedTime);
     }
 }
 
