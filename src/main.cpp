@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "lime2d.h"
+#include "lime2d_config.h"
 
 
 using namespace std;

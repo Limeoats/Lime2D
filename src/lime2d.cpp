@@ -12,19 +12,22 @@
  */
 
 #include <sstream>
+#include <glob.h>
 #include "lime2d.h"
 
-#include "../imgui/imgui.h"
-#include "../imgui/imgui-events-SFML.h"
-#include "../imgui/imgui-rendering-SFML.h"
-#include "../imgui/imgui_internal.h"
+#include "../libext/imgui.h"
+#include "../libext/imgui-events-SFML.h"
+#include "../libext/imgui-rendering-SFML.h"
+#include "../libext/imgui_internal.h"
+#include "lime2d_config.h"
 
 /*******************
  *  Lime2D Editor  *
  *******************/
 
 l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
-    _graphics(window)
+    _graphics(new l2d_internal::Graphics(window)),
+    _level(this->_graphics, "l2dSTART")
 {
     this->_enabled = enabled;
     ImGui::SFML::SetRenderTarget(*window);
@@ -54,7 +57,7 @@ void l2d::Editor::update(float elapsedTime, sf::Event &event) {
 
         /*
          *  Menu
-         *  File, View, Help
+         *  File, View, Map, Animation, Help
          */
         static bool cbMapEditor = false;
         static bool cbAnimationEditor = false;
@@ -86,6 +89,21 @@ void l2d::Editor::update(float elapsedTime, sf::Event &event) {
                 if (ImGui::Checkbox("Animation Editor", &cbAnimationEditor)) {
                     cbMapEditor = false;
                 }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Map", cbMapEditor)) {
+                if (ImGui::MenuItem("Load map")) {
+                    glob_t glob_result;
+                    std::stringstream ss;
+                    ss << l2d::Config::MapPath << "*";
+                    glob(ss.str().c_str(), GLOB_TILDE, NULL, &glob_result);
+                    for (unsigned int i = 0; i < glob_result.gl_pathc; ++i) {
+                        std::cout << "File: " << glob_result.gl_pathv[i] << std::endl;
+                    }
+                }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Animation", cbAnimationEditor)) {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Help")) {

@@ -8,7 +8,7 @@
 #pragma once
 
 #ifndef IMGUI_VERSION
-#error Must include imgui.h before imgui_internal.h
+#error Must include libext.h before imgui_internal.h
 #endif
 
 #include <stdio.h>      // FILE*
@@ -308,7 +308,7 @@ struct IMGUI_API ImGuiTextEditState
     void                OnKeyPressed(int key);
 };
 
-// Data saved in imgui.ini file
+// Data saved in libext.ini file
 struct ImGuiIniData
 {
     char*       Name;
@@ -705,7 +705,7 @@ namespace ImGui
     inline IMGUI_API ImU32  GetColorU32(const ImVec4& col)              { ImVec4 c = col; c.w *= GImGui->Style.Alpha; return ImGui::ColorConvertFloat4ToU32(c); }
 
     // NB: All position are in absolute pixels coordinates (not window coordinates)
-    // FIXME: All those functions are a mess and needs to be refactored into something decent. Avoid use outside of imgui.cpp!
+    // FIXME: All those functions are a mess and needs to be refactored into something decent. Avoid use outside of libext.cpp!
     // We need: a sort of symbol library, preferably baked into font atlas when possible + decent text rendering helpers.
     IMGUI_API void          RenderText(ImVec2 pos, const char* text, const char* text_end = NULL, bool hide_text_after_hash = true);
     IMGUI_API void          RenderTextWrapped(ImVec2 pos, const char* text, const char* text_end, float wrap_width);
