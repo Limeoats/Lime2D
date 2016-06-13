@@ -1,12 +1,15 @@
-//
-// Created by cw1650 on 6/10/2016.
-//
+/*
+ * lime2d_internal.h
+ * By: Mark Guerra
+ * Created on 6/10/2016
+ */
 
 #ifndef LIME2D_LIME2D_INTERNAL_H
 #define LIME2D_LIME2D_INTERNAL_H
 
 
 #include <SFML/Graphics.hpp>
+#include <memory>
 
 namespace l2d_internal {
     //Internal util functions

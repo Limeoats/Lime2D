@@ -1,3 +1,8 @@
+/*
+ * lime2d.h
+ * By: Mark Guerra
+ * Created on 6/9/2016
+ */
 
 #ifndef LIME2D_LIME2D_H
 #define LIME2D_LIME2D_H
