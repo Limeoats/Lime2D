@@ -15,12 +15,14 @@ using namespace std;
 
 int main() {
     sf::RenderWindow window(sf::VideoMode(800, 600), "Lime2D", sf::Style::Titlebar | sf::Style::Close);
-
+    window.setVerticalSyncEnabled(true);
     l2d::Editor editor(false, &window);
 
+    sf::Clock timer;
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
+            editor.processEvent(event);
             if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
                 window.close();
             }
@@ -28,7 +30,7 @@ int main() {
                 editor.toggle();
             }
         }
-        editor.update(1.0f, event);
+        editor.update(timer.restart());
         window.clear();
         editor.render();
         window.display();

@@ -24,7 +24,6 @@ namespace l2d_internal {
 
         std::vector<const char*> getFilesInDirectory(std::string directory);
 
-
     }
 
     //Internal graphics class
@@ -102,6 +101,17 @@ namespace l2d_internal {
         std::vector<Layer> _layerList;
 
         std::shared_ptr<Graphics> _graphics;
+    };
+
+    //Internal Camera class
+    class Camera {
+    public:
+        Camera();
+        sf::FloatRect getRect();
+        void update(float elapsedTime);
+    private:
+        sf::FloatRect _rect;
+        std::shared_ptr<Level> _level;
     };
 }
 

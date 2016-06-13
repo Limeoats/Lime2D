@@ -27,8 +27,7 @@
 #include "lime2d.h"
 
 #include "../libext/imgui.h"
-#include "../libext/imgui-events-SFML.h"
-#include "../libext/imgui-rendering-SFML.h"
+#include "../libext/imgui-SFML.h"
 #include "../libext/imgui_internal.h"
 #include "lime2d_config.h"
 
@@ -41,16 +40,17 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
     _level(this->_graphics, "l2dSTART")
 {
     this->_enabled = enabled;
-    ImGui::SFML::SetRenderTarget(*window);
-    ImGui::SFML::InitImGuiRendering();
-    ImGui::SFML::SetWindow(*window);
-    ImGui::SFML::InitImGuiEvents();
+    ImGui::SFML::Init(*window);
 
     this->_window = window;
 }
 
 void l2d::Editor::toggle() {
     this->_enabled = !this->_enabled;
+}
+
+void l2d::Editor::processEvent(sf::Event &event) {
+    ImGui::SFML::ProcessEvent(event);
 }
 
 void l2d::Editor::render() {
@@ -60,12 +60,10 @@ void l2d::Editor::render() {
     }
 }
 
-void l2d::Editor::update(float elapsedTime, sf::Event &event) {
+void l2d::Editor::update(sf::Time t) {
     if (this->_enabled) {
-        ImGui::SFML::UpdateImGui();
-        ImGui::SFML::UpdateImGuiRendering();
+        ImGui::SFML::Update(t);
 
-        ImGui::SFML::ProcessEvent(event);
 
         /*
          *  Menu
@@ -75,8 +73,27 @@ void l2d::Editor::update(float elapsedTime, sf::Event &event) {
         static bool cbAnimationEditor = false;
         static bool aboutBoxVisible = false;
         static bool mapSelectBoxVisible = false;
+        static bool configWindowVisible = false;
 
         static int mapSelectIndex = 0;
+
+        //Config window
+        if (configWindowVisible) {
+            ImGui::SetNextWindowSize(ImVec2(500, 600));
+            ImGui::Begin("Configure Lime2D", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::Text("Map path: ");
+            ImGui::SameLine();
+            static char mapPath[100];
+            ImGui::InputText("", mapPath, 100);
+            if (ImGui::Button("Save")) {
+
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                configWindowVisible = false;
+            }
+            ImGui::End();
+        }
 
         //About box
         if (aboutBoxVisible) {
@@ -90,6 +107,7 @@ void l2d::Editor::update(float elapsedTime, sf::Event &event) {
             ImGui::End();
         }
 
+        //Map select box
         if (mapSelectBoxVisible) {
             std::stringstream ss;
             ss << l2d::Config::MapPath << "*";
@@ -118,6 +136,9 @@ void l2d::Editor::update(float elapsedTime, sf::Event &event) {
 
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
+                if (ImGui::MenuItem("Config")) {
+                    configWindowVisible = true;
+                }
                 if (ImGui::MenuItem("Exit")) {
                     this->_enabled = false; //TODO: do you want to save?
                 }
@@ -181,7 +202,7 @@ void l2d::Editor::update(float elapsedTime, sf::Event &event) {
             ImGui::End();
         }
 
-        this->_level.update(elapsedTime);
+        this->_level.update(t.asSeconds());
     }
 }
 

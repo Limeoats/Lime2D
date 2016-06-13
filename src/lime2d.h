@@ -16,8 +16,9 @@ namespace l2d {
     public:
         explicit Editor(bool enabled, sf::RenderWindow* window);
         void toggle();
+        void processEvent(sf::Event &event);
         void render();
-        void update(float elapsedTime, sf::Event &event);
+        void update(sf::Time elapsedTime);
         void exit();
     private:
         bool _enabled;

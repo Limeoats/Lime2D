@@ -249,3 +249,7 @@ void l2d_internal::Level::draw() {
 void l2d_internal::Level::update(float elapsedTime) {
     (void)elapsedTime;
 }
+
+l2d_internal::Camera::Camera() {
+//    this->_rect = {0.0f, 0.0f, l2d::Config::};
+}
