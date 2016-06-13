@@ -79,14 +79,34 @@ void l2d::Editor::update(sf::Time t) {
 
         //Config window
         if (configWindowVisible) {
-            ImGui::SetNextWindowSize(ImVec2(500, 600));
+            ImGui::SetNextWindowPosCenter();
+            ImGui::SetNextWindowSize(ImVec2(500, 400));
             ImGui::Begin("Configure Lime2D", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::Text("Map path: ");
-            ImGui::SameLine();
+            ImGui::Text("Map path");
             static char mapPath[100];
+            ImGui::PushItemWidth(300);
             ImGui::InputText("", mapPath, 100);
+            ImGui::PopItemWidth();
+            ImGui::Separator();
+            ImGui::Text("Sprite scale");
+            static float spriteScaleX = 0.0f;
+            static float spriteScaleY = 0.0f;
+            ImGui::PushItemWidth(100);
+            ImGui::InputFloat("x", &spriteScaleX, 0.1f, 0.0f, 2);
+            ImGui::InputFloat("y", &spriteScaleY, 0.1f, 0.0f, 2);
+            ImGui::PopItemWidth();
+            ImGui::Separator();
+            ImGui::Text("Tile scale");
+            static float tileScaleX = 0.0f;
+            static float tileScaleY = 0.0f;
+            ImGui::PushItemWidth(100);
+            ImGui::InputFloat("x", &tileScaleX, 0.1f, 0.0f, 2);
+            ImGui::InputFloat("y", &tileScaleY, 0.1f, 0.0f, 2);
+            ImGui::PopItemWidth();
+            ImGui::Separator();
             if (ImGui::Button("Save")) {
-
+                //Lots of error checking on all of the values
+                //Saving to lime2d.config
             }
             ImGui::SameLine();
             if (ImGui::Button("Cancel")) {
