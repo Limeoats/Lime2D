@@ -7,11 +7,10 @@
 #include <glob.h>
 
 #include <sstream>
+#include <fstream>
 #include "lime2d_internal.h"
 
 #include "../libext/tinyxml2.h"
-
-#include "lime2d_config.h"
 
 using namespace tinyxml2;
 
@@ -39,16 +38,37 @@ std::vector<const char*> l2d_internal::utils::getFilesInDirectory(std::string di
     return mapFiles;
 }
 
+std::string l2d_internal::utils::getConfigValue(std::string key) {
+    std::ifstream in("lime2d.config");
+    std::map<std::string, std::string> configMap;
+    if (!in.fail()) {
+        for (std::string line; std::getline(in, line); ) {
+            configMap.insert(std::pair<std::string, std::string>(l2d_internal::utils::split(line, '=')[0], l2d_internal::utils::split(line, '=')[1]));
+        }
+    }
+    return configMap.size() <= 0 ? "" : configMap[key];
+}
+
 /*
  * Graphics
  */
 
 l2d_internal::Graphics::Graphics(sf::RenderWindow* window) {
     this->_window = window;
+    this->_camera = std::make_shared<Camera>();
 }
 
 void l2d_internal::Graphics::draw(sf::Drawable &drawable) {
+    sf::View view(this->_camera->getRect());
+    this->_window->setView(view);
     this->_window->draw(drawable);
+}
+
+void l2d_internal::Graphics::draw(const sf::Vertex *vertices, unsigned int vertexCount, sf::PrimitiveType type,
+                                  const sf::RenderStates &states) {
+    sf::View view(this->_camera->getRect());
+    this->_window->setView(view);
+    this->_window->draw(vertices, vertexCount, type, states);
 }
 
 sf::Texture l2d_internal::Graphics::loadImage(const std::string &filePath) {
@@ -60,6 +80,10 @@ sf::Texture l2d_internal::Graphics::loadImage(const std::string &filePath) {
     return this->_spriteSheets[filePath];
 }
 
+void l2d_internal::Graphics::update(float elapsedTime) {
+    this->_camera->update(elapsedTime);
+}
+
 /*
  * Sprite
  */
@@ -69,7 +93,7 @@ l2d_internal::Sprite::Sprite(std::shared_ptr<Graphics> graphics, const std::stri
     this->_texture = graphics->loadImage(filePath);
     this->_sprite = sf::Sprite(this->_texture, sf::IntRect(srcPos.x, srcPos.y, size.x, size.y));
     this->_sprite.setPosition(destPos);
-    this->_sprite.setScale(l2d::Config::SpriteScale.x, l2d::Config::SpriteScale.y);
+    this->_sprite.setScale(std::stof(l2d_internal::utils::getConfigValue("sprite_scale_x")), std::stof(l2d_internal::utils::getConfigValue("sprite_scale_y")));
     this->_graphics = graphics;
 }
 
@@ -90,7 +114,7 @@ l2d_internal::Tile::Tile(std::shared_ptr<Graphics> graphics, std::string &filePa
     Sprite(graphics, filePath, srcPos, size, destPos),
     _tilesetId(tilesetId)
 {
-    this->_sprite.setScale(l2d::Config::SpriteScale.x, l2d::Config::SpriteScale.y);
+    this->_sprite.setScale(std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")), std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")));
 }
 
 l2d_internal::Tile::~Tile() {}
@@ -120,7 +144,7 @@ l2d_internal::Tileset::Tileset(int id, std::string name, std::string path, sf::V
  */
 
 void l2d_internal::Layer::draw() {
-    for (std::shared_ptr<l2d_internal::Tile> &t : this->Tiles) {
+    for (auto &t : this->Tiles) {
         t->draw();
     }
 }
@@ -151,14 +175,14 @@ sf::Vector2i l2d_internal::Level::getTileSize() const {
 }
 
 void l2d_internal::Level::loadMap(std::string &name) {
+    this->_name = name;
     if (name == "l2dSTART") {
         return;
     }
-    this->_name = name;
 
     XMLDocument document;
     std::stringstream ss;
-    ss << l2d::Config::MapPath << name << ".xml";
+    ss << l2d_internal::utils::getConfigValue("map_path") << name << ".xml";
     document.LoadFile(ss.str().c_str());
 
     XMLElement* pMap = document.FirstChildElement("map");
@@ -191,58 +215,65 @@ void l2d_internal::Level::loadMap(std::string &name) {
         }
     }
 
-    //Load the layers
-    XMLElement* pLayer = pMap->FirstChildElement("layer");
-    if (pLayer != nullptr) {
-        while (pLayer) {
-            Layer newLayer;
-            newLayer.Id = pLayer->IntAttribute("id");
-            newLayer.Name = pLayer->Attribute("name");
-            XMLElement* pTiles = pLayer->FirstChildElement("tiles");
-            if (pTiles != nullptr) {
-                while (pTiles) {
-                    //Each pTiles will be for a different tileset
-                    //Find the correct tileset and get the path
-                    int tilesetId = pTiles->IntAttribute("tileset");
-                    std::string tlsPath = "";
-                    sf::Vector2i tlsSize;
-                    for (auto &tls : this->_tilesetList) {
-                        if (tls.Id == tilesetId) {
-                            tlsPath = tls.Path;
-                            tlsSize = tls.Size;
-                            break;
-                        }
-                    }
-                    std::string tileData = pTiles->GetText();
-                    //Parse the comma separated list
-                    std::vector<std::string> tiles = utils::split(tileData, ',');
-                    int c = 0;
-                    for (int y = 0; y < this->_size.y; ++y) {
-                        for (int x = 0; x < this->_size.x; ++x) {
-                            if (atoi(tiles[c].c_str()) == 0) {
-                                ++c;
+    XMLElement* pTiles = pMap->FirstChildElement("tiles");
+    if (pTiles != nullptr) {
+        while (pTiles) {
+            XMLElement* pPos = pTiles->FirstChildElement("pos");
+            if (pPos != nullptr) {
+                while (pPos) {
+                    int posX = pPos->IntAttribute("x");
+                    int posY = pPos->IntAttribute("y");
+                    XMLElement* pTile = pPos->FirstChildElement("tile");
+                    if (pTile != nullptr) {
+                        while (pTile) {
+                            int layer = pTile->IntAttribute("layer");
+                            int tileset = pTile->IntAttribute("tileset");
+                            int tile = std::stoi(pTile->GetText());
+                            if (tile == 0) {
+                                pTile = pTile->NextSiblingElement("tile");
                                 continue;
                             }
-                            sf::Vector2f destPos(x * this->_tileSize.x * l2d::Config::TileScale.x, y * this->_tileSize.y * l2d::Config::TileScale.y);
-                            newLayer.Tiles.push_back(std::make_shared<Tile>(this->_graphics, tlsPath,
-                                                                            sf::Vector2i((atoi(tiles[c].c_str()) % tlsSize.x - 1) * this->_tileSize.x,
-                                                                                          atoi(tiles[c].c_str()) <= tlsSize.x ? 0 : (atoi(tiles[c].c_str()) % tlsSize.x) * this->_tileSize.y),
-                                                                             this->_tileSize, destPos, tilesetId));
-                            ++c;
+                            //Get the layer or start a new one
+                            std::shared_ptr<Layer> l;
+                            for (int i = 0; i < this->_layerList.size(); ++i) {
+                                if (this->_layerList[i]->Id == layer) {
+                                    l = this->_layerList[i];
+                                    break;
+                                }
+                            }
+                            if (l == nullptr) {
+                                l = std::make_shared<Layer>();
+                                this->_layerList.push_back(l);
+                            }
+
+                            //Get the tileset
+                            std::string tlsPath = "";
+                            sf::Vector2i tlsSize;
+                            for (auto &tls : this->_tilesetList) {
+                                if (tls.Id == tileset) {
+                                    tlsPath = tls.Path;
+                                    tlsSize = tls.Size;
+                                    break;
+                                }
+                            }
+                            sf::Vector2i srcPos((tile % tlsSize.x - 1) * this->_tileSize.x, tile <= tlsSize.x ? 0 : (tile % tlsSize.x) * this->_tileSize.y);
+                            sf::Vector2f destPos((posX - 1) * this->_tileSize.x * std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")),
+                                                 (posY - 1) * this->_tileSize.y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")));
+                            l->Tiles.push_back(std::make_shared<Tile>(this->_graphics, tlsPath, srcPos, this->_tileSize, destPos, tileset));
+                            pTile = pTile->NextSiblingElement("tile");
                         }
                     }
-                    pTiles = pTiles->NextSiblingElement("tiles");
+                    pPos = pPos->NextSiblingElement("pos");
                 }
             }
-            this->_layerList.push_back(newLayer);
-            pLayer = pLayer->NextSiblingElement("layer");
+            pTiles = pTiles->NextSiblingElement("tiles");
         }
     }
 }
 
 void l2d_internal::Level::draw() {
-    for (Layer &layer : this->_layerList) {
-        layer.draw();
+    for (auto &layer : this->_layerList) {
+        layer->draw();
     }
 }
 
@@ -251,5 +282,16 @@ void l2d_internal::Level::update(float elapsedTime) {
 }
 
 l2d_internal::Camera::Camera() {
-//    this->_rect = {0.0f, 0.0f, l2d::Config::};
+    this->_rect = {0.0f, -20.0f, std::stof(l2d_internal::utils::getConfigValue("screen_size_x")), std::stof(l2d_internal::utils::getConfigValue("screen_size_y")) };
+}
+
+sf::FloatRect l2d_internal::Camera::getRect() {
+    return this->_rect;
+}
+
+void l2d_internal::Camera::update(float elapsedTime) {
+    (void)elapsedTime;
+
+//    this->_rect.left = std::max(this->_rect.left, 0.0f);
+//    this->_rect.top = std::max(this->_rect.top, -40.0f);
 }

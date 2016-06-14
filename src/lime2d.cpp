@@ -14,23 +14,18 @@
          from l2d, check return value with if (!level->loadMap("asdf")) and show an ImGui popup with the
          error message. Make sure in level loadMap to check every possible place it can break.
          (make sure tileset exists, make sure map exists, make sure any sprites exist, etc)
-
-        -Draw grid lines on the map editor when a level is loaded. For this, we need to find out the level size,
-         which we should already have in level internal, as well as the tile size. From there, start at 0,0 and
-         draw the lines accordingly. NOTE: this could be difficult since ImGui doesn't have any idea what the camera is.
-         Meaning we need to implement an internal camera as well...
  */
 
 
 #include <sstream>
 #include <fstream>
+#include <iostream>
 
 #include "lime2d.h"
 
 #include "../libext/imgui.h"
 #include "../libext/imgui-SFML.h"
 #include "../libext/imgui_internal.h"
-#include "lime2d_config.h"
 
 /*******************
  *  Lime2D Editor  *
@@ -56,8 +51,35 @@ void l2d::Editor::processEvent(sf::Event &event) {
 
 void l2d::Editor::render() {
     if (this->_enabled) {
-        ImGui::Render();
         this->_level.draw();
+        //Draw the grid lines if appropriate
+        if (this->_level.getName() != "l2dSTART") {
+            for (int i = 0; i < this->_level.getSize().y; ++i) {
+                sf::Vertex line[] = {
+                        sf::Vertex(sf::Vector2f(0, i * (this->_level.getTileSize().y * std::stof(
+                                l2d_internal::utils::getConfigValue("tile_scale_y"))))),
+                        sf::Vertex(sf::Vector2f(this->_level.getSize().x * this->_level.getTileSize().x *
+                                                std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")),
+                                                i * (this->_level.getTileSize().y *
+                                                     std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")))))
+                };
+                this->_graphics->draw(line, 2, sf::Lines);
+            }
+            for (int i = 0; i < this->_level.getSize().x; ++i) {
+                sf::Vertex line[] = {
+                    sf::Vertex(sf::Vector2f(i * (this->_level.getTileSize().x * std::stof(
+                            l2d_internal::utils::getConfigValue("tile_scale_x"))),0)),
+                        sf::Vertex(sf::Vector2f(i * this->_level.getTileSize().y *
+                                                std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")),
+                                                this->_level.getSize().x * (this->_level.getTileSize().x *
+                                                        std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")))))
+                };
+                this->_graphics->draw(line, 2, sf::Lines);
+            }
+            //Get the mouse position
+            std::cout << sf::Mouse::getPosition(*this->_window).x << std::endl;
+        }
+        ImGui::Render();
     }
 }
 
@@ -80,13 +102,18 @@ void l2d::Editor::update(sf::Time t) {
 
         //Config window
         if (configWindowVisible) {
+            static bool loaded = false;
+
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(500, 400));
             static std::string configureMapErrorText = "";
             ImGui::Begin("Configure map editor", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
             ImGui::Text("Map path");
-            static char mapPath[100];
+            static char mapPath[100] = "";
+            if (l2d_internal::utils::getConfigValue("map_path") != "" && !loaded) {
+                strcpy(mapPath, l2d_internal::utils::getConfigValue("map_path").c_str());
+            }
             ImGui::PushItemWidth(300);
             ImGui::InputText("", mapPath, 100);
             ImGui::PopItemWidth();
@@ -96,34 +123,33 @@ void l2d::Editor::update(sf::Time t) {
 
             ImGui::PushID("ConfigureSpriteScale");
             ImGui::Text("Sprite scale");
-            static float spriteScaleX = 1.0f;
-            static float spriteScaleY = 1.0f;
+            static float spriteScaleX = l2d_internal::utils::getConfigValue("sprite_scale_x") == "" ? 1.0f : std::stof(l2d_internal::utils::getConfigValue("sprite_scale_x"));
+            static float spriteScaleY = l2d_internal::utils::getConfigValue("sprite_scale_y") == "" ? 1.0f : std::stof(l2d_internal::utils::getConfigValue("sprite_scale_y"));
             ImGui::InputFloat("x", &spriteScaleX, 0.1f, 0.0f, 2);
             ImGui::InputFloat("y", &spriteScaleY, 0.1f, 0.0f, 2);
             ImGui::Separator();
             ImGui::PopID();
 
-
             ImGui::PushID("ConfigureTileScale");
             ImGui::Text("Tile scale");
-            static float tileScaleX = 1.0f;
-            static float tileScaleY = 1.0f;
+            static float tileScaleX = l2d_internal::utils::getConfigValue("tile_scale_x") == "" ? 1.0f : std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"));
+            static float tileScaleY = l2d_internal::utils::getConfigValue("tile_scale_y") == "" ? 1.0f : std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"));
             ImGui::InputFloat("x", &tileScaleX, 0.1f, 0.0f, 2);
             ImGui::InputFloat("y", &tileScaleY, 0.1f, 0.0f, 2);
             ImGui::Separator();
             ImGui::PopID();
 
-
             ImGui::PushID("ConfigureScreenSize");
             ImGui::Text("Screen size");
-            static int screenSizeX = 0;
-            static int screenSizeY = 0;
+            static int screenSizeX = l2d_internal::utils::getConfigValue("screen_size_x") == "" ? 1 : std::stoi(l2d_internal::utils::getConfigValue("screen_size_x"));
+            static int screenSizeY = l2d_internal::utils::getConfigValue("screen_size_y") == "" ? 1 : std::stoi(l2d_internal::utils::getConfigValue("screen_size_y"));
             ImGui::InputInt("x", &screenSizeX, 5);
             ImGui::InputInt("y", &screenSizeY, 5);
             ImGui::Separator();
             ImGui::PopID();
 
             ImGui::PopItemWidth();
+
             if (ImGui::Button("Save")) {
                 //Lots of error checking on all of the values
                 //Saving to lime2d.config
@@ -141,7 +167,6 @@ void l2d::Editor::update(sf::Time t) {
                 }
                 else {
                     configureMapErrorText = "";
-
                     //Everything checks out, so save.
                     std::ofstream os("lime2d.config");
                     if (os.is_open()) {
@@ -167,6 +192,7 @@ void l2d::Editor::update(sf::Time t) {
             }
             ImGui::Text(configureMapErrorText.c_str());
             ImGui::End();
+            loaded = true;
         }
 
         //About box
@@ -184,7 +210,7 @@ void l2d::Editor::update(sf::Time t) {
         //Map select box
         if (mapSelectBoxVisible) {
             std::stringstream ss;
-            ss << l2d::Config::MapPath << "*";
+            ss << l2d_internal::utils::getConfigValue("map_path") << "*";
             std::vector<const char*> mapFiles = l2d_internal::utils::getFilesInDirectory(ss.str());
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(500, 400));
@@ -256,10 +282,6 @@ void l2d::Editor::update(sf::Time t) {
                          ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs |
                          ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus);
             ImGui::GetWindowDrawList()->AddText(ImVec2(10, 30), ImColor(1.0f, 1.0f, 1.0f, 1.0f), "Map Editor");
-
-            //Draw the grid
-            //ImGui::GetWindowDrawList()->AddLine(ImVec2(0, 100), ImVec2(800, 100), ImColor(200, 200, 200, 255), 0.4f);
-
             ImGui::End();
         }
         else if (cbAnimationEditor) {
@@ -275,8 +297,8 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::GetWindowDrawList()->AddText(ImVec2(10, 30), ImColor(1.0f, 1.0f, 1.0f, 1.0f), "Animation Editor");
             ImGui::End();
         }
-
         this->_level.update(t.asSeconds());
+        this->_graphics->update(t.asSeconds());
     }
 }
 

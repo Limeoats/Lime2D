@@ -12,6 +12,12 @@
 #include <memory>
 
 namespace l2d_internal {
+
+    //Forward declares
+    class Camera;
+
+
+
     //Internal util functions
     namespace utils {
 
@@ -24,6 +30,7 @@ namespace l2d_internal {
 
         std::vector<const char*> getFilesInDirectory(std::string directory);
 
+        std::string getConfigValue(std::string key);
     }
 
     //Internal graphics class
@@ -31,10 +38,13 @@ namespace l2d_internal {
     public:
         Graphics(sf::RenderWindow* window);
         void draw(sf::Drawable &drawable);
+        void draw(const sf::Vertex* vertices, unsigned int vertexCount, sf::PrimitiveType type, const sf::RenderStates &states = sf::RenderStates::Default);
         sf::Texture loadImage(const std::string &filePath);
+        void update(float elapsedTime);
     private:
         std::map<std::string, sf::Texture> _spriteSheets;
         sf::RenderWindow* _window;
+        std::shared_ptr<Camera> _camera;
     };
 
     //Internal sprite class
@@ -98,7 +108,7 @@ namespace l2d_internal {
         sf::Vector2i _size;
         sf::Vector2i _tileSize;
         std::vector<Tileset> _tilesetList;
-        std::vector<Layer> _layerList;
+        std::vector<std::shared_ptr<Layer>> _layerList;
 
         std::shared_ptr<Graphics> _graphics;
     };
