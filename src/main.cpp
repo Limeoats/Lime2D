@@ -26,7 +26,7 @@ int main() {
             if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
                 window.close();
             }
-            else if (event.type == sf::Event::KeyReleased && event.key.code == l2d::Config::ShowHide) {
+            else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Equal) {
                 editor.toggle();
             }
         }

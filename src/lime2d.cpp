@@ -23,6 +23,7 @@
 
 
 #include <sstream>
+#include <fstream>
 
 #include "lime2d.h"
 
@@ -81,37 +82,90 @@ void l2d::Editor::update(sf::Time t) {
         if (configWindowVisible) {
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(500, 400));
-            ImGui::Begin("Configure Lime2D", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+            static std::string configureMapErrorText = "";
+            ImGui::Begin("Configure map editor", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
             ImGui::Text("Map path");
             static char mapPath[100];
             ImGui::PushItemWidth(300);
             ImGui::InputText("", mapPath, 100);
             ImGui::PopItemWidth();
             ImGui::Separator();
-            ImGui::Text("Sprite scale");
-            static float spriteScaleX = 0.0f;
-            static float spriteScaleY = 0.0f;
+
             ImGui::PushItemWidth(100);
+
+            ImGui::PushID("ConfigureSpriteScale");
+            ImGui::Text("Sprite scale");
+            static float spriteScaleX = 1.0f;
+            static float spriteScaleY = 1.0f;
             ImGui::InputFloat("x", &spriteScaleX, 0.1f, 0.0f, 2);
             ImGui::InputFloat("y", &spriteScaleY, 0.1f, 0.0f, 2);
-            ImGui::PopItemWidth();
             ImGui::Separator();
+            ImGui::PopID();
+
+
+            ImGui::PushID("ConfigureTileScale");
             ImGui::Text("Tile scale");
-            static float tileScaleX = 0.0f;
-            static float tileScaleY = 0.0f;
-            ImGui::PushItemWidth(100);
+            static float tileScaleX = 1.0f;
+            static float tileScaleY = 1.0f;
             ImGui::InputFloat("x", &tileScaleX, 0.1f, 0.0f, 2);
             ImGui::InputFloat("y", &tileScaleY, 0.1f, 0.0f, 2);
-            ImGui::PopItemWidth();
             ImGui::Separator();
+            ImGui::PopID();
+
+
+            ImGui::PushID("ConfigureScreenSize");
+            ImGui::Text("Screen size");
+            static int screenSizeX = 0;
+            static int screenSizeY = 0;
+            ImGui::InputInt("x", &screenSizeX, 5);
+            ImGui::InputInt("y", &screenSizeY, 5);
+            ImGui::Separator();
+            ImGui::PopID();
+
+            ImGui::PopItemWidth();
             if (ImGui::Button("Save")) {
                 //Lots of error checking on all of the values
                 //Saving to lime2d.config
+                if (strlen(mapPath) <= 0) {
+                    configureMapErrorText = "You must enter the location of your maps!";
+                }
+                else if (spriteScaleX < 0 || spriteScaleY < 0) {
+                    configureMapErrorText = "Sprite scale cannot be negative!";
+                }
+                else if (tileScaleX < 0 || tileScaleY < 0) {
+                    configureMapErrorText = "Tile scale cannot be negative!";
+                }
+                else if (screenSizeX < 0 || screenSizeY < 0) {
+                    configureMapErrorText = "Screen size cannot be negative!";
+                }
+                else {
+                    configureMapErrorText = "";
+
+                    //Everything checks out, so save.
+                    std::ofstream os("lime2d.config");
+                    if (os.is_open()) {
+                        os << "map_path=" << mapPath << "\n";
+                        os << "sprite_scale_x=" << spriteScaleX << "\n";
+                        os << "sprite_scale_y=" << spriteScaleY << "\n";
+                        os << "tile_scale_x=" << tileScaleX << "\n";
+                        os << "tile_scale_y=" << tileScaleY << "\n";
+                        os << "screen_size_x=" << screenSizeX << "\n";
+                        os << "screen_size_y=" << screenSizeY << "\n";
+                        os.close();
+                        configureMapErrorText = "Save successful.";
+                    }
+                    else {
+                        configureMapErrorText = "Unable to save file. Please refer to www.limeoats.com/lime2d for more information.";
+                    }
+                }
             }
             ImGui::SameLine();
             if (ImGui::Button("Cancel")) {
                 configWindowVisible = false;
+                configureMapErrorText = "";
             }
+            ImGui::Text(configureMapErrorText.c_str());
             ImGui::End();
         }
 
@@ -156,9 +210,6 @@ void l2d::Editor::update(sf::Time t) {
 
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
-                if (ImGui::MenuItem("Config")) {
-                    configWindowVisible = true;
-                }
                 if (ImGui::MenuItem("Exit")) {
                     this->_enabled = false; //TODO: do you want to save?
                 }
@@ -176,6 +227,9 @@ void l2d::Editor::update(sf::Time t) {
             if (ImGui::BeginMenu("Map", cbMapEditor)) {
                 if (ImGui::MenuItem("Load map")) {
                     mapSelectBoxVisible = true;
+                }
+                if (ImGui::MenuItem("Configure")) {
+                    configWindowVisible = true;
                 }
                 ImGui::EndMenu();
             }

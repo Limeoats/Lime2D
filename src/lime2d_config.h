@@ -6,7 +6,6 @@
 namespace l2d {
     class Config {
     public:
-        static const sf::Keyboard::Key ShowHide;
         static const std::string MapPath;
         static const sf::Vector2f TileScale;
         static const sf::Vector2f SpriteScale;
