@@ -179,6 +179,10 @@ void l2d::Editor::update(sf::Time t) {
                         os << "screen_size_y=" << screenSizeY << "\n";
                         os.close();
                         configureMapErrorText = "Save successful.";
+                        if (this->_level.getName() != "l2dSTART") {
+                            std::string name = this->_level.getName();
+                            this->_level.loadMap(name);
+                        }
                     }
                     else {
                         configureMapErrorText = "Unable to save file. Please refer to www.limeoats.com/lime2d for more information.";

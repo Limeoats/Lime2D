@@ -180,6 +180,9 @@ void l2d_internal::Level::loadMap(std::string &name) {
         return;
     }
 
+    this->_layerList.clear();
+    this->_tilesetList.clear();
+
     XMLDocument document;
     std::stringstream ss;
     ss << l2d_internal::utils::getConfigValue("map_path") << name << ".xml";
