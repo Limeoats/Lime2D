@@ -40,7 +40,8 @@ namespace l2d_internal {
         void draw(sf::Drawable &drawable);
         void draw(const sf::Vertex* vertices, unsigned int vertexCount, sf::PrimitiveType type, const sf::RenderStates &states = sf::RenderStates::Default);
         sf::Texture loadImage(const std::string &filePath);
-        void update(float elapsedTime);
+        void update(float elapsedTime, sf::Vector2f tileSize);
+        std::shared_ptr<Camera> getCamera();
     private:
         std::map<std::string, sf::Texture> _spriteSheets;
         sf::RenderWindow* _window;
@@ -118,7 +119,7 @@ namespace l2d_internal {
     public:
         Camera();
         sf::FloatRect getRect();
-        void update(float elapsedTime);
+        void update(float elapsedTime, sf::Vector2f tileSize);
     private:
         sf::FloatRect _rect;
         std::shared_ptr<Level> _level;

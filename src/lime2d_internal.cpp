@@ -80,8 +80,12 @@ sf::Texture l2d_internal::Graphics::loadImage(const std::string &filePath) {
     return this->_spriteSheets[filePath];
 }
 
-void l2d_internal::Graphics::update(float elapsedTime) {
-    this->_camera->update(elapsedTime);
+std::shared_ptr<l2d_internal::Camera> l2d_internal::Graphics::getCamera() {
+    return this->_camera;
+}
+
+void l2d_internal::Graphics::update(float elapsedTime, sf::Vector2f tileSize) {
+    this->_camera->update(elapsedTime, tileSize);
 }
 
 /*
@@ -259,7 +263,7 @@ void l2d_internal::Level::loadMap(std::string &name) {
                                     break;
                                 }
                             }
-                            sf::Vector2i srcPos((tile % tlsSize.x - 1) * this->_tileSize.x, tile <= tlsSize.x ? 0 : (tile % tlsSize.x) * this->_tileSize.y);
+                            sf::Vector2i srcPos(((tile % (tlsSize.x + 1)) * this->_tileSize.x) - (tile <= tlsSize.x ? this->_tileSize.x : 0), tile <= tlsSize.x ? 0 : (tile % tlsSize.x) * this->_tileSize.y);
                             sf::Vector2f destPos((posX - 1) * this->_tileSize.x * std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")),
                                                  (posY - 1) * this->_tileSize.y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")));
                             l->Tiles.push_back(std::make_shared<Tile>(this->_graphics, tlsPath, srcPos, this->_tileSize, destPos, tileset));
@@ -285,15 +289,29 @@ void l2d_internal::Level::update(float elapsedTime) {
 }
 
 l2d_internal::Camera::Camera() {
-    this->_rect = {0.0f, -20.0f, std::stof(l2d_internal::utils::getConfigValue("screen_size_x")), std::stof(l2d_internal::utils::getConfigValue("screen_size_y")) };
+    this->_rect = {-1.0f, -20.0f, std::stof(l2d_internal::utils::getConfigValue("screen_size_x")), std::stof(l2d_internal::utils::getConfigValue("screen_size_y")) };
 }
 
 sf::FloatRect l2d_internal::Camera::getRect() {
     return this->_rect;
 }
 
-void l2d_internal::Camera::update(float elapsedTime) {
+void l2d_internal::Camera::update(float elapsedTime, sf::Vector2f tileSize) {
     (void)elapsedTime;
+    float amountToMoveX = (tileSize.x * std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) / 4.0f;
+    float amountToMoveY = (tileSize.y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))) / 4.0f;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+        this->_rect.top += amountToMoveY;
+    }
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+        this->_rect.top -= amountToMoveY;
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+        this->_rect.left -= amountToMoveX;
+    }
+    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+        this->_rect.left += amountToMoveX;
+    }
 
 //    this->_rect.left = std::max(this->_rect.left, 0.0f);
 //    this->_rect.top = std::max(this->_rect.top, -40.0f);

@@ -37,7 +37,6 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
 {
     this->_enabled = enabled;
     ImGui::SFML::Init(*window);
-
     this->_window = window;
 }
 
@@ -54,30 +53,47 @@ void l2d::Editor::render() {
         this->_level.draw();
         //Draw the grid lines if appropriate
         if (this->_level.getName() != "l2dSTART") {
-            for (int i = 0; i < this->_level.getSize().y; ++i) {
+            //Horizontal lines
+            for (int i = 0; i < this->_level.getSize().y + 1; ++i) {
                 sf::Vertex line[] = {
                         sf::Vertex(sf::Vector2f(0, i * (this->_level.getTileSize().y * std::stof(
                                 l2d_internal::utils::getConfigValue("tile_scale_y"))))),
                         sf::Vertex(sf::Vector2f(this->_level.getSize().x * this->_level.getTileSize().x *
                                                 std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")),
-                                                i * (this->_level.getTileSize().y *
+                                                i  * (this->_level.getTileSize().y *
                                                      std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")))))
                 };
                 this->_graphics->draw(line, 2, sf::Lines);
             }
-            for (int i = 0; i < this->_level.getSize().x; ++i) {
+            //Vertical lines
+            for (int i = 0; i < this->_level.getSize().x + 1; ++i) {
                 sf::Vertex line[] = {
                     sf::Vertex(sf::Vector2f(i * (this->_level.getTileSize().x * std::stof(
                             l2d_internal::utils::getConfigValue("tile_scale_x"))),0)),
-                        sf::Vertex(sf::Vector2f(i * this->_level.getTileSize().y *
-                                                std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")),
-                                                this->_level.getSize().x * (this->_level.getTileSize().x *
-                                                        std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")))))
+                        sf::Vertex(sf::Vector2f(i * this->_level.getTileSize().x *
+                                                std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")),
+                                                this->_level.getSize().y * (this->_level.getTileSize().y *
+                                                        std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")))))
                 };
                 this->_graphics->draw(line, 2, sf::Lines);
             }
-            //Get the mouse position
-            std::cout << sf::Mouse::getPosition(*this->_window).x << std::endl;
+            //Get the mouse position and draw a square or something around the correct grid tile
+            sf::Vector2f mousePos(sf::Mouse::getPosition(*this->_window).x + this->_graphics->getCamera()->getRect().left,
+            sf::Mouse::getPosition(*this->_window).y + this->_graphics->getCamera()->getRect().top);
+
+            if (mousePos.x >= 0 && mousePos.x <= (this->_level.getSize().x * this->_level.getTileSize().x * std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) &&
+                    mousePos.y >= 0 && mousePos.y <= (this->_level.getSize().y * this->_level.getTileSize().y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")))) {
+                sf::RectangleShape rectangle;
+                rectangle.setSize(sf::Vector2f(this->_level.getTileSize().x * std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")) - 1,
+                                               this->_level.getTileSize().y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")) - 1));
+                rectangle.setOutlineColor(sf::Color::Magenta);
+                rectangle.setOutlineThickness(2);
+                rectangle.setPosition((mousePos.x - ((int)mousePos.x % (int)(this->_level.getTileSize().x * std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))))),
+                                       mousePos.y - ((int)mousePos.y % (int)(this->_level.getTileSize().y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")))));
+                rectangle.setFillColor(sf::Color::Transparent);
+                this->_window->draw(rectangle);
+            }
+
         }
         ImGui::Render();
     }
@@ -97,6 +113,9 @@ void l2d::Editor::update(sf::Time t) {
         static bool aboutBoxVisible = false;
         static bool mapSelectBoxVisible = false;
         static bool configWindowVisible = false;
+        static bool mapObjectsBoxVisible = false;
+        static bool tilesetsBoxVisible = false;
+        static bool propertiesBoxVisible = false;
 
         static int mapSelectIndex = 0;
 
@@ -107,7 +126,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(500, 400));
             static std::string configureMapErrorText = "";
-            ImGui::Begin("Configure map editor", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::Begin("Configure map editor", nullptr, ImVec2(500,400), 100.0f, ImGuiWindowFlags_AlwaysAutoResize);
 
             ImGui::Text("Map path");
             static char mapPath[100] = "";
@@ -202,7 +221,7 @@ void l2d::Editor::update(sf::Time t) {
         //About box
         if (aboutBoxVisible) {
             ImGui::SetNextWindowSize(ImVec2(300, 200));
-            ImGui::Begin("About Lime2D", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::Begin("About Lime2D", nullptr, ImVec2(300, 200), 100.0f, ImGuiWindowFlags_AlwaysAutoResize);
             ImGui::Text("Lime2D Editor\n\nBy: Limeoats\nCopyright \u00a9 2016");
             ImGui::Separator();
             if (ImGui::Button("Close")) {
@@ -218,7 +237,7 @@ void l2d::Editor::update(sf::Time t) {
             std::vector<const char*> mapFiles = l2d_internal::utils::getFilesInDirectory(ss.str());
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(500, 400));
-            ImGui::Begin("Select a map", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::Begin("Select a map", nullptr, ImVec2(500, 400), 100.0f, ImGuiWindowFlags_AlwaysAutoResize);
             ImGui::Text("Select a map from the list below.");
             ImGui::Separator();
             ImGui::PushItemWidth(-1);
@@ -230,6 +249,9 @@ void l2d::Editor::update(sf::Time t) {
                 std::vector<std::string> fileNameSplit = l2d_internal::utils::split(fullNameSplit.back(), '.');
                 this->_level.loadMap(fileNameSplit.front());
                 mapSelectBoxVisible = false;
+                mapObjectsBoxVisible = true;
+                tilesetsBoxVisible = true;
+                propertiesBoxVisible = true;
             }
             ImGui::SameLine();
             if (ImGui::Button("Cancel")) {
@@ -274,19 +296,41 @@ void l2d::Editor::update(sf::Time t) {
             }
             ImGui::EndMainMenuBar();
         }
+        //Map editor info box
+        if (this->_level.getName() != "l2dSTART") {
+            ImGui::SetNextWindowPos(
+                        ImVec2(std::stof(l2d_internal::utils::getConfigValue("screen_size_x")) - 260, 40),
+                        ImGuiSetCond_Appearing);
+            ImGui::SetNextWindowSize(ImVec2(200, 400), ImGuiSetCond_Appearing);
+            ImGui::Begin("Map editor");
+            if (ImGui::CollapsingHeader("Map objects", ImGuiTreeNodeFlags_CollapsingHeader)) {
+                ImGui::Text("Box with all existing map objects will go here!");
+                ImGui::Separator();
+            }
+            if (ImGui::CollapsingHeader("Tilesets", ImGuiTreeNodeFlags_CollapsingHeader)) {
+                ImGui::Text("Tileset stuff will be here!");
+                ImGui::Separator();
+            }
+            if (ImGui::CollapsingHeader("Properties", ImGuiTreeNodeFlags_CollapsingHeader)) {
+                ImGui::Text("Properties!!!!");
+                ImGui::Separator();
+            }
+            ImGui::End();
+        }
+
 
         if (cbMapEditor) {
             /*
              * Map Editor
              */
-            ImGui::Begin("Background", nullptr, ImGui::GetIO().DisplaySize, 0.0f,
-                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-                         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
-                         ImGuiWindowFlags_NoCollapse |
-                         ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs |
-                         ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus);
-            ImGui::GetWindowDrawList()->AddText(ImVec2(10, 30), ImColor(1.0f, 1.0f, 1.0f, 1.0f), "Map Editor");
-            ImGui::End();
+//            ImGui::Begin("Background", nullptr, ImGui::GetIO().DisplaySize, 0.0f,
+//                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+//                         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
+//                         ImGuiWindowFlags_NoCollapse |
+//                         ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs |
+//                         ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus);
+//            ImGui::GetWindowDrawList()->AddText(ImVec2(10, 30), ImColor(1.0f, 1.0f, 1.0f, 1.0f), "Map Editor");
+//            ImGui::End();
         }
         else if (cbAnimationEditor) {
             /*
@@ -302,7 +346,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::End();
         }
         this->_level.update(t.asSeconds());
-        this->_graphics->update(t.asSeconds());
+        this->_graphics->update(t.asSeconds(), sf::Vector2f(this->_level.getTileSize()));
     }
 }
 
