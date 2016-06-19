@@ -17,7 +17,6 @@ namespace l2d_internal {
     class Camera;
 
 
-
     //Internal util functions
     namespace utils {
 
@@ -40,7 +39,7 @@ namespace l2d_internal {
         void draw(sf::Drawable &drawable);
         void draw(const sf::Vertex* vertices, unsigned int vertexCount, sf::PrimitiveType type, const sf::RenderStates &states = sf::RenderStates::Default);
         sf::Texture loadImage(const std::string &filePath);
-        void update(float elapsedTime, sf::Vector2f tileSize);
+        void update(float elapsedTime, sf::Vector2f tileSize, bool windowHasFocus);
         std::shared_ptr<Camera> getCamera();
     private:
         std::map<std::string, sf::Texture> _spriteSheets;
@@ -119,7 +118,7 @@ namespace l2d_internal {
     public:
         Camera();
         sf::FloatRect getRect();
-        void update(float elapsedTime, sf::Vector2f tileSize);
+        void update(float elapsedTime, sf::Vector2f tileSize, bool windowHasFocus);
     private:
         sf::FloatRect _rect;
         std::shared_ptr<Level> _level;

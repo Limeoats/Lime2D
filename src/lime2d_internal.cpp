@@ -84,8 +84,8 @@ std::shared_ptr<l2d_internal::Camera> l2d_internal::Graphics::getCamera() {
     return this->_camera;
 }
 
-void l2d_internal::Graphics::update(float elapsedTime, sf::Vector2f tileSize) {
-    this->_camera->update(elapsedTime, tileSize);
+void l2d_internal::Graphics::update(float elapsedTime, sf::Vector2f tileSize, bool windowHasFocus) {
+    this->_camera->update(elapsedTime, tileSize, windowHasFocus);
 }
 
 /*
@@ -296,21 +296,23 @@ sf::FloatRect l2d_internal::Camera::getRect() {
     return this->_rect;
 }
 
-void l2d_internal::Camera::update(float elapsedTime, sf::Vector2f tileSize) {
+void l2d_internal::Camera::update(float elapsedTime, sf::Vector2f tileSize, bool windowHasFocus) {
     (void)elapsedTime;
     float amountToMoveX = (tileSize.x * std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) / 4.0f;
     float amountToMoveY = (tileSize.y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))) / 4.0f;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-        this->_rect.top += amountToMoveY;
-    }
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-        this->_rect.top -= amountToMoveY;
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-        this->_rect.left -= amountToMoveX;
-    }
-    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-        this->_rect.left += amountToMoveX;
+    if (windowHasFocus) {
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+            this->_rect.top += amountToMoveY;
+        }
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+            this->_rect.top -= amountToMoveY;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+            this->_rect.left -= amountToMoveX;
+        }
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+            this->_rect.left += amountToMoveX;
+        }
     }
 
 //    this->_rect.left = std::max(this->_rect.left, 0.0f);

@@ -46,6 +46,12 @@ void l2d::Editor::toggle() {
 
 void l2d::Editor::processEvent(sf::Event &event) {
     ImGui::SFML::ProcessEvent(event);
+    if (event.type == sf::Event::GainedFocus) {
+        this->_windowHasFocus = true;
+    }
+    if (event.type == sf::Event::LostFocus) {
+        this->_windowHasFocus = false;
+    }
 }
 
 void l2d::Editor::render() {
@@ -346,7 +352,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::End();
         }
         this->_level.update(t.asSeconds());
-        this->_graphics->update(t.asSeconds(), sf::Vector2f(this->_level.getTileSize()));
+        this->_graphics->update(t.asSeconds(), sf::Vector2f(this->_level.getTileSize()), this->_windowHasFocus);
     }
 }
 
