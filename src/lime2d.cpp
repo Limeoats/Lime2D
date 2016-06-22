@@ -43,6 +43,12 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
 
 void l2d::Editor::toggle() {
     this->_enabled = !this->_enabled;
+    if (this->_enabled) {
+        this->_window->setSize(sf::Vector2u(950, 600));
+    }
+    else {
+        this->_window->setSize(sf::Vector2u(800, 600));
+    }
 }
 
 void l2d::Editor::processEvent(sf::Event &event) {
