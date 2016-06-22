@@ -33,7 +33,8 @@
 
 l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
     _graphics(new l2d_internal::Graphics(window)),
-    _level(this->_graphics, "l2dSTART")
+    _level(this->_graphics, "l2dSTART"),
+    _showGridLines(true)
 {
     this->_enabled = enabled;
     ImGui::SFML::Init(*window);
@@ -59,45 +60,61 @@ void l2d::Editor::render() {
         this->_level.draw();
         //Draw the grid lines if appropriate
         if (this->_level.getName() != "l2dSTART") {
-            //Horizontal lines
-            for (int i = 0; i < this->_level.getSize().y + 1; ++i) {
-                sf::Vertex line[] = {
-                        sf::Vertex(sf::Vector2f(0, i * (this->_level.getTileSize().y * std::stof(
-                                l2d_internal::utils::getConfigValue("tile_scale_y"))))),
-                        sf::Vertex(sf::Vector2f(this->_level.getSize().x * this->_level.getTileSize().x *
-                                                std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")),
-                                                i  * (this->_level.getTileSize().y *
-                                                     std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")))))
-                };
-                this->_graphics->draw(line, 2, sf::Lines);
-            }
-            //Vertical lines
-            for (int i = 0; i < this->_level.getSize().x + 1; ++i) {
-                sf::Vertex line[] = {
-                    sf::Vertex(sf::Vector2f(i * (this->_level.getTileSize().x * std::stof(
-                            l2d_internal::utils::getConfigValue("tile_scale_x"))),0)),
-                        sf::Vertex(sf::Vector2f(i * this->_level.getTileSize().x *
-                                                std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")),
-                                                this->_level.getSize().y * (this->_level.getTileSize().y *
-                                                        std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")))))
-                };
-                this->_graphics->draw(line, 2, sf::Lines);
-            }
-            //Get the mouse position and draw a square or something around the correct grid tile
-            sf::Vector2f mousePos(sf::Mouse::getPosition(*this->_window).x + this->_graphics->getCamera()->getRect().left,
-            sf::Mouse::getPosition(*this->_window).y + this->_graphics->getCamera()->getRect().top);
+            if (this->_showGridLines) {
+                //Horizontal lines
+                for (int i = 0; i < this->_level.getSize().y + 1; ++i) {
+                    sf::Vertex line[] = {
+                            sf::Vertex(sf::Vector2f(0, i * (this->_level.getTileSize().y * std::stof(
+                                    l2d_internal::utils::getConfigValue("tile_scale_y"))))),
+                            sf::Vertex(sf::Vector2f(this->_level.getSize().x * this->_level.getTileSize().x *
+                                                    std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")),
+                                                    i * (this->_level.getTileSize().y *
+                                                         std::stof(
+                                                                 l2d_internal::utils::getConfigValue("tile_scale_y")))))
+                    };
+                    this->_graphics->draw(line, 2, sf::Lines);
+                }
+                //Vertical lines
+                for (int i = 0; i < this->_level.getSize().x + 1; ++i) {
+                    sf::Vertex line[] = {
+                            sf::Vertex(sf::Vector2f(i * (this->_level.getTileSize().x * std::stof(
+                                    l2d_internal::utils::getConfigValue("tile_scale_x"))), 0)),
+                            sf::Vertex(sf::Vector2f(i * this->_level.getTileSize().x *
+                                                    std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")),
+                                                    this->_level.getSize().y * (this->_level.getTileSize().y *
+                                                                                std::stof(
+                                                                                        l2d_internal::utils::getConfigValue(
+                                                                                                "tile_scale_y")))))
+                    };
+                    this->_graphics->draw(line, 2, sf::Lines);
+                }
+                //Get the mouse position and draw a square or something around the correct grid tile
+                sf::Vector2f mousePos(
+                        sf::Mouse::getPosition(*this->_window).x + this->_graphics->getCamera()->getRect().left,
+                        sf::Mouse::getPosition(*this->_window).y + this->_graphics->getCamera()->getRect().top);
 
-            if (mousePos.x >= 0 && mousePos.x <= (this->_level.getSize().x * this->_level.getTileSize().x * std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) &&
-                    mousePos.y >= 0 && mousePos.y <= (this->_level.getSize().y * this->_level.getTileSize().y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")))) {
-                sf::RectangleShape rectangle;
-                rectangle.setSize(sf::Vector2f(this->_level.getTileSize().x * std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")) - 1,
-                                               this->_level.getTileSize().y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")) - 1));
-                rectangle.setOutlineColor(sf::Color::Magenta);
-                rectangle.setOutlineThickness(2);
-                rectangle.setPosition((mousePos.x - ((int)mousePos.x % (int)(this->_level.getTileSize().x * std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))))),
-                                       mousePos.y - ((int)mousePos.y % (int)(this->_level.getTileSize().y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")))));
-                rectangle.setFillColor(sf::Color::Transparent);
-                this->_window->draw(rectangle);
+                if (mousePos.x >= 0 && mousePos.x <= (this->_level.getSize().x * this->_level.getTileSize().x *
+                                                      std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) &&
+                    mousePos.y >= 0 && mousePos.y <= (this->_level.getSize().y * this->_level.getTileSize().y *
+                                                      std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")))) {
+                    sf::RectangleShape rectangle;
+                    rectangle.setSize(sf::Vector2f(this->_level.getTileSize().x *
+                                                   std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")) - 1,
+                                                   this->_level.getTileSize().y *
+                                                   std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")) - 1));
+                    rectangle.setOutlineColor(sf::Color::Magenta);
+                    rectangle.setOutlineThickness(2);
+                    rectangle.setPosition((mousePos.x - ((int) mousePos.x % (int) (this->_level.getTileSize().x *
+                                                                                   std::stof(
+                                                                                           l2d_internal::utils::getConfigValue(
+                                                                                                   "tile_scale_x"))))),
+                                          mousePos.y - ((int) mousePos.y % (int) (this->_level.getTileSize().y *
+                                                                                  std::stof(
+                                                                                          l2d_internal::utils::getConfigValue(
+                                                                                                  "tile_scale_y")))));
+                    rectangle.setFillColor(sf::Color::Transparent);
+                    this->_window->draw(rectangle);
+                }
             }
 
         }
@@ -116,12 +133,15 @@ void l2d::Editor::update(sf::Time t) {
          */
         static bool cbMapEditor = false;
         static bool cbAnimationEditor = false;
+        static bool cbShowGridLines = true;
         static bool aboutBoxVisible = false;
         static bool mapSelectBoxVisible = false;
         static bool configWindowVisible = false;
         static bool mapObjectsBoxVisible = false;
         static bool tilesetsBoxVisible = false;
         static bool propertiesBoxVisible = false;
+
+        static std::vector<std::shared_ptr<sf::Texture>> tilesets;
 
         static int mapSelectIndex = 0;
 
@@ -226,7 +246,7 @@ void l2d::Editor::update(sf::Time t) {
 
         //About box
         if (aboutBoxVisible) {
-            ImGui::SetNextWindowSize(ImVec2(300, 200));
+            ImGui::SetNextWindowSize(ImVec2(300, 140));
             ImGui::Begin("About Lime2D", nullptr, ImVec2(300, 200), 100.0f, ImGuiWindowFlags_AlwaysAutoResize);
             ImGui::Text("Lime2D Editor\n\nBy: Limeoats\nCopyright \u00a9 2016");
             ImGui::Separator();
@@ -289,6 +309,12 @@ void l2d::Editor::update(sf::Time t) {
                 if (ImGui::MenuItem("Configure")) {
                     configWindowVisible = true;
                 }
+                if (this->_level.getName() != "l2dSTART") {
+                    ImGui::Separator();
+                    if (ImGui::Checkbox("Show grid lines", &cbShowGridLines)) {
+                        this->_showGridLines = cbShowGridLines;
+                    }
+                }
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Animation", cbAnimationEditor)) {
@@ -314,7 +340,21 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::Separator();
             }
             if (ImGui::CollapsingHeader("Tilesets", ImGuiTreeNodeFlags_CollapsingHeader)) {
-                ImGui::Text("Tileset stuff will be here!");
+                bool exists = false;
+                auto texture = std::make_shared<sf::Texture>(this->_graphics->loadImage("content/tilesets/outside.png"));
+                for (int i = 0; i < tilesets.size(); ++i) {
+                    if (tilesets[i].get() == texture.get()) {
+                        exists = true;
+                        break;
+                    }
+                }
+                if (!exists) {
+                    tilesets.push_back(std::make_shared<sf::Texture>(this->_graphics->loadImage("content/tilesets/outside.png")));
+                }
+                for (std::shared_ptr<sf::Texture> &s : tilesets) {
+                    ImGui::Image(*s);
+                }
+
                 ImGui::Separator();
             }
             if (ImGui::CollapsingHeader("Properties", ImGuiTreeNodeFlags_CollapsingHeader)) {

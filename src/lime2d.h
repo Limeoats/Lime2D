@@ -23,10 +23,10 @@ namespace l2d {
     private:
         bool _enabled;
         bool _windowHasFocus;
+        bool _showGridLines;
         sf::RenderWindow* _window;
         std::shared_ptr<l2d_internal::Graphics>  _graphics;
         l2d_internal::Level _level;
-
     };
 }
 
