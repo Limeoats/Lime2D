@@ -383,6 +383,9 @@ void l2d::Editor::update(sf::Time t) {
                     showSpecificTileProperties = false;
                     tilePropertiesWindowVisible = false;
                 }
+                if (ImGui::Button("SAVE TEST")) {
+                    this->_level.saveMap("mapTEST");
+                }
                 ImGui::End();
             }
         }

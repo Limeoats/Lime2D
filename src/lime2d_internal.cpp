@@ -302,8 +302,17 @@ void l2d_internal::Level::loadMap(std::string &name) {
     }
 }
 
-void l2d_internal::Level::saveMap(std::string &name) {
-
+void l2d_internal::Level::saveMap(std::string name) {
+    XMLDocument document;
+    std::stringstream ss;
+    ss << l2d_internal::utils::getConfigValue("map_path") << name << ".xml";
+    document.LoadFile(ss.str().c_str());
+    document.Clear();
+    XMLDeclaration* pDeclaration = document.NewDeclaration("xml version=\"1.0\" encoding=\"UTF-8\"");
+    document.InsertFirstChild(pDeclaration);
+    XMLNode * pMap = document.NewElement("map");
+    document.InsertAfterChild(pDeclaration, pMap);
+    document.SaveFile(ss.str().c_str());
 }
 
 void l2d_internal::Level::draw() {

@@ -100,7 +100,7 @@ namespace l2d_internal {
         Level(std::shared_ptr<Graphics> graphics, std::string name);
         ~Level();
         void loadMap(std::string &name);
-        void saveMap(std::string &name);
+        void saveMap(std::string name);
         void draw();
         void update(float elapsedTime);
 
