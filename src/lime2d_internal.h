@@ -50,6 +50,7 @@ namespace l2d_internal {
     //Internal sprite class
     class Sprite {
     public:
+        Sprite();
         Sprite(std::shared_ptr<Graphics>, const std::string &filePath, sf::Vector2i srcPos, sf::Vector2i size, sf::Vector2f destPos);
         Sprite(const Sprite&) = delete;
         Sprite& operator=(const Sprite&) = delete;
@@ -65,6 +66,9 @@ namespace l2d_internal {
     class Tile : public Sprite {
     public:
         Tile(std::shared_ptr<Graphics> graphics, std::string &filePath, sf::Vector2i srcPos, sf::Vector2i size, sf::Vector2f destPos, int tilesetId);
+        Tile(const Tile& tile);
+        sf::Sprite getSprite() const;
+        sf::Texture getTexture() const;
         virtual ~Tile();
         virtual void update(float elapsedTime);
         virtual void draw();
@@ -86,7 +90,6 @@ namespace l2d_internal {
     class Layer {
     public:
         int Id;
-        std::string Name;
         std::vector<std::shared_ptr<Tile>> Tiles;
         void draw();
     };
@@ -97,12 +100,16 @@ namespace l2d_internal {
         Level(std::shared_ptr<Graphics> graphics, std::string name);
         ~Level();
         void loadMap(std::string &name);
+        void saveMap(std::string &name);
         void draw();
         void update(float elapsedTime);
 
         std::string getName() const;
         sf::Vector2i getSize() const;
         sf::Vector2i getTileSize() const;
+
+        std::vector<Tileset> getTilesetList();
+        std::vector<std::shared_ptr<Layer>> getLayerList();
     private:
         std::string _name;
         sf::Vector2i _size;

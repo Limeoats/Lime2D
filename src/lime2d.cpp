@@ -20,6 +20,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <algorithm>
 
 #include "lime2d.h"
 
@@ -43,12 +44,6 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
 
 void l2d::Editor::toggle() {
     this->_enabled = !this->_enabled;
-    if (this->_enabled) {
-        this->_window->setSize(sf::Vector2u(950, 600));
-    }
-    else {
-        this->_window->setSize(sf::Vector2u(800, 600));
-    }
 }
 
 void l2d::Editor::processEvent(sf::Event &event) {
@@ -122,7 +117,6 @@ void l2d::Editor::render() {
                     this->_window->draw(rectangle);
                 }
             }
-
         }
         ImGui::Render();
     }
@@ -143,13 +137,17 @@ void l2d::Editor::update(sf::Time t) {
         static bool aboutBoxVisible = false;
         static bool mapSelectBoxVisible = false;
         static bool configWindowVisible = false;
-        static bool mapObjectsBoxVisible = false;
-        static bool tilesetsBoxVisible = false;
-        static bool propertiesBoxVisible = false;
+        static bool tilePropertiesWindowVisible = false;
+
+        static sf::Vector2f mousePos(0.0f, 0.0f);
 
         static std::vector<std::shared_ptr<sf::Texture>> tilesets;
 
         static int mapSelectIndex = 0;
+
+        static bool showSpecificTileProperties = false;
+        static std::shared_ptr<l2d_internal::Tile> showSpecificTilePropertiesTile = nullptr;
+        static std::shared_ptr<l2d_internal::Layer> showSpecificTilePropertiesLayer = nullptr;
 
         //Config window
         if (configWindowVisible) {
@@ -281,9 +279,6 @@ void l2d::Editor::update(sf::Time t) {
                 std::vector<std::string> fileNameSplit = l2d_internal::utils::split(fullNameSplit.back(), '.');
                 this->_level.loadMap(fileNameSplit.front());
                 mapSelectBoxVisible = false;
-                mapObjectsBoxVisible = true;
-                tilesetsBoxVisible = true;
-                propertiesBoxVisible = true;
             }
             ImGui::SameLine();
             if (ImGui::Button("Cancel")) {
@@ -334,40 +329,62 @@ void l2d::Editor::update(sf::Time t) {
             }
             ImGui::EndMainMenuBar();
         }
-        //Map editor info box
-        if (this->_level.getName() != "l2dSTART") {
-            ImGui::SetNextWindowPos(
-                        ImVec2(std::stof(l2d_internal::utils::getConfigValue("screen_size_x")) - 260, 40),
-                        ImGuiSetCond_Appearing);
-            ImGui::SetNextWindowSize(ImVec2(200, 400), ImGuiSetCond_Appearing);
-            ImGui::Begin("Map editor");
-            if (ImGui::CollapsingHeader("Map objects", ImGuiTreeNodeFlags_CollapsingHeader)) {
-                ImGui::Text("Box with all existing map objects will go here!");
-                ImGui::Separator();
-            }
-            if (ImGui::CollapsingHeader("Tilesets", ImGuiTreeNodeFlags_CollapsingHeader)) {
-                bool exists = false;
-                auto texture = std::make_shared<sf::Texture>(this->_graphics->loadImage("content/tilesets/outside.png"));
-                for (int i = 0; i < tilesets.size(); ++i) {
-                    if (tilesets[i].get() == texture.get()) {
-                        exists = true;
-                        break;
-                    }
-                }
-                if (!exists) {
-                    tilesets.push_back(std::make_shared<sf::Texture>(this->_graphics->loadImage("content/tilesets/outside.png")));
-                }
-                for (std::shared_ptr<sf::Texture> &s : tilesets) {
-                    ImGui::Image(*s);
-                }
 
-                ImGui::Separator();
+        if (this->_level.getName() != "l2dSTART") {
+            if (ImGui::IsMouseClicked(1)) {
+                mousePos = sf::Vector2f(
+                        sf::Mouse::getPosition(*this->_window).x + this->_graphics->getCamera()->getRect().left,
+                        sf::Mouse::getPosition(*this->_window).y + this->_graphics->getCamera()->getRect().top);
+                ImGui::OpenPopup("right click on tile");
             }
-            if (ImGui::CollapsingHeader("Properties", ImGuiTreeNodeFlags_CollapsingHeader)) {
-                ImGui::Text("Properties!!!!");
+            if (ImGui::BeginPopup("right click on tile")) {
+                if (ImGui::MenuItem("Properties")) {
+                    tilePropertiesWindowVisible = true;
+                }
                 ImGui::Separator();
+                ImGui::EndPopup();
             }
-            ImGui::End();
+
+            //Tile info window
+            if (tilePropertiesWindowVisible) {
+                ImGui::SetNextWindowPosCenter();
+                ImGui::SetNextWindowSize(ImVec2(300, 200));
+                ImGui::Begin("Properties", nullptr, ImVec2(300, 200), 100.0f, ImGuiWindowFlags_AlwaysAutoResize);
+
+                sf::Vector2f tilePos(mousePos.x - ((int) mousePos.x % (int) (this->_level.getTileSize().x * std::stof(
+                        l2d_internal::utils::getConfigValue("tile_scale_x")))),
+                                     (mousePos.y - ((int) mousePos.y % (int) (this->_level.getTileSize().y *
+                                                                              std::stof(
+                                                                                      l2d_internal::utils::getConfigValue(
+                                                                                              "tile_scale_y"))))));
+                ImGui::Text("put a picture of the tile here");
+                for(int i = 0; i < this->_level.getLayerList().size(); ++i) {
+                    std::for_each(this->_level.getLayerList()[i].get()->Tiles.begin(), this->_level.getLayerList()[i].get()->Tiles.end(), [&](const std::shared_ptr<l2d_internal::Tile> &tile) {
+                        if (tile.get()->getSprite().getPosition() == tilePos) {
+                            if (i > 0) {
+                                ImGui::SameLine();
+                            }
+                            if (ImGui::ImageButton(tile->getSprite(), sf::Vector2f(32.0f, 32.0f), 1, sf::Color::Transparent)) {
+                                showSpecificTilePropertiesTile = std::make_shared<l2d_internal::Tile>(*tile.get());
+                                showSpecificTilePropertiesLayer = std::make_shared<l2d_internal::Layer>(*this->_level.getLayerList()[i].get());
+                                showSpecificTileProperties = true;
+                            }
+                        }
+                    });
+                }
+                ImGui::Separator();
+                ImGui::Text("Position: %d, %d", (int)tilePos.x, (int)tilePos.y);
+                ImGui::Separator();
+                if (showSpecificTileProperties) {
+                    ImGui::Image(showSpecificTilePropertiesTile->getSprite(), sf::Vector2f(32.0f, 32.0f));
+                    ImGui::Text("Layer: %d", showSpecificTilePropertiesLayer->Id);
+                }
+                if (ImGui::Button("Close")) {
+                    showSpecificTileProperties = false;
+                    tilePropertiesWindowVisible = false;
+                }
+                ImGui::End();
+            }
         }
 
 

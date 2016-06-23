@@ -92,6 +92,8 @@ void l2d_internal::Graphics::update(float elapsedTime, sf::Vector2f tileSize, bo
  * Sprite
  */
 
+l2d_internal::Sprite::Sprite() { }
+
 l2d_internal::Sprite::Sprite(std::shared_ptr<Graphics> graphics, const std::string &filePath, sf::Vector2i srcPos, sf::Vector2i size,
                             sf::Vector2f destPos) {
     this->_texture = graphics->loadImage(filePath);
@@ -121,7 +123,20 @@ l2d_internal::Tile::Tile(std::shared_ptr<Graphics> graphics, std::string &filePa
     this->_sprite.setScale(std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")), std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")));
 }
 
+l2d_internal::Tile::Tile(const Tile &tile) {
+    this->_sprite = tile.getSprite();
+    this->_tilesetId = tile._tilesetId;
+}
+
 l2d_internal::Tile::~Tile() {}
+
+sf::Sprite l2d_internal::Tile::getSprite() const {
+    return this->_sprite;
+}
+
+sf::Texture l2d_internal::Tile::getTexture() const {
+    return this->_texture;
+}
 
 void l2d_internal::Tile::update(float elapsedTime) {
     Sprite::update(elapsedTime);
@@ -176,6 +191,14 @@ sf::Vector2i l2d_internal::Level::getSize() const {
 
 sf::Vector2i l2d_internal::Level::getTileSize() const {
     return this->_tileSize;
+}
+
+std::vector<l2d_internal::Tileset> l2d_internal::Level::getTilesetList() {
+    return this->_tilesetList;
+}
+
+std::vector<std::shared_ptr<l2d_internal::Layer>> l2d_internal::Level::getLayerList() {
+    return this->_layerList;
 }
 
 void l2d_internal::Level::loadMap(std::string &name) {
@@ -250,6 +273,7 @@ void l2d_internal::Level::loadMap(std::string &name) {
                             }
                             if (l == nullptr) {
                                 l = std::make_shared<Layer>();
+                                l->Id = layer;
                                 this->_layerList.push_back(l);
                             }
 
@@ -276,6 +300,10 @@ void l2d_internal::Level::loadMap(std::string &name) {
             pTiles = pTiles->NextSiblingElement("tiles");
         }
     }
+}
+
+void l2d_internal::Level::saveMap(std::string &name) {
+
 }
 
 void l2d_internal::Level::draw() {
