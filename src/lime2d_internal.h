@@ -65,16 +65,18 @@ namespace l2d_internal {
     //Internal Tile class
     class Tile : public Sprite {
     public:
-        Tile(std::shared_ptr<Graphics> graphics, std::string &filePath, sf::Vector2i srcPos, sf::Vector2i size, sf::Vector2f destPos, int tilesetId);
+        Tile(std::shared_ptr<Graphics> graphics, std::string &filePath, sf::Vector2i srcPos, sf::Vector2i size, sf::Vector2f destPos, int tilesetId, int layer);
         Tile(const Tile& tile);
         sf::Sprite getSprite() const;
         sf::Texture getTexture() const;
         int getTilesetId() const;
+        int getLayer() const;
         virtual ~Tile();
         virtual void update(float elapsedTime);
         virtual void draw();
     private:
         int _tilesetId;
+        int _layer;
     };
 
     //Internal Tileset class
