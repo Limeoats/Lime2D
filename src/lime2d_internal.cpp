@@ -348,14 +348,14 @@ void l2d_internal::Level::saveMap(std::string name) {
     for (std::shared_ptr<Layer> &layer : this->_layerList) {
         allTiles.insert(allTiles.end(), layer.get()->Tiles.begin(), layer.get()->Tiles.end());
     }
-    //Sort allTiles by x, then by y, then by layer
+    //Sort allTiles by y, then by x, then by layer
     std::sort(allTiles.begin(), allTiles.end(), [&](const std::shared_ptr<Tile> &a, const std::shared_ptr<Tile> &b) {
         return ((a.get()->getSprite().getPosition().y < b.get()->getSprite().getPosition().y) ||
                 ((a.get()->getSprite().getPosition().y == b.get()->getSprite().getPosition().y) &&
                         a.get()->getSprite().getPosition().x < b.get()->getSprite().getPosition().x) ||
-                ((a.get()->getSprite().getPosition().y == b.get()->getSprite().getPosition().y) &&
+                (((a.get()->getSprite().getPosition().y == b.get()->getSprite().getPosition().y) &&
                         a.get()->getSprite().getPosition().x == b.get()->getSprite().getPosition().x) &&
-                a.get()->getLayer() < b.get()->getLayer());
+                a.get()->getLayer() < b.get()->getLayer()));
     });
     for (std::shared_ptr<Tile> &tile : allTiles) {
         float x = tile.get()->getSprite().getPosition().x / this->_tileSize.x / std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")) + 1;
