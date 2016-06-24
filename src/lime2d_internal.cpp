@@ -394,13 +394,13 @@ void l2d_internal::Level::saveMap(std::string name) {
         }
         pTile->SetText(tileNumber);
         pPos->InsertEndChild(pTile);
-
         pTiles->InsertEndChild(pPos);
     }
 
     pMap->InsertEndChild(pTiles);
     document.InsertAfterChild(pDeclaration, pMap);
 
+    //Save the document
     document.SaveFile(ss.str().c_str());
 }
 
@@ -440,7 +440,4 @@ void l2d_internal::Camera::update(float elapsedTime, sf::Vector2f tileSize, bool
             this->_rect.left += amountToMoveX;
         }
     }
-
-//    this->_rect.left = std::max(this->_rect.left, 0.0f);
-//    this->_rect.top = std::max(this->_rect.top, -40.0f);
 }
