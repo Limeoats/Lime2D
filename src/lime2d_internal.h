@@ -69,6 +69,7 @@ namespace l2d_internal {
         Tile(const Tile& tile);
         sf::Sprite getSprite() const;
         sf::Texture getTexture() const;
+        int getTilesetId() const;
         virtual ~Tile();
         virtual void update(float elapsedTime);
         virtual void draw();

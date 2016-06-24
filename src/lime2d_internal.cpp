@@ -138,6 +138,10 @@ sf::Texture l2d_internal::Tile::getTexture() const {
     return this->_texture;
 }
 
+int l2d_internal::Tile::getTilesetId() const {
+    return this->_tilesetId;
+}
+
 void l2d_internal::Tile::update(float elapsedTime) {
     Sprite::update(elapsedTime);
 }
@@ -287,7 +291,7 @@ void l2d_internal::Level::loadMap(std::string &name) {
                                     break;
                                 }
                             }
-                            sf::Vector2i srcPos(((tile % (tlsSize.x + 1)) * this->_tileSize.x) - (tile <= tlsSize.x ? this->_tileSize.x : 0), tile <= tlsSize.x ? 0 : (tile % tlsSize.x) * this->_tileSize.y);
+                            sf::Vector2i srcPos(((tile % (tlsSize.x + 1)) * this->_tileSize.x) - (tile <= tlsSize.x ? this->_tileSize.x : 0), tile <= tlsSize.x ? 0 : (tile - 1)  / tlsSize.x *  this->_tileSize.y);
                             sf::Vector2f destPos((posX - 1) * this->_tileSize.x * std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")),
                                                  (posY - 1) * this->_tileSize.y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")));
                             l->Tiles.push_back(std::make_shared<Tile>(this->_graphics, tlsPath, srcPos, this->_tileSize, destPos, tileset));
@@ -310,8 +314,76 @@ void l2d_internal::Level::saveMap(std::string name) {
     document.Clear();
     XMLDeclaration* pDeclaration = document.NewDeclaration("xml version=\"1.0\" encoding=\"UTF-8\"");
     document.InsertFirstChild(pDeclaration);
-    XMLNode * pMap = document.NewElement("map");
+
+    //Map node
+    XMLElement* pMap = document.NewElement("map");
+    pMap->SetAttribute("name", name.c_str());
+    pMap->SetAttribute("width", this->_size.x);
+    pMap->SetAttribute("height", this->_size.y);
+    pMap->SetAttribute("tileWidth", this->_tileSize.x);
+    pMap->SetAttribute("tileHeight", this->_tileSize.y);
+
+    //Tilesets
+    for (Tileset &t : this->_tilesetList) {
+        XMLElement* pTileset = document.NewElement("tileset");
+        pTileset->SetAttribute("id", t.Id);
+        pTileset->SetAttribute("name", t.Name.c_str());
+        pTileset->SetAttribute("path", t.Path.c_str());
+        pTileset->SetAttribute("width", t.Size.x);
+        pTileset->SetAttribute("height", t.Size.y);
+        pMap->InsertEndChild(pTileset);
+    }
+
+    //Tiles
+    XMLElement* pTiles = document.NewElement("tiles");
+
+    //Pos nodes
+    for (int y = 1; y <= this->_size.y; ++y) {
+        for (int x = 1; x <= this->_size.x; ++x) {
+            XMLElement* pPos = document.NewElement("pos");
+            pPos->SetAttribute("x", x);
+            pPos->SetAttribute("y", y);
+            for (int i = 0; i < this->_layerList.size(); ++i) {
+                for (int j = 0; j < this->_layerList[i].get()->Tiles.size(); ++j) {
+                    if (x == 9) {
+                        auto t = this->_layerList[i].get()->Tiles[j]->getSprite().getPosition().x;
+                        auto v = this->_layerList[i].get()->Tiles[j]->getSprite().getPosition().y;
+
+                    }
+                    if (this->_layerList[i].get()->Tiles[j].get()->getSprite().getPosition().x / this->_tileSize.x / std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")) == x - 1  &&
+                            this->_layerList[i].get()->Tiles[j].get()->getSprite().getPosition().y / this->_tileSize.y / std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")) == y - 1) {
+                        //Tile elements
+                        XMLElement* pTile = document.NewElement("tile");
+                        pTile->SetAttribute("layer", this->_layerList[i].get()->Id);
+                        pTile->SetAttribute("tileset", this->_layerList[i].get()->Tiles[j].get()->getTilesetId());
+                        int tileNumber;
+                        if (this->_layerList[i].get()->Tiles[j].get()->getSprite().getTextureRect().top == 0) {
+                            //First row in tileset
+                            tileNumber = (this->_layerList[i].get()->Tiles[j].get()->getSprite().getTextureRect().left / this->_tileSize.x) + 1;
+                        }
+                        else {
+                            std::shared_ptr<Tileset> tileset;
+                            for (auto &tls : this->_tilesetList) {
+                                if (tls.Id == this->_layerList[i].get()->Tiles[j].get()->getTilesetId()) {
+                                    tileset = std::make_shared<Tileset>(tls);
+                                    break;
+                                }
+                            }
+                            tileNumber = (tileset.get()->Size.x) * (this->_layerList[i].get()->Tiles[j].get()->getSprite().getTextureRect().top / this->_tileSize.y) + 1 +
+                                    (this->_layerList[i].get()->Tiles[j].get()->getSprite().getTextureRect().left / this->_tileSize.x);
+                        }
+                        pTile->SetText(tileNumber);
+                        pPos->InsertEndChild(pTile);
+                    }
+                }
+            }
+            pTiles->InsertEndChild(pPos);
+        }
+    }
+
+    pMap->InsertEndChild(pTiles);
     document.InsertAfterChild(pDeclaration, pMap);
+
     document.SaveFile(ss.str().c_str());
 }
 

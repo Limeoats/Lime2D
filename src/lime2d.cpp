@@ -348,8 +348,8 @@ void l2d::Editor::update(sf::Time t) {
             //Tile info window
             if (tilePropertiesWindowVisible) {
                 ImGui::SetNextWindowPosCenter();
-                ImGui::SetNextWindowSize(ImVec2(300, 200));
-                ImGui::Begin("Properties", nullptr, ImVec2(300, 200), 100.0f, ImGuiWindowFlags_AlwaysAutoResize);
+                ImGui::SetNextWindowSize(ImVec2(300, 400));
+                ImGui::Begin("Properties", nullptr, ImVec2(300, 400), 100.0f);
 
                 sf::Vector2f tilePos(mousePos.x - ((int) mousePos.x % (int) (this->_level.getTileSize().x * std::stof(
                         l2d_internal::utils::getConfigValue("tile_scale_x")))),
