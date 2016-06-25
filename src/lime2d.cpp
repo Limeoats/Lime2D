@@ -138,6 +138,8 @@ void l2d::Editor::update(sf::Time t) {
         static bool mapSelectBoxVisible = false;
         static bool configWindowVisible = false;
         static bool tilePropertiesWindowVisible = false;
+        static bool newMapBoxVisible = false;
+        static bool newMapExistsOverwriteVisible = false;
 
         static sf::Vector2f mousePos(0.0f, 0.0f);
 
@@ -159,12 +161,12 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::Begin("Configure map editor", nullptr, ImVec2(500,400), 100.0f, ImGuiWindowFlags_AlwaysAutoResize);
 
             ImGui::Text("Map path");
-            static char mapPath[100] = "";
+            static char mapPath[500] = "";
             if (l2d_internal::utils::getConfigValue("map_path") != "" && !loaded) {
                 strcpy(mapPath, l2d_internal::utils::getConfigValue("map_path").c_str());
             }
             ImGui::PushItemWidth(300);
-            ImGui::InputText("", mapPath, 100);
+            ImGui::InputText("", mapPath, 500);
             ImGui::PopItemWidth();
             ImGui::Separator();
 
@@ -287,6 +289,111 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::End();
         }
 
+        //New map box
+        if (newMapBoxVisible) {
+            ImGui::SetNextWindowPosCenter();
+            ImGui::SetNextWindowSize(ImVec2(500, 400));
+            static std::string newMapErrorText = "";
+            ImGui::Begin("New map properties", nullptr, ImVec2(500, 400), 100.0f, ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::Text("Name");
+            static char name[500] = "";
+            ImGui::PushItemWidth(300);
+            ImGui::InputText("", name, 500);
+            ImGui::PopItemWidth();
+            ImGui::Separator();
+
+            ImGui::PushItemWidth(100);
+
+            ImGui::PushID("NewMapSize");
+            ImGui::Text("Size");
+            static int mapSizeX = 0;
+            static int mapSizeY = 0;
+            ImGui::InputInt("x", &mapSizeX, 1, 0);
+            ImGui::InputInt("y", &mapSizeY, 1, 0);
+            ImGui::Separator();
+            ImGui::PopID();
+
+            ImGui::PushID("NewMapTileSize");
+            ImGui::Text("Size");
+            static int mapTileSizeX = 8;
+            static int mapTileSizeY = 8;
+            ImGui::InputInt("x", &mapTileSizeX, 1, 0);
+            ImGui::InputInt("y", &mapTileSizeY, 1, 0);
+            ImGui::Separator();
+            ImGui::PopID();
+
+            ImGui::PopItemWidth();
+            if (ImGui::Button("Create")) {
+                if (strlen(name) <= 0) {
+                    newMapErrorText = "You must enter a name for the new map!";
+                }
+                else if (mapSizeX < 0 || mapSizeY < 0) {
+                    newMapErrorText = "You cannot have a negative map size!";
+                }
+                else if (mapTileSizeX < 0 || mapTileSizeY < 0) {
+                    newMapErrorText = "You cannot have a negative tile size!";
+                }
+                else {
+                    //Check if map with that name already exists. If so, give a box asking to overwrite
+                    std::stringstream ss;
+                    ss << l2d_internal::utils::getConfigValue("map_path") << "*";
+                    std::vector<const char*> mapFiles = l2d_internal::utils::getFilesInDirectory(ss.str());
+                    ss.str("");
+                    ss << l2d_internal::utils::getConfigValue("map_path") << name << ".xml";
+                    if (l2d_internal::utils::contains(mapFiles, ss.str())) {
+                        newMapExistsOverwriteVisible = true;
+                    }
+                    else {
+                        this->_level.createMap(std::string(name), sf::Vector2i(mapSizeX, mapSizeY),
+                                               sf::Vector2i(mapTileSizeX, mapTileSizeY));
+                        strcpy(name, "");
+                        mapSizeX = 0;
+                        mapSizeY = 0;
+                        mapTileSizeX = 8;
+                        mapTileSizeY = 8;
+                        newMapErrorText = "";
+                        newMapBoxVisible = false;
+                        newMapExistsOverwriteVisible = false;
+                    }
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                strcpy(name, "");
+                mapSizeX = 0;
+                mapSizeY = 0;
+                mapTileSizeX = 8;
+                mapTileSizeY = 8;
+                newMapErrorText = "";
+                newMapBoxVisible = false;
+                newMapExistsOverwriteVisible = false;
+            }
+            ImGui::Text(newMapErrorText.c_str());
+            if (newMapExistsOverwriteVisible) {
+                newMapErrorText = "";
+                ImGui::Separator();
+                ImGui::Text("The name you have chosen already exists in your map directory.");
+                ImGui::Text("Would you like to overwrite the existing map?");
+                if (ImGui::Button("Sure!")) {
+                    this->_level.createMap(std::string(name), sf::Vector2i(mapSizeX, mapSizeY),
+                                           sf::Vector2i(mapTileSizeX, mapTileSizeY));
+                    strcpy(name, "");
+                    mapSizeX = 0;
+                    mapSizeY = 0;
+                    mapTileSizeX = 8;
+                    mapTileSizeY = 8;
+                    newMapErrorText = "";
+                    newMapBoxVisible = false;
+                    newMapExistsOverwriteVisible = false;
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("No!")) {
+                    newMapExistsOverwriteVisible = false;
+                }
+            }
+            ImGui::End();
+        }
+
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
                 if (ImGui::MenuItem("Exit")) {
@@ -304,8 +411,16 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Map", cbMapEditor)) {
+                if (ImGui::MenuItem("New map")) {
+                    newMapBoxVisible = true;
+                }
                 if (ImGui::MenuItem("Load map")) {
                     mapSelectBoxVisible = true;
+                }
+                if (this->_level.getName() != "l2dSTART") {
+                    if (ImGui::MenuItem("Save map")) {
+                        this->_level.saveMap(this->_level.getName());
+                    }
                 }
                 if (ImGui::MenuItem("Configure")) {
                     configWindowVisible = true;
@@ -382,9 +497,6 @@ void l2d::Editor::update(sf::Time t) {
                 if (ImGui::Button("Close")) {
                     showSpecificTileProperties = false;
                     tilePropertiesWindowVisible = false;
-                }
-                if (ImGui::Button("SAVE TEST")) {
-                    this->_level.saveMap("mapTEST");
                 }
                 ImGui::End();
             }

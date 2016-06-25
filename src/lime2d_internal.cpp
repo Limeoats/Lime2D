@@ -211,6 +211,16 @@ std::vector<std::shared_ptr<l2d_internal::Layer>> l2d_internal::Level::getLayerL
     return this->_layerList;
 }
 
+void l2d_internal::Level::createMap(std::string name, sf::Vector2i size, sf::Vector2i tileSize) {
+    this->_layerList.clear();
+    this->_tilesetList.clear();
+    this->_name = name;
+    this->_size = size;
+    this->_tileSize = tileSize;
+    this->saveMap(name);
+    this->loadMap(name);
+}
+
 void l2d_internal::Level::loadMap(std::string &name) {
     this->_name = name;
     if (name == "l2dSTART") {
@@ -413,6 +423,7 @@ void l2d_internal::Level::draw() {
 void l2d_internal::Level::update(float elapsedTime) {
     (void)elapsedTime;
 }
+
 
 l2d_internal::Camera::Camera() {
     this->_rect = {-1.0f, -20.0f, std::stof(l2d_internal::utils::getConfigValue("screen_size_x")), std::stof(l2d_internal::utils::getConfigValue("screen_size_y")) };

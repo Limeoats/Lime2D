@@ -102,6 +102,7 @@ namespace l2d_internal {
     public:
         Level(std::shared_ptr<Graphics> graphics, std::string name);
         ~Level();
+        void createMap(std::string name, sf::Vector2i size, sf::Vector2i tileSize);
         void loadMap(std::string &name);
         void saveMap(std::string name);
         void draw();
