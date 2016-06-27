@@ -6,10 +6,6 @@
 
 /*
     TODO:
-        -Determine if l2d::Editor::render() is necessary or if we can put ImGui::Render() in l2d::Editor::update()
-         and just call l2d::Editor::update() from between window.clear() and window.display(). This would get rid of
-         an entire function and extra call to l2d from the game loop.
-
         -Change internal level's loadMap so that the function returns a string. Then, whenever I call loadMap
          from l2d, check return value with if (!level->loadMap("asdf")) and show an ImGui popup with the
          error message. Make sure in level loadMap to check every possible place it can break.
@@ -314,7 +310,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::PopID();
 
             ImGui::PushID("NewMapTileSize");
-            ImGui::Text("Size");
+            ImGui::Text("Tile size");
             static int mapTileSizeX = 8;
             static int mapTileSizeY = 8;
             ImGui::InputInt("x", &mapTileSizeX, 1, 0);
