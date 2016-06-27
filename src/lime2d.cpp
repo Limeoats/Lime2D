@@ -31,7 +31,8 @@
 l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
     _graphics(new l2d_internal::Graphics(window)),
     _level(this->_graphics, "l2dSTART"),
-    _showGridLines(true)
+    _showGridLines(true),
+    _tilesetEnabled(false)
 {
     this->_enabled = enabled;
     ImGui::SFML::Init(*window);
@@ -49,6 +50,12 @@ void l2d::Editor::processEvent(sf::Event &event) {
     }
     if (event.type == sf::Event::LostFocus) {
         this->_windowHasFocus = false;
+    }
+
+    if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::T) {
+        if (this->_level.getName() != "l2dSTART") {
+            this->_tilesetEnabled = !this->_tilesetEnabled;
+        }
     }
 }
 
@@ -136,6 +143,7 @@ void l2d::Editor::update(sf::Time t) {
         static bool tilePropertiesWindowVisible = false;
         static bool newMapBoxVisible = false;
         static bool newMapExistsOverwriteVisible = false;
+        static bool tilesetWindowVisible = false;
 
         static sf::Vector2f mousePos(0.0f, 0.0f);
 
@@ -156,6 +164,7 @@ void l2d::Editor::update(sf::Time t) {
             static std::string configureMapErrorText = "";
             ImGui::Begin("Configure map editor", nullptr, ImVec2(500,400), 100.0f, ImGuiWindowFlags_AlwaysAutoResize);
 
+            ImGui::PushID("ConfigureMapPath");
             ImGui::Text("Map path");
             static char mapPath[500] = "";
             if (l2d_internal::utils::getConfigValue("map_path") != "" && !loaded) {
@@ -165,6 +174,19 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::InputText("", mapPath, 500);
             ImGui::PopItemWidth();
             ImGui::Separator();
+            ImGui::PopID();
+
+            ImGui::PushID("ConfigureTilesetPath");
+            ImGui::Text("Tileset path");
+            static char tilesetPath[500] = "";
+            if (l2d_internal::utils::getConfigValue("tileset_path") != "" && !loaded) {
+                strcpy(tilesetPath, l2d_internal::utils::getConfigValue("tileset_path").c_str());
+            }
+            ImGui::PushItemWidth(300);
+            ImGui::InputText("", tilesetPath, 500);
+            ImGui::PopItemWidth();
+            ImGui::Separator();
+            ImGui::PopID();
 
             ImGui::PushItemWidth(100);
 
@@ -203,6 +225,9 @@ void l2d::Editor::update(sf::Time t) {
                 if (strlen(mapPath) <= 0) {
                     configureMapErrorText = "You must enter the location of your maps!";
                 }
+                else if (strlen(tilesetPath) <= 0) {
+                    configureMapErrorText = "You must enter the location of your tilesets!";
+                }
                 else if (spriteScaleX < 0 || spriteScaleY < 0) {
                     configureMapErrorText = "Sprite scale cannot be negative!";
                 }
@@ -218,6 +243,7 @@ void l2d::Editor::update(sf::Time t) {
                     std::ofstream os("lime2d.config");
                     if (os.is_open()) {
                         os << "map_path=" << mapPath << "\n";
+                        os << "tileset_path=" << tilesetPath << "\n";
                         os << "sprite_scale_x=" << spriteScaleX << "\n";
                         os << "sprite_scale_y=" << spriteScaleY << "\n";
                         os << "tile_scale_x=" << tileScaleX << "\n";
@@ -225,11 +251,12 @@ void l2d::Editor::update(sf::Time t) {
                         os << "screen_size_x=" << screenSizeX << "\n";
                         os << "screen_size_y=" << screenSizeY << "\n";
                         os.close();
-                        configureMapErrorText = "Save successful.";
                         if (this->_level.getName() != "l2dSTART") {
                             std::string name = this->_level.getName();
                             this->_level.loadMap(name);
                         }
+                        configWindowVisible = false;
+                        configureMapErrorText = "";
                     }
                     else {
                         configureMapErrorText = "Unable to save file. Please refer to www.limeoats.com/lime2d for more information.";
@@ -493,6 +520,42 @@ void l2d::Editor::update(sf::Time t) {
                 if (ImGui::Button("Close")) {
                     showSpecificTileProperties = false;
                     tilePropertiesWindowVisible = false;
+                }
+                ImGui::End();
+            }
+            //Tileset open/close event
+            tilesetWindowVisible = this->_tilesetEnabled;
+
+            //Tileset window
+            if (tilesetWindowVisible) {
+                static int tilesetComboIndex = -1;
+                static bool showTilesetImage = false;
+                static sf::Texture tilesetTexture;
+                static sf::Vector2f tilesetViewSize(384, 128);
+                ImGui::SetNextWindowPosCenter();
+                ImGui::SetNextWindowSize(ImVec2(540, 300));
+                ImGui::Begin("Tilesets", nullptr, ImVec2(500, 300), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
+                std::stringstream ss;
+                ss << l2d_internal::utils::getConfigValue("tileset_path") << "*";
+                std::vector<const char*> tilesetFiles = l2d_internal::utils::getFilesInDirectory(ss.str());
+                if (ImGui::Combo("Select tileset", &tilesetComboIndex, &tilesetFiles[0], tilesetFiles.size())) {
+                    showTilesetImage = true;
+                }
+                if (tilesetComboIndex > -1) {
+                    ImGui::SameLine();
+                    ImGui::PushItemWidth(80);
+                    if (ImGui::Button("+", ImVec2(20, 20))) {
+                        tilesetViewSize *= 1.2f; //TODO: MAKE THIS 1.2 VALUE CONFIGURABLE
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("-", ImVec2(20, 20))) {
+                        tilesetViewSize /= 1.2f;
+                    }
+                    ImGui::PopItemWidth();
+                }
+                if (showTilesetImage) {
+                    tilesetTexture = this->_graphics->loadImage(tilesetFiles[tilesetComboIndex]);
+                    ImGui::Image(tilesetTexture, tilesetViewSize);
                 }
                 ImGui::End();
             }

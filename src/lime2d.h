@@ -24,6 +24,9 @@ namespace l2d {
         bool _enabled;
         bool _windowHasFocus;
         bool _showGridLines;
+
+        bool _tilesetEnabled;
+
         sf::RenderWindow* _window;
         std::shared_ptr<l2d_internal::Graphics>  _graphics;
         l2d_internal::Level _level;
