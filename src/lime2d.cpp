@@ -538,11 +538,13 @@ void l2d::Editor::update(sf::Time t) {
                 std::stringstream ss;
                 ss << l2d_internal::utils::getConfigValue("tileset_path") << "*";
                 std::vector<const char*> tilesetFiles = l2d_internal::utils::getFilesInDirectory(ss.str());
+                ImGui::PushItemWidth(400);
                 if (ImGui::Combo("Select tileset", &tilesetComboIndex, &tilesetFiles[0], tilesetFiles.size())) {
                     showTilesetImage = true;
                 }
+                ImGui::PopItemWidth();
                 if (tilesetComboIndex > -1) {
-                    ImGui::SameLine();
+
                     ImGui::PushItemWidth(80);
                     if (ImGui::Button("+", ImVec2(20, 20))) {
                         tilesetViewSize *= 1.2f; //TODO: MAKE THIS 1.2 VALUE CONFIGURABLE
@@ -554,8 +556,22 @@ void l2d::Editor::update(sf::Time t) {
                     ImGui::PopItemWidth();
                 }
                 if (showTilesetImage) {
+                    ImGui::BeginChild("tilesetChildArea", ImVec2(500, 200), true, ImGuiWindowFlags_HorizontalScrollbar);
+
+                    auto pos = ImGui::GetCursorScreenPos();
+
                     tilesetTexture = this->_graphics->loadImage(tilesetFiles[tilesetComboIndex]);
                     ImGui::Image(tilesetTexture, tilesetViewSize);
+
+                    ImGui::SetItemAllowOverlap();
+
+                    ImGui::GetWindowDrawList()->PushClipRect(pos, ImVec2(pos.x + 500, pos.y + 200), true);
+                    ImGui::GetWindowDrawList()->AddLine(pos, ImVec2(pos.x, pos.y + 100), ImColor(255, 0, 0, 255));
+                    ImGui::PopClipRect();
+
+
+                    //Cut the image into pieces
+                    ImGui::EndChild();
                 }
                 ImGui::End();
             }
