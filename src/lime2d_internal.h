@@ -114,6 +114,8 @@ namespace l2d_internal {
 
         std::vector<Tileset> getTilesetList();
         std::vector<std::shared_ptr<Layer>> getLayerList();
+
+        void updateTile(std::string newTilesetPath, sf::Vector2i srcPos, sf::Vector2i size, sf::Vector2f destPos, int tilesetId, int layer);
     private:
         std::string _name;
         sf::Vector2i _size;

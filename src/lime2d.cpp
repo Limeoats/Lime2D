@@ -469,6 +469,7 @@ void l2d::Editor::update(sf::Time t) {
         }
 
         if (this->_level.getName() != "l2dSTART") {
+            //Right clicking on a tile
             if (ImGui::IsMouseClicked(1)) {
                 mousePos = sf::Vector2f(
                         sf::Mouse::getPosition(*this->_window).x + this->_graphics->getCamera()->getRect().left,
@@ -481,6 +482,19 @@ void l2d::Editor::update(sf::Time t) {
                 }
                 ImGui::Separator();
                 ImGui::EndPopup();
+            }
+
+            //Clicking on a tile normally
+            sf::Vector2f drawingMousePos(
+                    sf::Mouse::getPosition(*this->_window).x + this->_graphics->getCamera()->getRect().left,
+                    sf::Mouse::getPosition(*this->_window).y + this->_graphics->getCamera()->getRect().top);
+            if (ImGui::IsMouseClicked(0)) { //TODO: static bool shouldDraw (only do it when menus and other windows are not open). VERY IMPORTANT
+                sf::Vector2f tilePos(
+                        (drawingMousePos.x - ((int) drawingMousePos.x % (int) (this->_level.getTileSize().x * std::stof(
+                                                                 l2d_internal::utils::getConfigValue("tile_scale_x"))))) / this->_level.getTileSize().x / (int)std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")) + 1,
+                        (drawingMousePos.y - ((int) drawingMousePos.y % (int) (this->_level.getTileSize().y * std::stof(
+                                                                 l2d_internal::utils::getConfigValue("tile_scale_y"))))) / this->_level.getTileSize().y / (int)std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")) + 1);
+                this->_level.updateTile("nice", sf::Vector2i(0,0), sf::Vector2i(8,8), tilePos, 1, 1);
             }
 
             //Tile info window
@@ -533,6 +547,11 @@ void l2d::Editor::update(sf::Time t) {
                 static sf::Texture tilesetTexture;
                 static sf::Vector2f tilesetViewSize(384, 128);
                 static sf::Vector2f selectedTilePos(0,0);
+
+                float tw = (tilesetViewSize.x * this->_level.getTileSize().x) / tilesetTexture.getSize().x;
+                float th = (tilesetViewSize.y * this->_level.getTileSize().y) / tilesetTexture.getSize().y;
+                static float dx = 0, dy = 0;
+
                 ImGui::SetNextWindowPosCenter();
                 ImGui::SetNextWindowSize(ImVec2(540, 300));
                 ImGui::Begin("Tilesets", nullptr, ImVec2(500, 300), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
@@ -549,10 +568,18 @@ void l2d::Editor::update(sf::Time t) {
                     ImGui::PushItemWidth(80);
                     if (ImGui::Button("+", ImVec2(20, 20))) {
                         tilesetViewSize *= 1.2f; //TODO: MAKE THIS 1.2 VALUE CONFIGURABLE
+                        tw = (tilesetViewSize.x * this->_level.getTileSize().x) / tilesetTexture.getSize().x;
+                        th = (tilesetViewSize.y * this->_level.getTileSize().y) / tilesetTexture.getSize().y;
+                        dx = 0;
+                        dy = 0;
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("-", ImVec2(20, 20))) {
                         tilesetViewSize /= 1.2f;
+                        tw = (tilesetViewSize.x * this->_level.getTileSize().x) / tilesetTexture.getSize().x;
+                        th = (tilesetViewSize.y * this->_level.getTileSize().y) / tilesetTexture.getSize().y;
+                        dx = 0;
+                        dy = 0;
                     }
                     ImGui::PopItemWidth();
                 }
@@ -562,12 +589,11 @@ void l2d::Editor::update(sf::Time t) {
                     auto pos = ImGui::GetCursorScreenPos();
 
                     tilesetTexture = this->_graphics->loadImage(tilesetFiles[tilesetComboIndex]);
-                    ImGui::Image(tilesetTexture, tilesetViewSize);
 
+                    ImGui::Image(tilesetTexture, tilesetViewSize);
                     //Tileset grid
                     ImGui::SetItemAllowOverlap();
-                    float tw = (tilesetViewSize.x * this->_level.getTileSize().x) / tilesetTexture.getSize().x;
-                    float th = (tilesetViewSize.y * this->_level.getTileSize().y) / tilesetTexture.getSize().y;
+
                     for (int i = 0; i < (tilesetTexture.getSize().x / this->_level.getTileSize().x) + 1; ++i) {
                         ImGui::GetWindowDrawList()->AddLine(ImVec2(pos.x + (i * tw), pos.y),
                                                             ImVec2(pos.x + (i * tw), pos.y + tilesetViewSize.y), ImColor(255,255,255,255));
@@ -584,14 +610,14 @@ void l2d::Editor::update(sf::Time t) {
                     ImGui::GetWindowDrawList()->AddLine(ImVec2(pos.x + selectedTilePos.x, (pos.y + selectedTilePos.y + th)), ImVec2((pos.x + selectedTilePos.x + tw), (pos.y + selectedTilePos.y + th)), ImColor(255,0,0,255), 2.0f); //Bottom
                     ImGui::GetWindowDrawList()->AddLine(ImVec2((pos.x + selectedTilePos.x + tw), pos.y + selectedTilePos.y), ImVec2((pos.x + selectedTilePos.x + tw), (pos.y + selectedTilePos.y + th)), ImColor(255,0,0,255), 2.0f); //Right
 
-
                     //Click event on the tileset
                     if (ImGui::IsMouseClicked(0) && ImGui::IsWindowFocused()) {
-                        //mousepos - pos
                         ImVec2 mPos = ImGui::GetMousePos();
-                        selectedTilePos = ImVec2(mPos.x - pos.x, mPos.y - pos.y); //TODO: figure out the exact position of tile and put selectedTilePos there :)
+                        dx = mPos.x - pos.x;
+                        dy = mPos.y - pos.y;
                     }
 
+                    selectedTilePos = ImVec2(tw * (static_cast<int>(dx) / static_cast<int>(tw)), th * (static_cast<int>(dy) / static_cast<int>(th)));
 
                     ImGui::EndChild();
                 }

@@ -414,6 +414,27 @@ void l2d_internal::Level::saveMap(std::string name) {
     document.SaveFile(ss.str().c_str());
 }
 
+void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i srcPos, sf::Vector2i size,
+                                     sf::Vector2f destPos, int tilesetId, int layer) {
+//    this->_layerList.at(layer).get()->Tiles.erase(std::remove_if(this->_layerList.at(layer).get()->Tiles.begin(), this->_layerList.at(layer).get()->Tiles.end(), [&](const std::shared_ptr<Tile> tile) {
+//        return (tile.get()->getLayer() == layer && ((int)tile.get()->getSprite().getPosition().x / this->_tileSize.x / (int)std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) + 1 == (int)destPos.x
+//                && ((int)tile.get()->getSprite().getPosition().y / this->_tileSize.y / (int)std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))) + 1 == (int)destPos.y);
+//    }));
+    std::shared_ptr<Tile> t = nullptr;
+    for (int i = 0; i < this->_layerList.at(layer).get()->Tiles.size(); ++i) {
+        auto tile = this->_layerList.at(layer).get()->Tiles[i];
+        if (tile.get()->getLayer() == layer &&
+                tile.get()->getSprite().getPosition().x / static_cast<int>(this->_tileSize.x) / static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) + 1 == static_cast<int>(destPos.x) &&
+                tile.get()->getSprite().getPosition().y / static_cast<int>(this->_tileSize.y) / static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))) + 1 == static_cast<int>(destPos.y)) {
+            t = tile;
+            break;
+        }
+    }
+    if (t != nullptr) {
+        this->_layerList.at(layer).get()->Tiles.erase(std::remove(this->_layerList.at(layer).get()->Tiles.begin(), this->_layerList.at(layer).get()->Tiles.end(), t), this->_layerList.at(layer).get()->Tiles.end());
+    }
+}
+
 void l2d_internal::Level::draw() {
     for (auto &layer : this->_layerList) {
         layer->draw();
