@@ -532,6 +532,7 @@ void l2d::Editor::update(sf::Time t) {
                 static bool showTilesetImage = false;
                 static sf::Texture tilesetTexture;
                 static sf::Vector2f tilesetViewSize(384, 128);
+                static sf::Vector2f selectedTilePos(0,0);
                 ImGui::SetNextWindowPosCenter();
                 ImGui::SetNextWindowSize(ImVec2(540, 300));
                 ImGui::Begin("Tilesets", nullptr, ImVec2(500, 300), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
@@ -563,14 +564,35 @@ void l2d::Editor::update(sf::Time t) {
                     tilesetTexture = this->_graphics->loadImage(tilesetFiles[tilesetComboIndex]);
                     ImGui::Image(tilesetTexture, tilesetViewSize);
 
+                    //Tileset grid
                     ImGui::SetItemAllowOverlap();
+                    float tw = (tilesetViewSize.x * this->_level.getTileSize().x) / tilesetTexture.getSize().x;
+                    float th = (tilesetViewSize.y * this->_level.getTileSize().y) / tilesetTexture.getSize().y;
+                    for (int i = 0; i < (tilesetTexture.getSize().x / this->_level.getTileSize().x) + 1; ++i) {
+                        ImGui::GetWindowDrawList()->AddLine(ImVec2(pos.x + (i * tw), pos.y),
+                                                            ImVec2(pos.x + (i * tw), pos.y + tilesetViewSize.y), ImColor(255,255,255,255));
+                    }
+                    for (int i = 0; i < (tilesetTexture.getSize().y / this->_level.getTileSize().y) + 1; ++i) {
+                        ImGui::GetWindowDrawList()->AddLine(ImVec2(pos.x, pos.y + (i * th)),
+                                                            ImVec2(pos.x + tilesetViewSize.x, pos.y + (i * th)), ImColor(255,255,255,255));
+                    }
 
-                    ImGui::GetWindowDrawList()->PushClipRect(pos, ImVec2(pos.x + 500, pos.y + 200), true);
-                    ImGui::GetWindowDrawList()->AddLine(pos, ImVec2(pos.x, pos.y + 100), ImColor(255, 0, 0, 255));
-                    ImGui::PopClipRect();
+                    //Tileset selected item
+                    //We're going to use lines for this :/
+                    ImGui::GetWindowDrawList()->AddLine(ImVec2(pos.x + selectedTilePos.x, pos.y + selectedTilePos.y), ImVec2((pos.x + selectedTilePos.x + tw), pos.y + selectedTilePos.y), ImColor(255,0,0,255), 2.0f); //Top
+                    ImGui::GetWindowDrawList()->AddLine(ImVec2(pos.x + selectedTilePos.x, pos.y + selectedTilePos.y), ImVec2(pos.x + selectedTilePos.x, (pos.y + selectedTilePos.y + th)), ImColor(255,0,0,255), 2.0f); //Left
+                    ImGui::GetWindowDrawList()->AddLine(ImVec2(pos.x + selectedTilePos.x, (pos.y + selectedTilePos.y + th)), ImVec2((pos.x + selectedTilePos.x + tw), (pos.y + selectedTilePos.y + th)), ImColor(255,0,0,255), 2.0f); //Bottom
+                    ImGui::GetWindowDrawList()->AddLine(ImVec2((pos.x + selectedTilePos.x + tw), pos.y + selectedTilePos.y), ImVec2((pos.x + selectedTilePos.x + tw), (pos.y + selectedTilePos.y + th)), ImColor(255,0,0,255), 2.0f); //Right
 
 
-                    //Cut the image into pieces
+                    //Click event on the tileset
+                    if (ImGui::IsMouseClicked(0) && ImGui::IsWindowFocused()) {
+                        //mousepos - pos
+                        ImVec2 mPos = ImGui::GetMousePos();
+                        selectedTilePos = ImVec2(mPos.x - pos.x, mPos.y - pos.y); //TODO: figure out the exact position of tile and put selectedTilePos there :)
+                    }
+
+
                     ImGui::EndChild();
                 }
                 ImGui::End();
