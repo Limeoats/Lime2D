@@ -144,6 +144,7 @@ void l2d::Editor::update(sf::Time t) {
         static bool newMapBoxVisible = false;
         static bool newMapExistsOverwriteVisible = false;
         static bool tilesetWindowVisible = false;
+        static bool mainHasFocus = true;
 
         static sf::Vector2f mousePos(0.0f, 0.0f);
 
@@ -154,6 +155,19 @@ void l2d::Editor::update(sf::Time t) {
         static bool showSpecificTileProperties = false;
         static std::shared_ptr<l2d_internal::Tile> showSpecificTilePropertiesTile = nullptr;
         static std::shared_ptr<l2d_internal::Layer> showSpecificTilePropertiesLayer = nullptr;
+
+
+        //Drawing tiles variables
+        static std::string selectedTilesetPath = "content/tilesets/outside.png";
+        static sf::Vector2i selectedTileSrcPos(0,0);
+        static int selectedTileLayer = 1;
+        static sf::Vector2i selectedTilesetSize(0,0);
+
+
+        //Set mainHasFocus (very important)
+        //This tells Lime2D that it can draw tiles to the screen. We don't want it drawing if other windows have focus.
+        mainHasFocus = !(tilesetWindowVisible || newMapBoxVisible || tilePropertiesWindowVisible || configWindowVisible || mapSelectBoxVisible || aboutBoxVisible);
+
 
         //Config window
         if (configWindowVisible) {
@@ -419,12 +433,14 @@ void l2d::Editor::update(sf::Time t) {
 
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
+                mainHasFocus = false;
                 if (ImGui::MenuItem("Exit")) {
                     this->_enabled = false; //TODO: do you want to save?
                 }
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("View")) {
+                mainHasFocus = false;
                 if (ImGui::Checkbox("Map Editor", &cbMapEditor)) {
                     cbAnimationEditor = false;
                 }
@@ -434,6 +450,7 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Map", cbMapEditor)) {
+                mainHasFocus = false;
                 if (ImGui::MenuItem("New map")) {
                     newMapBoxVisible = true;
                 }
@@ -457,9 +474,11 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Animation", cbAnimationEditor)) {
+                mainHasFocus = false;
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Help")) {
+                mainHasFocus = false;
                 if (ImGui::MenuItem("About Lime2D")) {
                     aboutBoxVisible = true;
                 }
@@ -477,6 +496,7 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::OpenPopup("right click on tile");
             }
             if (ImGui::BeginPopup("right click on tile")) {
+                mainHasFocus = false;
                 if (ImGui::MenuItem("Properties")) {
                     tilePropertiesWindowVisible = true;
                 }
@@ -488,13 +508,13 @@ void l2d::Editor::update(sf::Time t) {
             sf::Vector2f drawingMousePos(
                     sf::Mouse::getPosition(*this->_window).x + this->_graphics->getCamera()->getRect().left,
                     sf::Mouse::getPosition(*this->_window).y + this->_graphics->getCamera()->getRect().top);
-            if (ImGui::IsMouseClicked(0)) { //TODO: static bool shouldDraw (only do it when menus and other windows are not open). VERY IMPORTANT
+            if (ImGui::IsMouseClicked(0) && mainHasFocus) { //TODO: static bool shouldDraw (only do it when menus and other windows are not open). VERY IMPORTANT
                 sf::Vector2f tilePos(
                         (drawingMousePos.x - ((int) drawingMousePos.x % (int) (this->_level.getTileSize().x * std::stof(
                                                                  l2d_internal::utils::getConfigValue("tile_scale_x"))))) / this->_level.getTileSize().x / (int)std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")) + 1,
                         (drawingMousePos.y - ((int) drawingMousePos.y % (int) (this->_level.getTileSize().y * std::stof(
                                                                  l2d_internal::utils::getConfigValue("tile_scale_y"))))) / this->_level.getTileSize().y / (int)std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")) + 1);
-                this->_level.updateTile("nice", sf::Vector2i(0,0), sf::Vector2i(8,8), tilePos, 1, 1);
+                this->_level.updateTile(selectedTilesetPath, selectedTilesetSize, selectedTileSrcPos, sf::Vector2i(8,8), tilePos, 1, selectedTileLayer);
             }
 
             //Tile info window
@@ -561,6 +581,9 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::PushItemWidth(400);
                 if (ImGui::Combo("Select tileset", &tilesetComboIndex, &tilesetFiles[0], tilesetFiles.size())) {
                     showTilesetImage = true;
+                    selectedTilesetPath = tilesetFiles[tilesetComboIndex];
+                    selectedTileLayer = 1; //TODO: implement a layer select thing
+                    selectedTileSrcPos = sf::Vector2i(0,0);
                 }
                 ImGui::PopItemWidth();
                 if (tilesetComboIndex > -1) {
@@ -582,6 +605,16 @@ void l2d::Editor::update(sf::Time t) {
                         dy = 0;
                     }
                     ImGui::PopItemWidth();
+                    ImGui::SameLine();
+                    ImGui::Text("   |   ");
+                    ImGui::SameLine();
+
+
+                    ImGui::PushItemWidth(84);
+                    ImGui::PushID("nLayer");
+                    ImGui::InputInt("Layer", &selectedTileLayer, 1);
+                    ImGui::PopID();
+                    ImGui::PopItemWidth();
                 }
                 if (showTilesetImage) {
                     ImGui::BeginChild("tilesetChildArea", ImVec2(500, 200), true, ImGuiWindowFlags_HorizontalScrollbar);
@@ -589,7 +622,7 @@ void l2d::Editor::update(sf::Time t) {
                     auto pos = ImGui::GetCursorScreenPos();
 
                     tilesetTexture = this->_graphics->loadImage(tilesetFiles[tilesetComboIndex]);
-
+                    selectedTilesetSize = sf::Vector2i(tilesetTexture.getSize());
                     ImGui::Image(tilesetTexture, tilesetViewSize);
                     //Tileset grid
                     ImGui::SetItemAllowOverlap();
@@ -618,6 +651,8 @@ void l2d::Editor::update(sf::Time t) {
                     }
 
                     selectedTilePos = ImVec2(tw * (static_cast<int>(dx) / static_cast<int>(tw)), th * (static_cast<int>(dy) / static_cast<int>(th)));
+
+                    selectedTileSrcPos = sf::Vector2i((static_cast<int>(dx) / static_cast<int>(tw)) * this->_level.getTileSize().x, (static_cast<int>(dy) / static_cast<int>(th)) * this->_level.getTileSize().y);
 
                     ImGui::EndChild();
                 }

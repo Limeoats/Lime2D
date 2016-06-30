@@ -161,9 +161,8 @@ void l2d_internal::Tile::draw() {
  * Tileset
  */
 
-l2d_internal::Tileset::Tileset(int id, std::string name, std::string path, sf::Vector2i size) :
+l2d_internal::Tileset::Tileset(int id, std::string path, sf::Vector2i size) :
         Id(id),
-        Name(name),
         Path(path),
         Size(size)
 {}
@@ -258,9 +257,8 @@ void l2d_internal::Level::loadMap(std::string &name) {
             pTileset->QueryIntAttribute("id", &tsId);
             pTileset->QueryIntAttribute("width", &tsWidth);
             pTileset->QueryIntAttribute("height", &tsHeight);
-            tsName = pTileset->Attribute("name");
             tsPath = pTileset->Attribute("path");
-            this->_tilesetList.push_back(Tileset(tsId, tsName, tsPath, sf::Vector2i(tsWidth, tsHeight)));
+            this->_tilesetList.push_back(Tileset(tsId, tsPath, sf::Vector2i(tsWidth, tsHeight)));
             pTileset = pTileset->NextSiblingElement("tileset");
         }
     }
@@ -343,7 +341,6 @@ void l2d_internal::Level::saveMap(std::string name) {
     for (Tileset &t : this->_tilesetList) {
         XMLElement* pTileset = document.NewElement("tileset");
         pTileset->SetAttribute("id", t.Id);
-        pTileset->SetAttribute("name", t.Name.c_str());
         pTileset->SetAttribute("path", t.Path.c_str());
         pTileset->SetAttribute("width", t.Size.x);
         pTileset->SetAttribute("height", t.Size.y);
@@ -414,25 +411,51 @@ void l2d_internal::Level::saveMap(std::string name) {
     document.SaveFile(ss.str().c_str());
 }
 
-void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i srcPos, sf::Vector2i size,
+void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i newTilesetSize, sf::Vector2i srcPos, sf::Vector2i size,
                                      sf::Vector2f destPos, int tilesetId, int layer) {
-//    this->_layerList.at(layer).get()->Tiles.erase(std::remove_if(this->_layerList.at(layer).get()->Tiles.begin(), this->_layerList.at(layer).get()->Tiles.end(), [&](const std::shared_ptr<Tile> tile) {
-//        return (tile.get()->getLayer() == layer && ((int)tile.get()->getSprite().getPosition().x / this->_tileSize.x / (int)std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) + 1 == (int)destPos.x
-//                && ((int)tile.get()->getSprite().getPosition().y / this->_tileSize.y / (int)std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))) + 1 == (int)destPos.y);
-//    }));
+    //Add the tileset to the map if it isn't already
+    this->_tilesetList.push_back(Tileset(tilesetId, newTilesetPath, newTilesetSize));
+
     std::shared_ptr<Tile> t = nullptr;
-    for (int i = 0; i < this->_layerList.at(layer).get()->Tiles.size(); ++i) {
-        auto tile = this->_layerList.at(layer).get()->Tiles[i];
-        if (tile.get()->getLayer() == layer &&
-                tile.get()->getSprite().getPosition().x / static_cast<int>(this->_tileSize.x) / static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) + 1 == static_cast<int>(destPos.x) &&
-                tile.get()->getSprite().getPosition().y / static_cast<int>(this->_tileSize.y) / static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))) + 1 == static_cast<int>(destPos.y)) {
+    //Check if the layer exists. If not, create it
+    std::shared_ptr<Layer> l = nullptr;
+    for (int i = 0; i < this->_layerList.size(); ++i) {
+        if (this->_layerList[i]->Id == layer) {
+            l = this->_layerList[i];
+            break;
+        }
+    }
+    if (l == nullptr) {
+        l = std::make_shared<Layer>();
+        l->Id = layer;
+        this->_layerList.push_back(l);
+    }
+
+    for (int i = 0; i < l.get()->Tiles.size(); ++i) {
+        auto tile = l.get()->Tiles[i];
+        int tileLayer = tile.get()->getLayer();
+        sf::Vector2f tilePos(tile.get()->getSprite().getPosition().x / static_cast<int>(this->_tileSize.x) /
+                             static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) + 1,
+                             tile.get()->getSprite().getPosition().y / static_cast<int>(this->_tileSize.y) /
+                             static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))) + 1);
+        if (tileLayer == layer && tilePos.x == static_cast<int>(destPos.x) &&
+            tilePos.y == static_cast<int>(destPos.y)) {
             t = tile;
             break;
         }
     }
     if (t != nullptr) {
-        this->_layerList.at(layer).get()->Tiles.erase(std::remove(this->_layerList.at(layer).get()->Tiles.begin(), this->_layerList.at(layer).get()->Tiles.end(), t), this->_layerList.at(layer).get()->Tiles.end());
+        //Remove the existing tile from the layer
+        l.get()->Tiles.erase(
+                std::remove(l.get()->Tiles.begin(),
+                            l.get()->Tiles.end(), t),
+                l.get()->Tiles.end());
     }
+    //Place the new one
+
+    sf::Vector2f newDestPos((destPos.x - 1) * this->_tileSize.x * static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))),
+                            (destPos.y - 1) * this->_tileSize.y * static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))));
+    l.get()->Tiles.push_back(std::make_shared<Tile>(this->_graphics, newTilesetPath, srcPos, this->_tileSize, newDestPos, tilesetId, layer));
 }
 
 void l2d_internal::Level::draw() {

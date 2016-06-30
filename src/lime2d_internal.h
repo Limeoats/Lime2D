@@ -83,10 +83,9 @@ namespace l2d_internal {
     class Tileset {
     public:
         int Id;
-        std::string Name;
         std::string Path;
         sf::Vector2i Size;
-        Tileset(int id, std::string name, std::string path, sf::Vector2i size);
+        Tileset(int id, std::string path, sf::Vector2i size);
     };
 
     //Internal Layer class
@@ -115,7 +114,7 @@ namespace l2d_internal {
         std::vector<Tileset> getTilesetList();
         std::vector<std::shared_ptr<Layer>> getLayerList();
 
-        void updateTile(std::string newTilesetPath, sf::Vector2i srcPos, sf::Vector2i size, sf::Vector2f destPos, int tilesetId, int layer);
+        void updateTile(std::string newTilesetPath, sf::Vector2i newTilesetSize, sf::Vector2i srcPos, sf::Vector2i size, sf::Vector2f destPos, int tilesetId, int layer);
     private:
         std::string _name;
         sf::Vector2i _size;
