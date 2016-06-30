@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map name="map0" width="20" height="18" tileWidth="8" tileHeight="8">
     <tileset id="1" path="content/tilesets/outside.png" width="6" height="2"/>
-    <tileset id="1" path="content/tilesets/outside.png" width="48" height="16"/>
-    <tileset id="1" path="content/tilesets/outside.png" width="48" height="16"/>
     <tiles>
         <pos x="1" y="1">
             <tile layer="1" tileset="1">6</tile>

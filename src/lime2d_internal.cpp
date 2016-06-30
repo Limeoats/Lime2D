@@ -413,8 +413,18 @@ void l2d_internal::Level::saveMap(std::string name) {
 
 void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i newTilesetSize, sf::Vector2i srcPos, sf::Vector2i size,
                                      sf::Vector2f destPos, int tilesetId, int layer) {
+
     //Add the tileset to the map if it isn't already
-    this->_tilesetList.push_back(Tileset(tilesetId, newTilesetPath, newTilesetSize));
+    std::shared_ptr<Tileset> tls = nullptr;
+    for (int i = 0; i < this->_tilesetList.size(); ++i) {
+        if (this->_tilesetList[i].Id == tilesetId) {
+            tls = std::make_shared<Tileset>(this->_tilesetList[i]);
+            break;
+        }
+    }
+    if (tls == nullptr) {
+        this->_tilesetList.push_back(Tileset(tilesetId, newTilesetPath, sf::Vector2i(newTilesetSize.x / this->_tileSize.x, newTilesetSize.y / this->_tileSize.y)));
+    }
 
     std::shared_ptr<Tile> t = nullptr;
     //Check if the layer exists. If not, create it
