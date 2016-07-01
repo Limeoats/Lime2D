@@ -52,9 +52,14 @@ void l2d::Editor::processEvent(sf::Event &event) {
         this->_windowHasFocus = false;
     }
 
-    if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::T) {
-        if (this->_level.getName() != "l2dSTART") {
-            this->_tilesetEnabled = !this->_tilesetEnabled;
+    if (event.type == sf::Event::KeyReleased) {
+        if (event.key.code == sf::Keyboard::T) {
+            if (this->_level.getName() != "l2dSTART") {
+                this->_tilesetEnabled = !this->_tilesetEnabled;
+            }
+        }
+        else if (event.key.code == sf::Keyboard::G) {
+            this->_showGridLines = !this->_showGridLines;
         }
     }
 }
@@ -168,6 +173,8 @@ void l2d::Editor::update(sf::Time t) {
         //Set mainHasFocus (very important)
         //This tells Lime2D that it can draw tiles to the screen. We don't want it drawing if other windows have focus.
         mainHasFocus = !(tilesetWindowVisible || newMapBoxVisible || tilePropertiesWindowVisible || configWindowVisible || mapSelectBoxVisible || aboutBoxVisible);
+
+        cbShowGridLines = this->_showGridLines;
 
 
         //Config window
@@ -510,7 +517,7 @@ void l2d::Editor::update(sf::Time t) {
                 sf::Vector2f drawingMousePos(
                         sf::Mouse::getPosition(*this->_window).x + this->_graphics->getCamera()->getRect().left,
                         sf::Mouse::getPosition(*this->_window).y + this->_graphics->getCamera()->getRect().top);
-                if (ImGui::IsMouseDown(0) && mainHasFocus) { //TODO: static bool shouldDraw (only do it when menus and other windows are not open). VERY IMPORTANT
+                if (ImGui::IsMouseDown(0) && mainHasFocus) {
                     sf::Vector2f tilePos(
                             (drawingMousePos.x - ((int) drawingMousePos.x % (int) (this->_level.getTileSize().x * std::stof(
                                     l2d_internal::utils::getConfigValue("tile_scale_x"))))) / this->_level.getTileSize().x /
@@ -592,7 +599,7 @@ void l2d::Editor::update(sf::Time t) {
                 if (ImGui::Combo("Select tileset", &tilesetComboIndex, &tilesetFiles[0], tilesetFiles.size())) {
                     showTilesetImage = true;
                     selectedTilesetPath = tilesetFiles[tilesetComboIndex];
-                    selectedTileLayer = 1; //TODO: implement a layer select thing
+                    selectedTileLayer = 1;
                     selectedTileSrcPos = sf::Vector2i(0,0);
                 }
                 ImGui::PopItemWidth();
