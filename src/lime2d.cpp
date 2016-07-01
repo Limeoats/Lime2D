@@ -158,6 +158,7 @@ void l2d::Editor::update(sf::Time t) {
 
 
         //Drawing tiles variables
+        static bool tileHasBeenSelected = false;
         static std::string selectedTilesetPath = "content/tilesets/outside.png";
         static sf::Vector2i selectedTileSrcPos(0,0);
         static int selectedTileLayer = 1;
@@ -505,16 +506,25 @@ void l2d::Editor::update(sf::Time t) {
             }
 
             //Clicking on a tile normally
-            sf::Vector2f drawingMousePos(
-                    sf::Mouse::getPosition(*this->_window).x + this->_graphics->getCamera()->getRect().left,
-                    sf::Mouse::getPosition(*this->_window).y + this->_graphics->getCamera()->getRect().top);
-            if (ImGui::IsMouseClicked(0) && mainHasFocus) { //TODO: static bool shouldDraw (only do it when menus and other windows are not open). VERY IMPORTANT
-                sf::Vector2f tilePos(
-                        (drawingMousePos.x - ((int) drawingMousePos.x % (int) (this->_level.getTileSize().x * std::stof(
-                                                                 l2d_internal::utils::getConfigValue("tile_scale_x"))))) / this->_level.getTileSize().x / (int)std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")) + 1,
-                        (drawingMousePos.y - ((int) drawingMousePos.y % (int) (this->_level.getTileSize().y * std::stof(
-                                                                 l2d_internal::utils::getConfigValue("tile_scale_y"))))) / this->_level.getTileSize().y / (int)std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")) + 1);
-                this->_level.updateTile(selectedTilesetPath, selectedTilesetSize, selectedTileSrcPos, sf::Vector2i(8,8), tilePos, 1, selectedTileLayer);
+            if (tileHasBeenSelected) {
+                sf::Vector2f drawingMousePos(
+                        sf::Mouse::getPosition(*this->_window).x + this->_graphics->getCamera()->getRect().left,
+                        sf::Mouse::getPosition(*this->_window).y + this->_graphics->getCamera()->getRect().top);
+                if (ImGui::IsMouseDown(0) && mainHasFocus) { //TODO: static bool shouldDraw (only do it when menus and other windows are not open). VERY IMPORTANT
+                    sf::Vector2f tilePos(
+                            (drawingMousePos.x - ((int) drawingMousePos.x % (int) (this->_level.getTileSize().x * std::stof(
+                                    l2d_internal::utils::getConfigValue("tile_scale_x"))))) / this->_level.getTileSize().x /
+                            (int) std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")) + 1,
+                            (drawingMousePos.y - ((int) drawingMousePos.y % (int) (this->_level.getTileSize().y * std::stof(
+                                    l2d_internal::utils::getConfigValue("tile_scale_y"))))) / this->_level.getTileSize().y /
+                            (int) std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")) + 1);
+                    if (tilePos.x >= 1 && tilePos.y >= 1 && tilePos.x <= this->_level.getSize().x && tilePos.y <= this->_level.getSize().y) {
+                        this->_level.updateTile(selectedTilesetPath, selectedTilesetSize, selectedTileSrcPos,
+                                                sf::Vector2i(this->_level.getTileSize().x,
+                                                             this->_level.getTileSize().y), tilePos, 1,
+                                                selectedTileLayer);
+                    }
+                }
             }
 
             //Tile info window
@@ -606,7 +616,7 @@ void l2d::Editor::update(sf::Time t) {
                     }
                     ImGui::PopItemWidth();
                     ImGui::SameLine();
-                    ImGui::Text("   |   ");
+                    ImGui::Text("      ");
                     ImGui::SameLine();
 
 
@@ -651,6 +661,7 @@ void l2d::Editor::update(sf::Time t) {
                     }
 
                     selectedTilePos = ImVec2(tw * (static_cast<int>(dx) / static_cast<int>(tw)), th * (static_cast<int>(dy) / static_cast<int>(th)));
+                    tileHasBeenSelected = true;
 
                     selectedTileSrcPos = sf::Vector2i((static_cast<int>(dx) / static_cast<int>(tw)) * this->_level.getTileSize().x, (static_cast<int>(dy) / static_cast<int>(th)) * this->_level.getTileSize().y);
 

@@ -444,19 +444,19 @@
             <tile layer="1" tileset="1">6</tile>
         </pos>
         <pos x="8" y="8">
-            <tile layer="1" tileset="1">4</tile>
+            <tile layer="1" tileset="1">6</tile>
         </pos>
         <pos x="9" y="8">
-            <tile layer="1" tileset="1">4</tile>
+            <tile layer="1" tileset="1">6</tile>
         </pos>
         <pos x="10" y="8">
-            <tile layer="1" tileset="1">4</tile>
+            <tile layer="1" tileset="1">6</tile>
         </pos>
         <pos x="11" y="8">
-            <tile layer="1" tileset="1">4</tile>
+            <tile layer="1" tileset="1">6</tile>
         </pos>
         <pos x="12" y="8">
-            <tile layer="1" tileset="1">4</tile>
+            <tile layer="1" tileset="1">6</tile>
         </pos>
         <pos x="13" y="8">
             <tile layer="1" tileset="1">6</tile>
