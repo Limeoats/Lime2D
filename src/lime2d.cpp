@@ -61,6 +61,12 @@ void l2d::Editor::processEvent(sf::Event &event) {
         else if (event.key.code == sf::Keyboard::G) {
             this->_showGridLines = !this->_showGridLines;
         }
+        else if (event.key.code == sf::Keyboard::U) {
+            this->_level.undo();
+        }
+        else if (event.key.code == sf::Keyboard::R) {
+            this->_level.redo();
+        }
     }
 }
 
@@ -447,6 +453,18 @@ void l2d::Editor::update(sf::Time t) {
                 }
                 ImGui::EndMenu();
             }
+            if (ImGui::BeginMenu("Edit")) {
+                mainHasFocus = false;
+                if (ImGui::MenuItem("Undo", "U", false, !this->_level.isUndoListEmpty())) {
+                    mainHasFocus = false;
+                    this->_level.undo();
+                }
+                if (ImGui::MenuItem("Redo", "R", false, !this->_level.isRedoListEmpty())) {
+                    mainHasFocus = false;
+                    this->_level.redo();
+                }
+                ImGui::EndMenu();
+            }
             if (ImGui::BeginMenu("View")) {
                 mainHasFocus = false;
                 if (ImGui::Checkbox("Map Editor", &cbMapEditor)) {
@@ -461,13 +479,16 @@ void l2d::Editor::update(sf::Time t) {
                 mainHasFocus = false;
                 if (ImGui::MenuItem("New map")) {
                     newMapBoxVisible = true;
+                    mainHasFocus = false;
                 }
                 if (ImGui::MenuItem("Load map")) {
                     mapSelectBoxVisible = true;
+                    mainHasFocus = false;
                 }
                 if (this->_level.getName() != "l2dSTART") {
                     if (ImGui::MenuItem("Save map")) {
                         this->_level.saveMap(this->_level.getName());
+                        mainHasFocus = false;
                     }
                 }
                 if (ImGui::MenuItem("Configure")) {
@@ -478,6 +499,7 @@ void l2d::Editor::update(sf::Time t) {
                     if (ImGui::Checkbox("Show grid lines", &cbShowGridLines)) {
                         this->_showGridLines = cbShowGridLines;
                     }
+                    mainHasFocus = false;
                 }
                 ImGui::EndMenu();
             }
@@ -517,7 +539,7 @@ void l2d::Editor::update(sf::Time t) {
                 sf::Vector2f drawingMousePos(
                         sf::Mouse::getPosition(*this->_window).x + this->_graphics->getCamera()->getRect().left,
                         sf::Mouse::getPosition(*this->_window).y + this->_graphics->getCamera()->getRect().top);
-                if (ImGui::IsMouseDown(0) && mainHasFocus) {
+                if (ImGui::IsMouseClicked(0) && mainHasFocus) {
                     sf::Vector2f tilePos(
                             (drawingMousePos.x - ((int) drawingMousePos.x % (int) (this->_level.getTileSize().x * std::stof(
                                     l2d_internal::utils::getConfigValue("tile_scale_x"))))) / this->_level.getTileSize().x /
@@ -567,7 +589,12 @@ void l2d::Editor::update(sf::Time t) {
                 if (showSpecificTileProperties) {
                     ImGui::Image(showSpecificTilePropertiesTile->getSprite(), sf::Vector2f(32.0f, 32.0f));
                     ImGui::Text("Layer: %d", showSpecificTilePropertiesLayer->Id);
+                    if (ImGui::Button("Erase")) {
+                        this->_level.removeTile(showSpecificTilePropertiesLayer->Id, tilePos);
+                        showSpecificTileProperties = false;
+                    }
                 }
+                ImGui::Separator();
                 if (ImGui::Button("Close")) {
                     showSpecificTileProperties = false;
                     tilePropertiesWindowVisible = false;

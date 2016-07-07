@@ -10,6 +10,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <memory>
+#include <stack>
 
 namespace l2d_internal {
 
@@ -91,6 +92,7 @@ namespace l2d_internal {
     //Internal Layer class
     class Layer {
     public:
+        Layer();
         int Id;
         std::vector<std::shared_ptr<Tile>> Tiles;
         void draw();
@@ -114,7 +116,13 @@ namespace l2d_internal {
         std::vector<Tileset> getTilesetList();
         std::vector<std::shared_ptr<Layer>> getLayerList();
 
+        void removeTile(int layer, sf::Vector2f pos);
         void updateTile(std::string newTilesetPath, sf::Vector2i newTilesetSize, sf::Vector2i srcPos, sf::Vector2i size, sf::Vector2f destPos, int tilesetId, int layer);
+
+        void undo();
+        bool isUndoListEmpty() const;
+        void redo();
+        bool isRedoListEmpty() const;
     private:
         std::string _name;
         sf::Vector2i _size;
@@ -123,6 +131,10 @@ namespace l2d_internal {
         std::vector<std::shared_ptr<Layer>> _layerList;
 
         std::shared_ptr<Graphics> _graphics;
+
+        std::stack<std::vector<std::shared_ptr<Layer>>> _oldLayerList;
+        std::stack<std::vector<std::shared_ptr<Layer>>> _redoList;
+
     };
 
     //Internal Camera class

@@ -9,6 +9,7 @@
 #include <sstream>
 #include <fstream>
 #include <tuple>
+#include <iostream>
 #include "lime2d_internal.h"
 
 #include "../libext/tinyxml2.h"
@@ -171,6 +172,10 @@ l2d_internal::Tileset::Tileset(int id, std::string path, sf::Vector2i size) :
  * Layer
  */
 
+l2d_internal::Layer::Layer() {
+
+}
+
 void l2d_internal::Layer::draw() {
     for (auto &t : this->Tiles) {
         t->draw();
@@ -184,6 +189,8 @@ void l2d_internal::Layer::draw() {
 l2d_internal::Level::Level(std::shared_ptr<Graphics> graphics, std::string name) {
     this->loadMap(name);
     this->_graphics = graphics;
+    this->_oldLayerList = std::stack<std::vector<std::shared_ptr<Layer>>>();
+    this->_redoList = std::stack<std::vector<std::shared_ptr<Layer>>>();
 }
 
 l2d_internal::Level::~Level() {
@@ -212,6 +219,8 @@ std::vector<std::shared_ptr<l2d_internal::Layer>> l2d_internal::Level::getLayerL
 
 void l2d_internal::Level::createMap(std::string name, sf::Vector2i size, sf::Vector2i tileSize) {
     this->_layerList.clear();
+    this->_oldLayerList = std::stack<std::vector<std::shared_ptr<Layer>>>();
+    this->_redoList = std::stack<std::vector<std::shared_ptr<Layer>>>();
     this->_tilesetList.clear();
     this->_name = name;
     this->_size = size;
@@ -228,6 +237,8 @@ void l2d_internal::Level::loadMap(std::string &name) {
 
     this->_layerList.clear();
     this->_tilesetList.clear();
+    this->_oldLayerList = std::stack<std::vector<std::shared_ptr<Layer>>>();
+    this->_redoList = std::stack<std::vector<std::shared_ptr<Layer>>>();
 
     XMLDocument document;
     std::stringstream ss;
@@ -413,6 +424,17 @@ void l2d_internal::Level::saveMap(std::string name) {
 
 void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i newTilesetSize, sf::Vector2i srcPos, sf::Vector2i size,
                                      sf::Vector2f destPos, int tilesetId, int layer) {
+    //Set oldLayerList for Undo
+    std::vector<std::shared_ptr<l2d_internal::Layer>> tmpList;
+    for (int i = 0; i < this->_layerList.size(); ++i) {
+        l2d_internal::Layer l;
+        l.Id = this->_layerList.at(i).get()->Id;
+        for (int j = 0; j < this->_layerList[i].get()->Tiles.size(); ++j) {
+            l.Tiles.push_back(this->_layerList[i].get()->Tiles.at(j));
+        }
+        tmpList.push_back(std::make_shared<l2d_internal::Layer>(l));
+    }
+    this->_oldLayerList.push(tmpList);
 
     //Add the tileset to the map if it isn't already
     std::shared_ptr<Tileset> tls = nullptr;
@@ -461,11 +483,124 @@ void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i ne
                             l.get()->Tiles.end(), t),
                 l.get()->Tiles.end());
     }
-    //Place the new one
 
+    //Place the new one
     sf::Vector2f newDestPos((destPos.x - 1) * this->_tileSize.x * static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))),
                             (destPos.y - 1) * this->_tileSize.y * static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))));
     l.get()->Tiles.push_back(std::make_shared<Tile>(this->_graphics, newTilesetPath, srcPos, this->_tileSize, newDestPos, tilesetId, layer));
+}
+
+void l2d_internal::Level::removeTile(int layer, sf::Vector2f pos) {
+    //Set oldLayerList for Undo
+    std::vector<std::shared_ptr<l2d_internal::Layer>> tmpList;
+    for (int i = 0; i < this->_layerList.size(); ++i) {
+        l2d_internal::Layer l;
+        l.Id = this->_layerList.at(i).get()->Id;
+        for (int j = 0; j < this->_layerList[i].get()->Tiles.size(); ++j) {
+            l.Tiles.push_back(this->_layerList[i].get()->Tiles.at(j));
+        }
+        tmpList.push_back(std::make_shared<l2d_internal::Layer>(l));
+    }
+    this->_oldLayerList.push(tmpList);
+
+    std::shared_ptr<Tile> t = nullptr;
+    //Check if the layer exists. If not, create it
+    std::shared_ptr<Layer> l = nullptr;
+    for (int i = 0; i < this->_layerList.size(); ++i) {
+        if (this->_layerList[i]->Id == layer) {
+            l = this->_layerList[i];
+            break;
+        }
+    }
+
+    for (int i = 0; i < l.get()->Tiles.size(); ++i) {
+        auto tile = l.get()->Tiles[i];
+        int tileLayer = tile.get()->getLayer();
+        sf::Vector2f tilePos(tile.get()->getSprite().getPosition().x / this->_tileSize.x /
+                             static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) + 1,
+                             tile.get()->getSprite().getPosition().y / this->_tileSize.y /
+                             static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))) + 1);
+        if (tileLayer == layer && tilePos.x == static_cast<int>(pos.x / this->_tileSize.x /
+                                                                static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) + 1) &&
+            tilePos.y == static_cast<int>(pos.y / this->_tileSize.y /
+                                          static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))) + 1)) {
+            t = tile;
+            break;
+        }
+    }
+    if (t != nullptr) {
+        //Remove the existing tile from the layer
+        l.get()->Tiles.erase(
+                std::remove(l.get()->Tiles.begin(),
+                            l.get()->Tiles.end(), t),
+                l.get()->Tiles.end());
+    }
+}
+
+void l2d_internal::Level::undo() {
+    if (!this->isUndoListEmpty()) {
+        std::vector<std::shared_ptr<l2d_internal::Layer>> tmpList;
+        for (int i = 0; i < this->_oldLayerList.top().size(); ++i) {
+            l2d_internal::Layer l;
+            l.Id = this->_oldLayerList.top().at(i).get()->Id;
+            for (int j = 0; j < this->_oldLayerList.top()[i].get()->Tiles.size(); ++j) {
+                l.Tiles.push_back(this->_oldLayerList.top()[i].get()->Tiles.at(j));
+            }
+            tmpList.push_back(std::make_shared<l2d_internal::Layer>(l));
+        }
+
+        //Set up redo list
+        std::vector<std::shared_ptr<l2d_internal::Layer>> tmpRedoList;
+        for (int i = 0; i < this->_layerList.size(); ++i) {
+            l2d_internal::Layer l;
+            l.Id = this->_layerList.at(i).get()->Id;
+            for (int j = 0; j < this->_layerList[i].get()->Tiles.size(); ++j) {
+                l.Tiles.push_back(this->_layerList[i].get()->Tiles.at(j));
+            }
+            tmpRedoList.push_back(std::make_shared<l2d_internal::Layer>(l));
+        }
+        this->_redoList.push(tmpRedoList);
+
+        this->_layerList = tmpList;
+        this->_oldLayerList.pop();
+    }
+}
+
+bool l2d_internal::Level::isUndoListEmpty() const {
+    return this->_oldLayerList.empty();
+}
+
+void l2d_internal::Level::redo() {
+    if (!this->isRedoListEmpty()) {
+        std::vector<std::shared_ptr<l2d_internal::Layer>> tmpList;
+        for (int i = 0; i < this->_redoList.top().size(); ++i) {
+            l2d_internal::Layer l;
+            l.Id = this->_redoList.top().at(i).get()->Id;
+            for (int j = 0; j < this->_redoList.top()[i].get()->Tiles.size(); ++j) {
+                l.Tiles.push_back(this->_redoList.top()[i].get()->Tiles.at(j));
+            }
+            tmpList.push_back(std::make_shared<l2d_internal::Layer>(l));
+        }
+
+        //Set up undo list
+        std::vector<std::shared_ptr<l2d_internal::Layer>> tmpUndoList;
+        for (int i = 0; i < this->_layerList.size(); ++i) {
+            l2d_internal::Layer l;
+            l.Id = this->_layerList.at(i).get()->Id;
+            for (int j = 0; j < this->_layerList[i].get()->Tiles.size(); ++j) {
+                l.Tiles.push_back(this->_layerList[i].get()->Tiles.at(j));
+            }
+            tmpUndoList.push_back(std::make_shared<l2d_internal::Layer>(l));
+        }
+        this->_oldLayerList.push(tmpUndoList);
+
+        this->_layerList = tmpList;
+        this->_redoList.pop();
+    }
+}
+
+bool l2d_internal::Level::isRedoListEmpty() const {
+    return this->_redoList.empty();
 }
 
 void l2d_internal::Level::draw() {
