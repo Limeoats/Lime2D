@@ -32,7 +32,8 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
     _graphics(new l2d_internal::Graphics(window)),
     _level(this->_graphics, "l2dSTART"),
     _showGridLines(true),
-    _tilesetEnabled(false)
+    _tilesetEnabled(false),
+    _eraserActive(false)
 {
     this->_enabled = enabled;
     ImGui::SFML::Init(*window);
@@ -117,7 +118,7 @@ void l2d::Editor::render() {
                                                    std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")) - 1,
                                                    this->_level.getTileSize().y *
                                                    std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")) - 1));
-                    rectangle.setOutlineColor(sf::Color::Magenta);
+                    rectangle.setOutlineColor(this->_eraserActive ? sf::Color::Blue : sf::Color::Magenta);
                     rectangle.setOutlineThickness(2);
                     rectangle.setPosition((mousePos.x - ((int) mousePos.x % (int) (this->_level.getTileSize().x *
                                                                                    std::stof(
@@ -548,10 +549,16 @@ void l2d::Editor::update(sf::Time t) {
                                     l2d_internal::utils::getConfigValue("tile_scale_y"))))) / this->_level.getTileSize().y /
                             (int) std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")) + 1);
                     if (tilePos.x >= 1 && tilePos.y >= 1 && tilePos.x <= this->_level.getSize().x && tilePos.y <= this->_level.getSize().y) {
-                        this->_level.updateTile(selectedTilesetPath, selectedTilesetSize, selectedTileSrcPos,
-                                                sf::Vector2i(this->_level.getTileSize().x,
-                                                             this->_level.getTileSize().y), tilePos, 1,
-                                                selectedTileLayer);
+                        if (this->_eraserActive) {
+                            this->_level.removeTile(selectedTileLayer, sf::Vector2f((tilePos.x - 1) * this->_level.getTileSize().x * std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")),
+                                                                                    (tilePos.y - 1) * this->_level.getTileSize().y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))));
+                        }
+                        else {
+                            this->_level.updateTile(selectedTilesetPath, selectedTilesetSize, selectedTileSrcPos,
+                                                    sf::Vector2i(this->_level.getTileSize().x,
+                                                                 this->_level.getTileSize().y), tilePos, 1,
+                                                    selectedTileLayer);
+                        }
                     }
                 }
             }
@@ -559,8 +566,8 @@ void l2d::Editor::update(sf::Time t) {
             //Tile info window
             if (tilePropertiesWindowVisible) {
                 ImGui::SetNextWindowPosCenter();
-                ImGui::SetNextWindowSize(ImVec2(300, 400));
-                ImGui::Begin("Properties", nullptr, ImVec2(300, 400), 100.0f);
+                ImGui::SetNextWindowSize(ImVec2(340, 400));
+                ImGui::Begin("Properties", nullptr, ImVec2(340, 400), 100.0f);
 
                 sf::Vector2f tilePos(mousePos.x - ((int) mousePos.x % (int) (this->_level.getTileSize().x * std::stof(
                         l2d_internal::utils::getConfigValue("tile_scale_x")))),
@@ -568,7 +575,7 @@ void l2d::Editor::update(sf::Time t) {
                                                                               std::stof(
                                                                                       l2d_internal::utils::getConfigValue(
                                                                                               "tile_scale_y"))))));
-                ImGui::Text("put a picture of the tile here");
+                ImGui::Text("Select a tile to view specific properties:");
                 for(int i = 0; i < this->_level.getLayerList().size(); ++i) {
                     std::for_each(this->_level.getLayerList()[i].get()->Tiles.begin(), this->_level.getLayerList()[i].get()->Tiles.end(), [&](const std::shared_ptr<l2d_internal::Tile> &tile) {
                         if (tile.get()->getSprite().getPosition() == tilePos) {
@@ -659,6 +666,16 @@ void l2d::Editor::update(sf::Time t) {
                     ImGui::InputInt("Layer", &selectedTileLayer, 1);
                     ImGui::PopID();
                     ImGui::PopItemWidth();
+
+                    ImGui::SameLine();
+                    ImGui::Text("      ");
+                    ImGui::SameLine();
+
+                    ImGui::PushItemWidth(84);
+                    ImGui::PushID("nEraser");
+                    ImGui::Checkbox("Eraser", &this->_eraserActive);
+                    ImGui::PopID();
+                    ImGui::PopItemWidth();
                 }
                 if (showTilesetImage) {
                     ImGui::BeginChild("tilesetChildArea", ImVec2(500, 200), true, ImGuiWindowFlags_HorizontalScrollbar);
@@ -682,10 +699,24 @@ void l2d::Editor::update(sf::Time t) {
 
                     //Tileset selected item
                     //We're going to use lines for this :/
-                    ImGui::GetWindowDrawList()->AddLine(ImVec2(pos.x + selectedTilePos.x, pos.y + selectedTilePos.y), ImVec2((pos.x + selectedTilePos.x + tw), pos.y + selectedTilePos.y), ImColor(255,0,0,255), 2.0f); //Top
-                    ImGui::GetWindowDrawList()->AddLine(ImVec2(pos.x + selectedTilePos.x, pos.y + selectedTilePos.y), ImVec2(pos.x + selectedTilePos.x, (pos.y + selectedTilePos.y + th)), ImColor(255,0,0,255), 2.0f); //Left
-                    ImGui::GetWindowDrawList()->AddLine(ImVec2(pos.x + selectedTilePos.x, (pos.y + selectedTilePos.y + th)), ImVec2((pos.x + selectedTilePos.x + tw), (pos.y + selectedTilePos.y + th)), ImColor(255,0,0,255), 2.0f); //Bottom
-                    ImGui::GetWindowDrawList()->AddLine(ImVec2((pos.x + selectedTilePos.x + tw), pos.y + selectedTilePos.y), ImVec2((pos.x + selectedTilePos.x + tw), (pos.y + selectedTilePos.y + th)), ImColor(255,0,0,255), 2.0f); //Right
+                    if (!this->_eraserActive) {
+                        ImGui::GetWindowDrawList()->AddLine(
+                                ImVec2(pos.x + selectedTilePos.x, pos.y + selectedTilePos.y),
+                                ImVec2((pos.x + selectedTilePos.x + tw), pos.y + selectedTilePos.y),
+                                ImColor(255, 0, 0, 255), 2.0f); //Top
+                        ImGui::GetWindowDrawList()->AddLine(
+                                ImVec2(pos.x + selectedTilePos.x, pos.y + selectedTilePos.y),
+                                ImVec2(pos.x + selectedTilePos.x, (pos.y + selectedTilePos.y + th)),
+                                ImColor(255, 0, 0, 255), 2.0f); //Left
+                        ImGui::GetWindowDrawList()->AddLine(
+                                ImVec2(pos.x + selectedTilePos.x, (pos.y + selectedTilePos.y + th)),
+                                ImVec2((pos.x + selectedTilePos.x + tw), (pos.y + selectedTilePos.y + th)),
+                                ImColor(255, 0, 0, 255), 2.0f); //Bottom
+                        ImGui::GetWindowDrawList()->AddLine(
+                                ImVec2((pos.x + selectedTilePos.x + tw), pos.y + selectedTilePos.y),
+                                ImVec2((pos.x + selectedTilePos.x + tw), (pos.y + selectedTilePos.y + th)),
+                                ImColor(255, 0, 0, 255), 2.0f); //Right
+                    }
 
                     //Click event on the tileset
                     if (ImGui::IsMouseClicked(0) && ImGui::IsWindowFocused()) {
@@ -703,6 +734,7 @@ void l2d::Editor::update(sf::Time t) {
                 }
                 ImGui::End();
             }
+
         }
 
 

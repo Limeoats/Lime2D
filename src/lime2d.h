@@ -24,6 +24,7 @@ namespace l2d {
         bool _enabled;
         bool _windowHasFocus;
         bool _showGridLines;
+        bool _eraserActive;
 
         bool _tilesetEnabled;
 
