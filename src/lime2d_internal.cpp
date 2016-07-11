@@ -506,7 +506,6 @@ bool l2d_internal::Level::tileExists(int layer, sf::Vector2i pos) const {
         return false;
     }
     return true;
-
 }
 
 void l2d_internal::Level::removeTile(int layer, sf::Vector2f pos) {

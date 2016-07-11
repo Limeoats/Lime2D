@@ -119,6 +119,11 @@ namespace l2d_internal {
         void removeTile(int layer, sf::Vector2f pos);
         void updateTile(std::string newTilesetPath, sf::Vector2i newTilesetSize, sf::Vector2i srcPos, sf::Vector2i size, sf::Vector2f destPos, int tilesetId, int layer);
 
+        /*!
+         * Checks if a tile exists
+         * @param [in] layer The layer the tile would be on
+         * @param [in] pos The position of the tile in local coordinates
+         */
         bool tileExists(int layer, sf::Vector2i pos) const;
 
         void undo();
