@@ -119,10 +119,14 @@ namespace l2d_internal {
         void removeTile(int layer, sf::Vector2f pos);
         void updateTile(std::string newTilesetPath, sf::Vector2i newTilesetSize, sf::Vector2i srcPos, sf::Vector2i size, sf::Vector2f destPos, int tilesetId, int layer);
 
+        bool tileExists(int layer, sf::Vector2i pos) const;
+
         void undo();
         bool isUndoListEmpty() const;
         void redo();
         bool isRedoListEmpty() const;
+
+        sf::Vector2i globalToLocalCoordinates(sf::Vector2f coords) const;
     private:
         std::string _name;
         sf::Vector2i _size;

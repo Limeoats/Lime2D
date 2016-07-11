@@ -490,7 +490,29 @@ void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i ne
     l.get()->Tiles.push_back(std::make_shared<Tile>(this->_graphics, newTilesetPath, srcPos, this->_tileSize, newDestPos, tilesetId, layer));
 }
 
+bool l2d_internal::Level::tileExists(int layer, sf::Vector2i pos) const {
+    auto l = std::find_if(this->_layerList.begin(), this->_layerList.end(), [&](std::shared_ptr<Layer> t) {
+        return t.get()->Id == layer;
+    });
+    if (l == this->_layerList.end()) {
+        //The layer doesn't even exist
+        return false;
+    }
+    auto tile = std::find_if(l->get()->Tiles.begin(), l->get()->Tiles.end(), [&](std::shared_ptr<Tile> t) {
+       return this->globalToLocalCoordinates(t.get()->getSprite().getPosition()) == pos;
+    });
+    if (tile == l->get()->Tiles.end()) {
+        //The tile does not exist on the layer
+        return false;
+    }
+    return true;
+
+}
+
 void l2d_internal::Level::removeTile(int layer, sf::Vector2f pos) {
+    if (!this->tileExists(layer, this->globalToLocalCoordinates(pos))) {
+        return;
+    }
     //Set oldLayerList for Undo
     std::vector<std::shared_ptr<l2d_internal::Layer>> tmpList;
     for (int i = 0; i < this->_layerList.size(); ++i) {
@@ -601,6 +623,11 @@ void l2d_internal::Level::redo() {
 
 bool l2d_internal::Level::isRedoListEmpty() const {
     return this->_redoList.empty();
+}
+
+sf::Vector2i l2d_internal::Level::globalToLocalCoordinates(sf::Vector2f coords) const {
+    return sf::Vector2i(static_cast<int>(coords.x) / this->_tileSize.x / static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) + 1,
+                        static_cast<int>(coords.y) / this->_tileSize.y / static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))) + 1);
 }
 
 void l2d_internal::Level::draw() {

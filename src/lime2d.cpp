@@ -5,11 +5,7 @@
  */
 
 /*
-    TODO:
-        -Change internal level's loadMap so that the function returns a string. Then, whenever I call loadMap
-         from l2d, check return value with if (!level->loadMap("asdf")) and show an ImGui popup with the
-         error message. Make sure in level loadMap to check every possible place it can break.
-         (make sure tileset exists, make sure map exists, make sure any sprites exist, etc)
+
  */
 
 
@@ -33,7 +29,8 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
     _level(this->_graphics, "l2dSTART"),
     _showGridLines(true),
     _tilesetEnabled(false),
-    _eraserActive(false)
+    _eraserActive(false),
+    _windowHasFocus(true)
 {
     this->_enabled = enabled;
     ImGui::SFML::Init(*window);
@@ -52,7 +49,6 @@ void l2d::Editor::processEvent(sf::Event &event) {
     if (event.type == sf::Event::LostFocus) {
         this->_windowHasFocus = false;
     }
-
     if (event.type == sf::Event::KeyReleased) {
         if (event.key.code == sf::Keyboard::T) {
             if (this->_level.getName() != "l2dSTART") {
