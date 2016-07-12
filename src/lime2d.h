@@ -13,6 +13,10 @@
 #include "lime2d_internal.h"
 
 namespace l2d {
+    /*!
+     * The Editor class is the core of Lime2D.
+     * It contains all functionality that will be exposed to the user.
+     */
     class Editor {
     public:
         /*!

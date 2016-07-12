@@ -1,7 +1,8 @@
-/*
- * lime2d_internal.cpp
- * By: Mark Guerra
- * Created on 6/10/2016
+/*!
+ * \file lime2d_internal.cpp
+ * \author Mark Guerra
+ * \date 6/10/2016
+ * \copyright 2016 Limeoats
  */
 
 #include <glob.h>
