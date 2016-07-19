@@ -126,6 +126,11 @@ void l2d::Editor::render() {
                 }
             }
         }
+        sf::RectangleShape rectangle;
+        rectangle.setSize(sf::Vector2f(this->_window->getSize().x, 30));
+        rectangle.setFillColor(sf::Color::Black);
+        rectangle.setPosition(0 + this->_graphics->getCamera()->getRect().left, this->_window->getSize().y - 30 + this->_graphics->getCamera()->getRect().top);
+        this->_window->draw(rectangle);
         ImGui::Render();
     }
 }
@@ -149,9 +154,15 @@ void l2d::Editor::update(sf::Time t) {
         static bool newMapBoxVisible = false;
         static bool newMapExistsOverwriteVisible = false;
         static bool tilesetWindowVisible = false;
+        static bool lightEditorWindowVisible = false;
         static bool mainHasFocus = true;
 
         static sf::Vector2f mousePos(0.0f, 0.0f);
+
+        static std::string currentFeature = "Lime2D";
+        static std::string currentStatus = "";
+        static bool showCurrentStatus = false;
+        static int currentStatusTimer = 0;
 
         static std::vector<std::shared_ptr<sf::Texture>> tilesets;
 
@@ -169,10 +180,16 @@ void l2d::Editor::update(sf::Time t) {
         static int selectedTileLayer = 1;
         static sf::Vector2i selectedTilesetSize(0,0);
 
+        auto startStatusTimer = [&](std::string newStatus, int time) {
+            currentStatus = newStatus;
+            currentStatusTimer = time;
+            showCurrentStatus = true;
+        };
+
 
         //Set mainHasFocus (very important)
         //This tells Lime2D that it can draw tiles to the screen. We don't want it drawing if other windows have focus.
-        mainHasFocus = !(tilesetWindowVisible || newMapBoxVisible || tilePropertiesWindowVisible || configWindowVisible || mapSelectBoxVisible || aboutBoxVisible);
+        mainHasFocus = !(tilesetWindowVisible || newMapBoxVisible || tilePropertiesWindowVisible || configWindowVisible || mapSelectBoxVisible || aboutBoxVisible || lightEditorWindowVisible);
 
         cbShowGridLines = this->_showGridLines;
 
@@ -463,9 +480,11 @@ void l2d::Editor::update(sf::Time t) {
                 mainHasFocus = false;
                 if (ImGui::Checkbox("Map Editor", &cbMapEditor)) {
                     cbAnimationEditor = false;
+                    currentFeature = "Map Editor";
                 }
                 if (ImGui::Checkbox("Animation Editor", &cbAnimationEditor)) {
                     cbMapEditor = false;
+                    currentFeature = "Animation Editor";
                 }
                 ImGui::EndMenu();
             }
@@ -482,6 +501,7 @@ void l2d::Editor::update(sf::Time t) {
                 if (this->_level.getName() != "l2dSTART") {
                     if (ImGui::MenuItem("Save map")) {
                         this->_level.saveMap(this->_level.getName());
+                        startStatusTimer("Map saved successfully!", 200);
                         mainHasFocus = false;
                     }
                 }
@@ -490,6 +510,18 @@ void l2d::Editor::update(sf::Time t) {
                 }
                 if (this->_level.getName() != "l2dSTART") {
                     ImGui::Separator();
+                    if (ImGui::BeginMenu("Add")) {
+                        if (ImGui::BeginMenu("Light")) {
+                            if (ImGui::MenuItem("Ambient light")) {
+                                std::cout << "ambient light" << std::endl;
+                            }
+                            if (ImGui::MenuItem("Point light")) {
+                                std::cout << "point light" << std::endl;
+                            }
+                            ImGui::EndMenu();
+                        }
+                        ImGui::EndMenu();
+                    }
                     if (ImGui::Checkbox("Show grid lines", &cbShowGridLines)) {
                         this->_showGridLines = cbShowGridLines;
                     }
@@ -731,34 +763,28 @@ void l2d::Editor::update(sf::Time t) {
         }
 
 
-        if (cbMapEditor) {
-            /*
-             * Map Editor
-             */
-//            ImGui::Begin("Background", nullptr, ImGui::GetIO().DisplaySize, 0.0f,
-//                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-//                         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
-//                         ImGuiWindowFlags_NoCollapse |
-//                         ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs |
-//                         ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus);
-//            ImGui::GetWindowDrawList()->AddText(ImVec2(10, 30), ImColor(1.0f, 1.0f, 1.0f, 1.0f), "Map Editor");
-//            ImGui::End();
+        ImGui::Begin("Background", nullptr, ImGui::GetIO().DisplaySize, 0.0f,
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                     ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
+                     ImGuiWindowFlags_NoCollapse |
+                     ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs |
+                     ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus);
+        ImGui::GetWindowDrawList()->AddText(ImVec2(6, this->_window->getSize().y  - 20), ImColor(1.0f, 1.0f, 1.0f, 1.0f), currentFeature.c_str());
+        if (showCurrentStatus) {
+            ImGui::GetWindowDrawList()->AddText(ImVec2(180, this->_window->getSize().y - 20),
+                                                ImColor(1.0f, 1.0f, 1.0f, 1.0f), currentStatus.c_str());
         }
-        else if (cbAnimationEditor) {
-            /*
-             * Animation Editor
-             */
-            ImGui::Begin("Background", nullptr, ImGui::GetIO().DisplaySize, 0.0f,
-                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-                         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
-                         ImGuiWindowFlags_NoCollapse |
-                         ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs |
-                         ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus);
-            ImGui::GetWindowDrawList()->AddText(ImVec2(10, 30), ImColor(1.0f, 1.0f, 1.0f, 1.0f), "Animation Editor");
-            ImGui::End();
-        }
+        ImGui::End();
+
         this->_level.update(t.asSeconds());
         this->_graphics->update(t.asSeconds(), sf::Vector2f(this->_level.getTileSize()), this->_windowHasFocus);
+
+        if (currentStatusTimer > 0) {
+            currentStatusTimer -= 1;
+        }
+        if (currentStatusTimer <= 0) {
+            showCurrentStatus = false;
+        }
     }
 }
 
