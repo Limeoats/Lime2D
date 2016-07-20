@@ -246,6 +246,8 @@ void l2d_internal::Level::createMap(std::string name, sf::Vector2i size, sf::Vec
     this->_oldLayerList = std::stack<std::vector<std::shared_ptr<Layer>>>();
     this->_redoList = std::stack<std::vector<std::shared_ptr<Layer>>>();
     this->_tilesetList.clear();
+    this->_ambientColor = sf::Color::White;
+    this->_ambientIntensity = 1.0f;
     this->_name = name;
     this->_size = size;
     this->_tileSize = tileSize;
@@ -263,6 +265,8 @@ void l2d_internal::Level::loadMap(std::string &name) {
     this->_tilesetList.clear();
     this->_oldLayerList = std::stack<std::vector<std::shared_ptr<Layer>>>();
     this->_redoList = std::stack<std::vector<std::shared_ptr<Layer>>>();
+    this->_ambientColor = sf::Color::White;
+    this->_ambientIntensity = 1.0f;
 
     XMLDocument document;
     std::stringstream ss;
@@ -353,6 +357,26 @@ void l2d_internal::Level::loadMap(std::string &name) {
             pTiles = pTiles->NextSiblingElement("tiles");
         }
     }
+    //Objects
+    XMLElement* pObjects = pMap->FirstChildElement("objects");
+    if (pObjects != nullptr) {
+        while (pObjects) {
+            //Lights
+            XMLElement* pLights = pObjects->FirstChildElement("lights");
+            if (pLights != nullptr) {
+                while (pLights) {
+                    //Ambient light
+                    XMLElement* pAmbientLight = pLights->FirstChildElement("ambient");
+                    if (pAmbientLight != nullptr) {
+                        this->_ambientColor = sf::Color(static_cast<sf::Uint32>(pAmbientLight->IntAttribute("color")));
+                        this->_ambientIntensity = pAmbientLight->FloatAttribute("intensity");
+                    }
+                    pLights = pLights->NextSiblingElement("lights");
+                }
+            }
+            pObjects = pObjects->NextSiblingElement("objects");
+        }
+    }
 }
 
 void l2d_internal::Level::saveMap(std::string name) {
@@ -440,6 +464,19 @@ void l2d_internal::Level::saveMap(std::string name) {
     }
 
     pMap->InsertEndChild(pTiles);
+
+    //Save objects
+    XMLElement* pObjects = document.NewElement("objects");
+    //Lights
+    XMLElement* pLights = document.NewElement("lights");
+    if (this->_ambientColor != sf::Color::White && this->_ambientIntensity != 1.0f) {
+        XMLElement* pAmbientLight = document.NewElement("ambient");
+        pAmbientLight->SetAttribute("color", this->_ambientColor.toInteger());
+        pAmbientLight->SetAttribute("intensity", this->_ambientIntensity);
+        pLights->InsertEndChild(pAmbientLight);
+    }
+    pObjects->InsertEndChild(pLights);
+    pMap->InsertEndChild(pObjects);
     document.InsertAfterChild(pDeclaration, pMap);
 
     //Save the document

@@ -36,9 +36,6 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
     if (!this->_ambientLight.loadFromFile("content/shaders/ambient.frag", sf::Shader::Fragment)) {
         return;
     }
-    this->_ambientLight.setParameter("texture", sf::Shader::CurrentTexture);
-    this->_ambientLight.setParameter("color", this->_level.getAmbientColor().r / 255.0f, this->_level.getAmbientColor().g / 255.0f, this->_level.getAmbientColor().b / 255.0f);
-    this->_ambientLight.setParameter("intensity", this->_level.getAmbientIntensity());
 
 }
 
@@ -74,6 +71,9 @@ void l2d::Editor::processEvent(sf::Event &event) {
 
 void l2d::Editor::render() {
     if (this->_enabled) {
+        this->_ambientLight.setParameter("texture", sf::Shader::CurrentTexture);
+        this->_ambientLight.setParameter("color", this->_level.getAmbientColor().r / 255.0f, this->_level.getAmbientColor().g / 255.0f, this->_level.getAmbientColor().b / 255.0f);
+        this->_ambientLight.setParameter("intensity", this->_level.getAmbientIntensity());
         this->_level.draw(&this->_ambientLight);
         //Draw the grid lines if appropriate
         if (this->_level.getName() != "l2dSTART") {
@@ -790,12 +790,10 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::ColorPicker3("", &col.x);
                 ImVec4 col2 = {col.x, col.y, col.z, col.w};
                 this->_level.setAmbientColor(col2);
-                this->_ambientLight.setParameter("color", this->_level.getAmbientColor().r / 255.0f, this->_level.getAmbientColor().g / 255.0f, this->_level.getAmbientColor().b / 255.0f);
                 ImGui::Separator();
                 static float intensity = this->_level.getAmbientIntensity();
                 ImGui::SliderFloat("Intensity", &intensity, 0, 10, "%.2f");
                 this->_level.setAmbientIntensity(intensity);
-                this->_ambientLight.setParameter("intensity", this->_level.getAmbientIntensity());
                 ImGui::Separator();
                 ImGui::Spacing();
                 if (ImGui::Button("All done")) {
