@@ -32,6 +32,14 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
     this->_enabled = enabled;
     ImGui::SFML::Init(*window);
     this->_window = window;
+
+    if (!this->_ambientLight.loadFromFile("content/shaders/ambient.frag", sf::Shader::Fragment)) {
+        return;
+    }
+    this->_ambientLight.setParameter("texture", sf::Shader::CurrentTexture);
+    this->_ambientLight.setParameter("color", this->_level.getAmbientColor().r / 255.0f, this->_level.getAmbientColor().g / 255.0f, this->_level.getAmbientColor().b / 255.0f);
+    this->_ambientLight.setParameter("intensity", this->_level.getAmbientIntensity());
+
 }
 
 void l2d::Editor::toggle() {
@@ -66,7 +74,7 @@ void l2d::Editor::processEvent(sf::Event &event) {
 
 void l2d::Editor::render() {
     if (this->_enabled) {
-        this->_level.draw();
+        this->_level.draw(&this->_ambientLight);
         //Draw the grid lines if appropriate
         if (this->_level.getName() != "l2dSTART") {
             if (this->_showGridLines) {
@@ -180,7 +188,14 @@ void l2d::Editor::update(sf::Time t) {
         static int selectedTileLayer = 1;
         static sf::Vector2i selectedTilesetSize(0,0);
 
-        auto startStatusTimer = [&](std::string newStatus, int time) {
+        //Light variables
+
+        static l2d_internal::LightType selectedLightType = l2d_internal::LightType::None;
+
+
+        //startStatusTimer function is in written like this so that it can exist within the update function
+        //This way, it can access the static timer variables without making them member variables
+        static auto startStatusTimer = [&](std::string newStatus, int time) {
             currentStatus = newStatus;
             currentStatusTimer = time;
             showCurrentStatus = true;
@@ -513,10 +528,12 @@ void l2d::Editor::update(sf::Time t) {
                     if (ImGui::BeginMenu("Add")) {
                         if (ImGui::BeginMenu("Light")) {
                             if (ImGui::MenuItem("Ambient light")) {
-                                std::cout << "ambient light" << std::endl;
+                                lightEditorWindowVisible = true;
+                                selectedLightType = l2d_internal::LightType::Ambient;
                             }
                             if (ImGui::MenuItem("Point light")) {
-                                std::cout << "point light" << std::endl;
+                                lightEditorWindowVisible = true;
+                                selectedLightType = l2d_internal::LightType::Point;
                             }
                             ImGui::EndMenu();
                         }
@@ -760,6 +777,33 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::End();
             }
 
+        }
+
+        if (lightEditorWindowVisible) {
+            ImGui::SetNextWindowPosCenter();
+            ImGui::SetNextWindowSize(ImVec2(300, 400));
+            ImGui::Begin("Light editor", nullptr, ImVec2(300, 400), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
+            if (selectedLightType == l2d_internal::LightType::Ambient) {
+                ImGui::Text("Ambient light editor");
+                ImGui::Separator();
+                static ImVec4 col = ImVec4(this->_level.getAmbientColor());
+                ImGui::ColorPicker3("", &col.x);
+                ImVec4 col2 = {col.x, col.y, col.z, col.w};
+                this->_level.setAmbientColor(col2);
+                this->_ambientLight.setParameter("color", this->_level.getAmbientColor().r / 255.0f, this->_level.getAmbientColor().g / 255.0f, this->_level.getAmbientColor().b / 255.0f);
+                ImGui::Separator();
+                static float intensity = this->_level.getAmbientIntensity();
+                ImGui::SliderFloat("Intensity", &intensity, 0, 10, "%.2f");
+                this->_level.setAmbientIntensity(intensity);
+                this->_ambientLight.setParameter("intensity", this->_level.getAmbientIntensity());
+                ImGui::Separator();
+                ImGui::Spacing();
+                if (ImGui::Button("All done")) {
+                    lightEditorWindowVisible = false;
+                }
+            }
+
+            ImGui::End();
         }
 
 

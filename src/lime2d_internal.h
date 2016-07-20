@@ -21,6 +21,13 @@ namespace l2d_internal {
      */
     class Camera;
 
+    /*!
+     * Enumerations
+     */
+    enum class LightType {
+        None, Ambient, Point
+    };
+
     namespace utils {
         /*!
          * Checks if an element exist in a container
@@ -68,8 +75,9 @@ namespace l2d_internal {
         /*!
          * Draws any drawable object to the window using the camera's current view
          * @param drawable Any drawable SFML object
+         * @param ambientLight The ambient light to be drawn
          */
-        void draw(sf::Drawable &drawable);
+        void draw(sf::Drawable &drawable, sf::Shader* ambientLight = nullptr);
         /*!
          * Draws a primitive shape based on the vertices provided
          * @param vertices The vertices for the shape to be drawn
@@ -140,7 +148,7 @@ namespace l2d_internal {
         /*!
          * Passes the internal sf::Sprite to the graphics class for drawing
          */
-        virtual void draw();
+        virtual void draw(sf::Shader* ambientLight = nullptr);
     protected:
         sf::Texture _texture; /*!< The sprite's texture after being loaded*/
         sf::Sprite _sprite;  /*!< The internal sf::Sprite. Holds position, size, and more*/
@@ -200,8 +208,9 @@ namespace l2d_internal {
         virtual void update(float elapsedTime);
         /*!
          * Calls the base Sprite class draw method
+         * @param ambientLight The ambient light shader for the tile
          */
-        virtual void draw();
+        virtual void draw(sf::Shader* ambientLight);
     private:
         int _tilesetId; /*!< The id for the tileset the tile belongs to*/
         int _layer; /*!< The layer number the tile is on*/
@@ -237,8 +246,9 @@ namespace l2d_internal {
         Layer();
         /*!
          * Loops through all of the tiles on the layer and calls their draw method
+         * @param ambientLight The ambient light shader for the layer
          */
-        void draw();
+        void draw(sf::Shader* ambientLight);
     };
 
     /*!
@@ -275,8 +285,9 @@ namespace l2d_internal {
         void saveMap(std::string name);
         /*!
          * Loops through the layers/tiles and draws everything on the map
+         * @param ambientLight The ambient light shader for the level
          */
-        void draw();
+        void draw(sf::Shader* ambientLight);
         /*!
          * Updates anything on the map that needs updating.
          * @param elapsedTime The amount of time the previous frame took to execute
@@ -297,6 +308,26 @@ namespace l2d_internal {
          * @return The map's tile size
          */
         sf::Vector2i getTileSize() const;
+        /*!
+         * Get the ambient light intensity
+         * @return The intensity of the ambient light
+         */
+        float getAmbientIntensity() const;
+        /*!
+         * Get the ambient light color
+         * @return The ambient light color
+         */
+        sf::Color getAmbientColor() const;
+        /*!
+         * Set the ambient intensity
+         * @param intensity The new intensity
+         */
+        void setAmbientIntensity(float intensity);
+        /*!
+         * Set the ambient color
+         * @param color The new color
+         */
+        void setAmbientColor(sf::Color color);
         /*!
          * Get a list of all of the tilesets being used on the currently loaded map
          * @return A list of all of the tilesets being used on the currently loaded map
@@ -363,6 +394,8 @@ namespace l2d_internal {
         std::shared_ptr<Graphics> _graphics; /*!< A pointer to the internal graphics object*/
         std::stack<std::vector<std::shared_ptr<Layer>>> _oldLayerList; /*!< A stack of all layers/tiles for undo*/
         std::stack<std::vector<std::shared_ptr<Layer>>> _redoList; /*!< A stack of all layers/tiles for redo*/
+        float _ambientIntensity = 1.0f;
+        sf::Color _ambientColor = sf::Color::White;
     };
 
     /*!

@@ -8,7 +8,7 @@
 #pragma once
 
 #ifndef IMGUI_VERSION
-#error Must include libext.h before imgui_internal.h
+#error Must include imgui.h before imgui_internal.h
 #endif
 
 #include <stdio.h>      // FILE*
@@ -88,6 +88,7 @@ IMGUI_API ImU32         ImHash(const void* data, int data_size, ImU32 seed = 0);
 IMGUI_API void*         ImLoadFileToMemory(const char* filename, const char* file_open_mode, int* out_file_size = NULL, int padding_bytes = 0);
 IMGUI_API bool          ImIsPointInTriangle(const ImVec2& p, const ImVec2& a, const ImVec2& b, const ImVec2& c);
 static inline bool      ImCharIsSpace(int c)            { return c == ' ' || c == '\t' || c == 0x3000; }
+static inline bool      ImIsPowerOfTwo(int v)           { return v != 0 && (v & (v - 1)) == 0; }
 static inline int       ImUpperPowerOfTwo(int v)        { v--; v |= v >> 1; v |= v >> 2; v |= v >> 4; v |= v >> 8; v |= v >> 16; v++; return v; }
 
 // Helpers: String
@@ -170,7 +171,7 @@ enum ImGuiSliderFlags_
 enum ImGuiSelectableFlagsPrivate_
 {
     // NB: need to be in sync with last value of ImGuiSelectableFlags_
-    ImGuiSelectableFlags_Menu               = 1 << 3,
+            ImGuiSelectableFlags_Menu               = 1 << 3,
     ImGuiSelectableFlags_MenuItem           = 1 << 4,
     ImGuiSelectableFlags_Disabled           = 1 << 5,
     ImGuiSelectableFlags_DrawFillAvailWidth = 1 << 6
@@ -308,11 +309,11 @@ struct IMGUI_API ImGuiTextEditState
     void                OnKeyPressed(int key);
 };
 
-// Data saved in libext.ini file
+// Data saved in imgui.ini file
 struct ImGuiIniData
 {
     char*       Name;
-    ImGuiID     ID;
+    ImGuiID     Id;
     ImVec2      Pos;
     ImVec2      Size;
     bool        Collapsed;
@@ -331,13 +332,13 @@ struct ImGuiMouseCursorData
 // Storage for current popup stack
 struct ImGuiPopupRef
 {
-    ImGuiID         PopupID;        // Set on OpenPopup()
+    ImGuiID         PopupId;        // Set on OpenPopup()
     ImGuiWindow*    Window;         // Resolved on BeginPopup() - may stay unresolved if user never calls OpenPopup()
     ImGuiWindow*    ParentWindow;   // Set on OpenPopup()
     ImGuiID         ParentMenuSet;  // Set on OpenPopup()
     ImVec2          MousePosOnOpen; // Copy of mouse position at the time of opening popup
 
-    ImGuiPopupRef(ImGuiID id, ImGuiWindow* parent_window, ImGuiID parent_menu_set, const ImVec2& mouse_pos) { PopupID = id; Window = NULL; ParentWindow = parent_window; ParentMenuSet = parent_menu_set; MousePosOnOpen = mouse_pos; }
+    ImGuiPopupRef(ImGuiID id, ImGuiWindow* parent_window, ImGuiID parent_menu_set, const ImVec2& mouse_pos) { PopupId = id; Window = NULL; ParentWindow = parent_window; ParentMenuSet = parent_menu_set; MousePosOnOpen = mouse_pos; }
 };
 
 // Main state for ImGui
@@ -522,7 +523,7 @@ struct IMGUI_API ImGuiDrawContext
     float                   PrevLineTextBaseOffset;
     float                   LogLinePosY;
     int                     TreeDepth;
-    ImGuiID                 LastItemID;
+    ImGuiID                 LastItemId;
     ImRect                  LastItemRect;
     bool                    LastItemHoveredAndUsable;  // Item rectangle is hovered, and its window is currently interactable with (not blocked by a popup preventing access to the window)
     bool                    LastItemHoveredRect;       // Item rectangle is hovered, but its window may or not be currently interactable with (might be blocked by a popup preventing access to the window)
@@ -542,7 +543,6 @@ struct IMGUI_API ImGuiDrawContext
     ImVector<bool>          AllowKeyboardFocusStack;
     ImVector<bool>          ButtonRepeatStack;
     ImVector<ImGuiGroupData>GroupStack;
-    ImGuiColorEditMode      ColorEditMode;
     int                     StackSizesBackup[6];    // Store size of various stacks for asserting
 
     float                   IndentX;                // Indentation / start position from left of window (increased by TreePush/TreePop, etc.)
@@ -555,7 +555,7 @@ struct IMGUI_API ImGuiDrawContext
     float                   ColumnsCellMinY;
     float                   ColumnsCellMaxY;
     bool                    ColumnsShowBorders;
-    ImGuiID                 ColumnsSetID;
+    ImGuiID                 ColumnsSetId;
     ImVector<ImGuiColumnData> ColumnsData;
 
     ImGuiDrawContext()
@@ -565,7 +565,7 @@ struct IMGUI_API ImGuiDrawContext
         CurrentLineTextBaseOffset = PrevLineTextBaseOffset = 0.0f;
         LogLinePosY = -1.0f;
         TreeDepth = 0;
-        LastItemID = 0;
+        LastItemId = 0;
         LastItemRect = ImRect(0.0f,0.0f,0.0f,0.0f);
         LastItemHoveredAndUsable = LastItemHoveredRect = false;
         MenuBarAppending = false;
@@ -576,7 +576,6 @@ struct IMGUI_API ImGuiDrawContext
         ButtonRepeat = false;
         AllowKeyboardFocus = true;
         TextWrapPos = -1.0f;
-        ColorEditMode = ImGuiColorEditMode_RGB;
         memset(StackSizesBackup, 0, sizeof(StackSizesBackup));
 
         IndentX = 0.0f;
@@ -587,7 +586,7 @@ struct IMGUI_API ImGuiDrawContext
         ColumnsStartPosY = 0.0f;
         ColumnsCellMinY = ColumnsCellMaxY = 0.0f;
         ColumnsShowBorders = true;
-        ColumnsSetID = 0;
+        ColumnsSetId = 0;
     }
 };
 
@@ -606,7 +605,7 @@ struct IMGUI_API ImGuiWindow
     ImVec2                  SizeContentsExplicit;               // Size of contents explicitly set by the user via SetNextWindowContentSize()
     ImRect                  ContentsRegionRect;                 // Maximum visible content position in window coordinates. ~~ (SizeContentsExplicit ? SizeContentsExplicit : Size - ScrollbarSizes) - CursorStartPos, per axis
     ImVec2                  WindowPadding;                      // Window padding at the time of begin. We need to lock it, in particular manipulation of the ShowBorder would have an effect
-    ImGuiID                 MoveID;                             // == window->GetID("#MOVE")
+    ImGuiID                 MoveId;                             // == window->GetID("#MOVE")
     ImVec2                  Scroll;
     ImVec2                  ScrollTarget;                       // target scroll position. stored as cursor position with scrolling canceled out, so the highest point is always 0.0f. (FLT_MAX for no change)
     ImVec2                  ScrollTargetCenterRatio;            // 0.0f = scroll so that target position is at top, 0.5f = scroll so that target position is centered
@@ -619,7 +618,7 @@ struct IMGUI_API ImGuiWindow
     bool                    Collapsed;                          // Set when collapsing window to become only title-bar
     bool                    SkipItems;                          // == Visible && !Collapsed
     int                     BeginCount;                         // Number of Begin() during the current frame (generally 0 or 1, 1+ if appending via multiple Begin/End pairs)
-    ImGuiID                 PopupID;                            // ID in the popup stack when this window is used as a popup/menu (because we use generic Name/ID for recycling)
+    ImGuiID                 PopupId;                            // ID in the popup stack when this window is used as a popup/menu (because we use generic Name/ID for recycling)
     int                     AutoFitFramesX, AutoFitFramesY;
     bool                    AutoFitOnlyGrows;
     int                     AutoPosLastDirection;
@@ -705,7 +704,7 @@ namespace ImGui
     inline IMGUI_API ImU32  GetColorU32(const ImVec4& col)              { ImVec4 c = col; c.w *= GImGui->Style.Alpha; return ImGui::ColorConvertFloat4ToU32(c); }
 
     // NB: All position are in absolute pixels coordinates (not window coordinates)
-    // FIXME: All those functions are a mess and needs to be refactored into something decent. Avoid use outside of libext.cpp!
+    // FIXME: All those functions are a mess and needs to be refactored into something decent. Avoid use outside of imgui.cpp!
     // We need: a sort of symbol library, preferably baked into font atlas when possible + decent text rendering helpers.
     IMGUI_API void          RenderText(ImVec2 pos, const char* text, const char* text_end = NULL, bool hide_text_after_hash = true);
     IMGUI_API void          RenderTextWrapped(ImVec2 pos, const char* text, const char* text_end, float wrap_width);

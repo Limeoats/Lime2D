@@ -61,10 +61,15 @@ l2d_internal::Graphics::Graphics(sf::RenderWindow* window) {
     this->_camera = std::make_shared<Camera>();
 }
 
-void l2d_internal::Graphics::draw(sf::Drawable &drawable) {
+void l2d_internal::Graphics::draw(sf::Drawable &drawable, sf::Shader* ambientLight) {
     sf::View view(this->_camera->getRect());
     this->_window->setView(view);
-    this->_window->draw(drawable);
+    if (ambientLight == nullptr) {
+        this->_window->draw(drawable);
+    }
+    else {
+        this->_window->draw(drawable, ambientLight);
+    }
 }
 
 void l2d_internal::Graphics::draw(const sf::Vertex *vertices, unsigned int vertexCount, sf::PrimitiveType type,
@@ -106,8 +111,8 @@ l2d_internal::Sprite::Sprite(std::shared_ptr<Graphics> graphics, const std::stri
     this->_graphics = graphics;
 }
 
-void l2d_internal::Sprite::draw() {
-    this->_graphics->draw(this->_sprite);
+void l2d_internal::Sprite::draw(sf::Shader* ambientLight) {
+    this->_graphics->draw(this->_sprite, ambientLight);
 }
 
 void l2d_internal::Sprite::update(float elapsedTime) {
@@ -154,8 +159,8 @@ void l2d_internal::Tile::update(float elapsedTime) {
     Sprite::update(elapsedTime);
 }
 
-void l2d_internal::Tile::draw() {
-    Sprite::draw();
+void l2d_internal::Tile::draw(sf::Shader* ambientLight) {
+    Sprite::draw(ambientLight);
 }
 
 
@@ -177,9 +182,9 @@ l2d_internal::Layer::Layer() {
 
 }
 
-void l2d_internal::Layer::draw() {
+void l2d_internal::Layer::draw(sf::Shader* ambientLight) {
     for (auto &t : this->Tiles) {
-        t->draw();
+        t->draw(ambientLight);
     }
 }
 
@@ -192,6 +197,8 @@ l2d_internal::Level::Level(std::shared_ptr<Graphics> graphics, std::string name)
     this->_graphics = graphics;
     this->_oldLayerList = std::stack<std::vector<std::shared_ptr<Layer>>>();
     this->_redoList = std::stack<std::vector<std::shared_ptr<Layer>>>();
+    this->_ambientColor = sf::Color::White;
+    this->_ambientIntensity = 1.0f;
 }
 
 l2d_internal::Level::~Level() {
@@ -216,6 +223,22 @@ std::vector<l2d_internal::Tileset> l2d_internal::Level::getTilesetList() {
 
 std::vector<std::shared_ptr<l2d_internal::Layer>> l2d_internal::Level::getLayerList() {
     return this->_layerList;
+}
+
+float l2d_internal::Level::getAmbientIntensity() const {
+    return this->_ambientIntensity;
+}
+
+sf::Color l2d_internal::Level::getAmbientColor() const {
+    return this->_ambientColor;
+}
+
+void l2d_internal::Level::setAmbientIntensity(float intensity) {
+    this->_ambientIntensity = intensity;
+}
+
+void l2d_internal::Level::setAmbientColor(sf::Color color) {
+    this->_ambientColor = color;
 }
 
 void l2d_internal::Level::createMap(std::string name, sf::Vector2i size, sf::Vector2i tileSize) {
@@ -630,9 +653,9 @@ sf::Vector2i l2d_internal::Level::globalToLocalCoordinates(sf::Vector2f coords) 
                         static_cast<int>(coords.y) / this->_tileSize.y / static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))) + 1);
 }
 
-void l2d_internal::Level::draw() {
+void l2d_internal::Level::draw(sf::Shader* ambientLight) {
     for (auto &layer : this->_layerList) {
-        layer->draw();
+        layer->draw(ambientLight);
     }
 }
 

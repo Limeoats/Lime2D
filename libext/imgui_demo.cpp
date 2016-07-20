@@ -85,15 +85,15 @@ void ImGui::ShowUserGuide()
     ImGui::BulletText("TAB/SHIFT+TAB to cycle through keyboard editable fields.");
     ImGui::BulletText("CTRL+Click on a slider or drag box to input text.");
     ImGui::BulletText(
-        "While editing text:\n"
-        "- Hold SHIFT or use mouse to select text\n"
-        "- CTRL+Left/Right to word jump\n"
-        "- CTRL+A or double-click to select all\n"
-        "- CTRL+X,CTRL+C,CTRL+V clipboard\n"
-        "- CTRL+Z,CTRL+Y undo/redo\n"
-        "- ESCAPE to revert\n"
-        "- You can apply arithmetic operators +,*,/ on numerical values.\n"
-        "  Use +- to subtract.\n");
+            "While editing text:\n"
+                    "- Hold SHIFT or use mouse to select text\n"
+                    "- CTRL+Left/Right to word jump\n"
+                    "- CTRL+A or double-click to select all\n"
+                    "- CTRL+X,CTRL+C,CTRL+V clipboard\n"
+                    "- CTRL+Z,CTRL+Y undo/redo\n"
+                    "- ESCAPE to revert\n"
+                    "- You can apply arithmetic operators +,*,/ on numerical values.\n"
+                    "  Use +- to subtract.\n");
 }
 
 // Demonstrate most ImGui features (big function!)
@@ -133,7 +133,7 @@ void ImGui::ShowTestWindow(bool* p_open)
     if (show_app_about)
     {
         ImGui::Begin("About ImGui", &show_app_about, ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::Text("dear libext, %s", ImGui::GetVersion());
+        ImGui::Text("dear imgui, %s", ImGui::GetVersion());
         ImGui::Separator();
         ImGui::Text("By Omar Cornut and all github contributors.");
         ImGui::Text("ImGui is licensed under the MIT License, see LICENSE for more information.");
@@ -244,7 +244,7 @@ void ImGui::ShowTestWindow(bool* p_open)
                     if (ImGui::TreeNode((void*)(intptr_t)i, "Child %d", i))
                     {
                         ImGui::Text("blah blah");
-                        ImGui::SameLine(); 
+                        ImGui::SameLine();
                         if (ImGui::SmallButton("print")) printf("Child %d pressed", i);
                         ImGui::TreePop();
                     }
@@ -271,7 +271,7 @@ void ImGui::ShowTestWindow(bool* p_open)
                     {
                         // Node
                         bool node_open = ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, "Selectable Node %d", i);
-                        if (ImGui::IsItemClicked()) 
+                        if (ImGui::IsItemClicked())
                             node_clicked = i;
                         if (node_open)
                         {
@@ -283,7 +283,7 @@ void ImGui::ShowTestWindow(bool* p_open)
                     {
                         // Leaf: The only reason we have a TreeNode at all is to allow selection of the leaf. Otherwise we can use BulletText() or TreeAdvanceToLabelPos()+Text().
                         ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen, "Selectable Leaf %d", i);
-                        if (ImGui::IsItemClicked()) 
+                        if (ImGui::IsItemClicked())
                             node_clicked = i;
                     }
                 }
@@ -430,8 +430,8 @@ void ImGui::ShowTestWindow(bool* p_open)
                 ImGui::Text("3. I am not selectable");
                 ImGui::Selectable("4. I am selectable", &selected[2]);
                 if (ImGui::Selectable("5. I am double clickable", selected[3], ImGuiSelectableFlags_AllowDoubleClick))
-                    if (ImGui::IsMouseDoubleClicked(0))
-                        selected[3] = !selected[3];
+                if (ImGui::IsMouseDoubleClicked(0))
+                    selected[3] = !selected[3];
                 ImGui::TreePop();
             }
             if (ImGui::TreeNode("Rendering more text into the same block"))
@@ -484,8 +484,8 @@ void ImGui::ShowTestWindow(bool* p_open)
             static char buf3[64] = ""; ImGui::InputText("hexadecimal", buf3, 64, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
             static char buf4[64] = ""; ImGui::InputText("uppercase", buf4, 64, ImGuiInputTextFlags_CharsUppercase);
             static char buf5[64] = ""; ImGui::InputText("no blank", buf5, 64, ImGuiInputTextFlags_CharsNoBlank);
-            struct TextFilters { static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) { if (data->EventChar < 256 && strchr("libext", (char)data->EventChar)) return 0; return 1; } };
-            static char buf6[64] = ""; ImGui::InputText("\"libext\" letters", buf6, 64, ImGuiInputTextFlags_CallbackCharFilter, TextFilters::FilterImGuiLetters);
+            struct TextFilters { static int FilterImGuiLetters(ImGuiTextEditCallbackData* data) { if (data->EventChar < 256 && strchr("imgui", (char)data->EventChar)) return 0; return 1; } };
+            static char buf6[64] = ""; ImGui::InputText("\"imgui\" letters", buf6, 64, ImGuiInputTextFlags_CallbackCharFilter, TextFilters::FilterImGuiLetters);
 
             ImGui::Text("Password input");
             static char bufpass[64] = "password123";
@@ -500,16 +500,16 @@ void ImGui::ShowTestWindow(bool* p_open)
         {
             static bool read_only = false;
             static char text[1024*16] =
-                "/*\n"
-                " The Pentium F00F bug, shorthand for F0 0F C7 C8,\n"
-                " the hexadecimal encoding of one offending instruction,\n"
-                " more formally, the invalid operand with locked CMPXCHG8B\n"
-                " instruction bug, is a design flaw in the majority of\n"
-                " Intel Pentium, Pentium MMX, and Pentium OverDrive\n"
-                " processors (all in the P5 microarchitecture).\n"
-                "*/\n\n"
-                "label:\n"
-                "\tlock cmpxchg8b eax\n";
+                    "/*\n"
+                            " The Pentium F00F bug, shorthand for F0 0F C7 C8,\n"
+                            " the hexadecimal encoding of one offending instruction,\n"
+                            " more formally, the invalid operand with locked CMPXCHG8B\n"
+                            " instruction bug, is a design flaw in the majority of\n"
+                            " Intel Pentium, Pentium MMX, and Pentium OverDrive\n"
+                            " processors (all in the P5 microarchitecture).\n"
+                            "*/\n\n"
+                            "label:\n"
+                            "\tlock cmpxchg8b eax\n";
 
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0,0));
             ImGui::Checkbox("Read-only", &read_only);
@@ -625,7 +625,7 @@ void ImGui::ShowTestWindow(bool* p_open)
         static float col1[3] = { 1.0f,0.0f,0.2f };
         static float col2[4] = { 0.4f,0.7f,0.0f,0.5f };
         ImGui::ColorEdit3("color 1", col1);
-        ImGui::SameLine(); ShowHelpMarker("Click on the colored square to change edit mode.\nCTRL+click on individual component to input value.\n");
+        ImGui::SameLine(); ShowHelpMarker("Click on the colored square to open a color picker.\nRight-click on the colored square to show options.\nCTRL+click on individual component to input value.\n");
 
         ImGui::ColorEdit4("color 2", col2);
 
@@ -1475,10 +1475,10 @@ void ImGui::ShowTestWindow(bool* p_open)
     {
         static ImGuiTextFilter filter;
         ImGui::Text("Filter usage:\n"
-                    "  \"\"         display all lines\n"
-                    "  \"xxx\"      display lines containing \"xxx\"\n"
-                    "  \"xxx,yyy\"  display lines containing \"xxx\" or \"yyy\"\n"
-                    "  \"-xxx\"     hide lines containing \"xxx\"");
+                            "  \"\"         display all lines\n"
+                            "  \"xxx\"      display lines containing \"xxx\"\n"
+                            "  \"xxx,yyy\"  display lines containing \"xxx\" or \"yyy\"\n"
+                            "  \"-xxx\"     hide lines containing \"xxx\"");
         filter.Draw();
         const char* lines[] = { "aaa1.c", "bbb1.c", "ccc1.c", "aaa2.cpp", "bbb2.cpp", "ccc2.cpp", "abc.h", "hello, world" };
         for (int i = 0; i < IM_ARRAYSIZE(lines); i++)
@@ -1673,12 +1673,12 @@ void ImGui::ShowStyleEditor(ImGuiStyle* ref)
         ImGui::SameLine(); ImGui::PushItemWidth(120); ImGui::Combo("##output_type", &output_dest, "To Clipboard\0To TTY"); ImGui::PopItemWidth();
         ImGui::SameLine(); ImGui::Checkbox("Only Modified Fields", &output_only_modified);
 
-        static ImGuiColorEditMode edit_mode = ImGuiColorEditMode_RGB;
-        ImGui::RadioButton("RGB", &edit_mode, ImGuiColorEditMode_RGB);
+        static ImGuiColorEditFlags color_edit_flags = ImGuiColorEditFlags_RGB;
+        ImGui::RadioButton("RGB", &color_edit_flags, ImGuiColorEditFlags_RGB);
         ImGui::SameLine();
-        ImGui::RadioButton("HSV", &edit_mode, ImGuiColorEditMode_HSV);
+        ImGui::RadioButton("HSV", &color_edit_flags, ImGuiColorEditFlags_HSV);
         ImGui::SameLine();
-        ImGui::RadioButton("HEX", &edit_mode, ImGuiColorEditMode_HEX);
+        ImGui::RadioButton("HEX", &color_edit_flags, ImGuiColorEditFlags_HEX);
         //ImGui::Text("Tip: Click on colored square to change edit mode.");
 
         static ImGuiTextFilter filter;
@@ -1686,14 +1686,13 @@ void ImGui::ShowStyleEditor(ImGuiStyle* ref)
 
         ImGui::BeginChild("#colors", ImVec2(0, 300), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
         ImGui::PushItemWidth(-160);
-        ImGui::ColorEditMode(edit_mode);
         for (int i = 0; i < ImGuiCol_COUNT; i++)
         {
             const char* name = ImGui::GetStyleColName(i);
             if (!filter.PassFilter(name))
                 continue;
             ImGui::PushID(i);
-            ImGui::ColorEdit4(name, (float*)&style.Colors[i], true);
+            ImGui::ColorEdit4(name, (float*)&style.Colors[i], color_edit_flags | ImGuiColorEditFlags_Alpha | ImGuiColorEditFlags_NoOptions);
             if (memcmp(&style.Colors[i], (ref ? &ref->Colors[i] : &default_style.Colors[i]), sizeof(ImVec4)) != 0)
             {
                 ImGui::SameLine(); if (ImGui::Button("Revert")) style.Colors[i] = ref ? ref->Colors[i] : default_style.Colors[i];
@@ -1863,20 +1862,20 @@ static void ShowExampleAppConstrainedResize(bool* p_open)
 
     if (ImGui::Begin("Example: Constrained Resize", p_open))
     {
-        const char* desc[] = 
-        {
-            "Resize vertical only",
-            "Resize horizontal only",
-            "Width > 100, Height > 100",
-            "Width 300-400",
-            "Custom: Always Square",
-            "Custom: Fixed Steps (100)",
-        };
-        ImGui::Combo("Constraint", &type, desc, IM_ARRAYSIZE(desc)); 
+        const char* desc[] =
+                {
+                        "Resize vertical only",
+                        "Resize horizontal only",
+                        "Width > 100, Height > 100",
+                        "Width 300-400",
+                        "Custom: Always Square",
+                        "Custom: Fixed Steps (100)",
+                };
+        ImGui::Combo("Constraint", &type, desc, IM_ARRAYSIZE(desc));
         if (ImGui::Button("200x200")) ImGui::SetWindowSize(ImVec2(200,200)); ImGui::SameLine();
         if (ImGui::Button("500x500")) ImGui::SetWindowSize(ImVec2(500,500)); ImGui::SameLine();
         if (ImGui::Button("800x200")) ImGui::SetWindowSize(ImVec2(800,200));
-        for (int i = 0; i < 10; i++) 
+        for (int i = 0; i < 10; i++)
             ImGui::Text("Hello, sailor! Making this line long enough for the example.");
     }
     ImGui::End();
@@ -1932,7 +1931,7 @@ static void ShowExampleAppCustomRendering(bool* p_open)
 
     // Tip: If you do a lot of custom rendering, you probably want to use your own geometrical types and benefit of overloaded operators, etc.
     // Define IM_VEC2_CLASS_EXTRA in imconfig.h to create implicit conversions between your types and ImVec2/ImVec4.
-    // ImGui defines overloaded operators but they are internal to libext.cpp and not exposed outside (to avoid messing with your types)
+    // ImGui defines overloaded operators but they are internal to imgui.cpp and not exposed outside (to avoid messing with your types)
     // In this example we are not using the maths operators!
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
@@ -2204,7 +2203,7 @@ struct ExampleAppConsole
         //AddLog("cursor: %d, selection: %d-%d", data->CursorPos, data->SelectionStart, data->SelectionEnd);
         switch (data->EventFlag)
         {
-        case ImGuiInputTextFlags_CallbackCompletion:
+            case ImGuiInputTextFlags_CallbackCompletion:
             {
                 // Example of TEXT COMPLETION
 
@@ -2269,7 +2268,7 @@ struct ExampleAppConsole
 
                 break;
             }
-        case ImGuiInputTextFlags_CallbackHistory:
+            case ImGuiInputTextFlags_CallbackHistory:
             {
                 // Example of HISTORY
                 const int prev_history_pos = HistoryPos;
@@ -2283,8 +2282,8 @@ struct ExampleAppConsole
                 else if (data->EventKey == ImGuiKey_DownArrow)
                 {
                     if (HistoryPos != -1)
-                        if (++HistoryPos >= History.Size)
-                            HistoryPos = -1;
+                    if (++HistoryPos >= History.Size)
+                        HistoryPos = -1;
                 }
 
                 // A better implementation would preserve the data on the current input line along with cursor position.
@@ -2416,16 +2415,16 @@ static void ShowExampleAppLayout(bool* p_open)
 
         // right
         ImGui::BeginGroup();
-            ImGui::BeginChild("item view", ImVec2(0, -ImGui::GetItemsLineHeightWithSpacing())); // Leave room for 1 line below us
-                ImGui::Text("MyObject: %d", selected);
-                ImGui::Separator();
-                ImGui::TextWrapped("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ");
-            ImGui::EndChild();
-            ImGui::BeginChild("buttons");
-                if (ImGui::Button("Revert")) {}
-                ImGui::SameLine();
-                if (ImGui::Button("Save")) {}
-            ImGui::EndChild();
+        ImGui::BeginChild("item view", ImVec2(0, -ImGui::GetItemsLineHeightWithSpacing())); // Leave room for 1 line below us
+        ImGui::Text("MyObject: %d", selected);
+        ImGui::Separator();
+        ImGui::TextWrapped("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ");
+        ImGui::EndChild();
+        ImGui::BeginChild("buttons");
+        if (ImGui::Button("Revert")) {}
+        ImGui::SameLine();
+        if (ImGui::Button("Save")) {}
+        ImGui::EndChild();
         ImGui::EndGroup();
     }
     ImGui::End();
@@ -2529,11 +2528,11 @@ static void ShowExampleAppLongText(bool* p_open)
     ImGui::BeginChild("Log");
     switch (test_type)
     {
-    case 0:
-        // Single call to TextUnformatted() with a big buffer
-        ImGui::TextUnformatted(log.begin(), log.end());
-        break;
-    case 1:
+        case 0:
+            // Single call to TextUnformatted() with a big buffer
+            ImGui::TextUnformatted(log.begin(), log.end());
+            break;
+        case 1:
         {
             // Multiple calls to Text(), manually coarsely clipped - demonstrate how to use the ImGuiListClipper helper.
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
@@ -2544,13 +2543,13 @@ static void ShowExampleAppLongText(bool* p_open)
             ImGui::PopStyleVar();
             break;
         }
-    case 2:
-        // Multiple calls to Text(), not clipped (slow)
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
-        for (int i = 0; i < lines; i++)
-            ImGui::Text("%i The quick brown fox jumps over the lazy dog", i);
-        ImGui::PopStyleVar();
-        break;
+        case 2:
+            // Multiple calls to Text(), not clipped (slow)
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,0));
+            for (int i = 0; i < lines; i++)
+                ImGui::Text("%i The quick brown fox jumps over the lazy dog", i);
+            ImGui::PopStyleVar();
+            break;
     }
     ImGui::EndChild();
     ImGui::End();
