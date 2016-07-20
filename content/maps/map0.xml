@@ -1090,4 +1090,9 @@
             <tile layer="2" tileset="1">11</tile>
         </pos>
     </tiles>
+    <objects>
+        <lights>
+            <ambient color="823465471" intensity="1.8"/>
+        </lights>
+    </objects>
 </map>

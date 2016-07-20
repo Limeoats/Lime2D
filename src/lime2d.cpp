@@ -71,12 +71,12 @@ void l2d::Editor::processEvent(sf::Event &event) {
 
 void l2d::Editor::render() {
     if (this->_enabled) {
-        this->_ambientLight.setParameter("texture", sf::Shader::CurrentTexture);
-        this->_ambientLight.setParameter("color", this->_level.getAmbientColor().r / 255.0f, this->_level.getAmbientColor().g / 255.0f, this->_level.getAmbientColor().b / 255.0f);
-        this->_ambientLight.setParameter("intensity", this->_level.getAmbientIntensity());
-        this->_level.draw(&this->_ambientLight);
-        //Draw the grid lines if appropriate
+        //If map editor
         if (this->_level.getName() != "l2dSTART") {
+            this->_ambientLight.setParameter("texture", sf::Shader::CurrentTexture);
+            this->_ambientLight.setParameter("color", this->_level.getAmbientColor().r / 255.0f, this->_level.getAmbientColor().g / 255.0f, this->_level.getAmbientColor().b / 255.0f);
+            this->_ambientLight.setParameter("intensity", this->_level.getAmbientIntensity());
+            this->_level.draw(&this->_ambientLight);
             if (this->_showGridLines) {
                 //Horizontal lines
                 for (int i = 0; i < this->_level.getSize().y + 1; ++i) {
@@ -191,7 +191,6 @@ void l2d::Editor::update(sf::Time t) {
         //Light variables
 
         static l2d_internal::LightType selectedLightType = l2d_internal::LightType::None;
-
 
         //startStatusTimer function is in written like this so that it can exist within the update function
         //This way, it can access the static timer variables without making them member variables
@@ -331,7 +330,7 @@ void l2d::Editor::update(sf::Time t) {
         if (aboutBoxVisible) {
             ImGui::SetNextWindowSize(ImVec2(300, 140));
             ImGui::Begin("About Lime2D", nullptr, ImVec2(300, 200), 100.0f, ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::Text("Lime2D Editor\n\nBy: Limeoats\nCopyright \u00a9 2016");
+            ImGui::Text("Lime2D Editor\nVersion: 1.0\n\nBy: Limeoats\nCopyright \u00a9 2016");
             ImGui::Separator();
             if (ImGui::Button("Close")) {
                 aboutBoxVisible = false;
@@ -535,6 +534,10 @@ void l2d::Editor::update(sf::Time t) {
                                 lightEditorWindowVisible = true;
                                 selectedLightType = l2d_internal::LightType::Point;
                             }
+                            ImGui::EndMenu();
+                        }
+                        if (ImGui::BeginMenu("Object")) {
+
                             ImGui::EndMenu();
                         }
                         ImGui::EndMenu();
@@ -800,11 +803,23 @@ void l2d::Editor::update(sf::Time t) {
                     lightEditorWindowVisible = false;
                 }
             }
-
+            else if (selectedLightType == l2d_internal::LightType::Point) {
+                ImGui::Text("Point lights coming soon in version 2.0!");
+                ImGui::Separator();
+                if (ImGui::Button("Okay")) {
+                    lightEditorWindowVisible = false;
+                }
+            }
+            ImGui::End();
+        }
+        if (cbAnimationEditor) {
+            ImGui::SetNextWindowPosCenter();
+            ImGui::SetNextWindowSize(ImVec2(this->_window->getSize().x - 20, this->_window->getSize().y - 80));
+            ImGui::Begin("Animation editor", nullptr, ImVec2(this->_window->getSize().x - 20, this->_window->getSize().y - 80), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
             ImGui::End();
         }
 
-
+        //Status bar
         ImGui::Begin("Background", nullptr, ImGui::GetIO().DisplaySize, 0.0f,
                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
