@@ -5,6 +5,5 @@ uniform float intensity;
 void main() {
     vec4 pixel = texture2D(texture, gl_TexCoord[0].xy);
     vec3 newColor = color.rgb * intensity;
-    pixel.rgb = pixel.rgb * newColor.rgb;
-    gl_FragColor = pixel;
+    gl_FragColor = vec4(pixel.rgb * newColor.rgb, pixel.a);
 }
