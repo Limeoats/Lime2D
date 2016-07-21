@@ -120,6 +120,82 @@ void l2d_internal::Sprite::update(float elapsedTime) {
 }
 
 /*
+ * Animated sprite
+ */
+
+l2d_internal::AnimatedSprite::AnimatedSprite(std::shared_ptr<Graphics> graphics, const std::string &filePath, sf::Vector2i srcPos, sf::Vector2i size,
+                                             sf::Vector2f destPos, float timeToUpdate) :
+    Sprite(graphics, filePath, srcPos, size, destPos),
+    _timeToUpdate(timeToUpdate),
+    _currentAnimationOnce(false),
+    _currentAnimation(""),
+    _frameIndex(0),
+    _visible(true)
+{}
+
+void l2d_internal::AnimatedSprite::addAnimation(int frames, sf::Vector2i srcPos, std::string name, sf::Vector2i size,
+                                                sf::Vector2i offset) {
+    std::vector<sf::IntRect> rectangles;
+    for (int i = 0; i < frames; ++i) {
+        rectangles.push_back({(i + srcPos.x) * size.x, srcPos.y, size.x, size.y});
+    }
+    this->_animations.insert(std::pair<std::string, std::vector<sf::IntRect>>(name, rectangles));
+    this->_offsets.insert(std::pair<std::string, sf::Vector2i>(name, offset));
+}
+
+void l2d_internal::AnimatedSprite::resetAnimation() {
+    this->_animations.clear(), this->_offsets.clear();
+}
+
+void l2d_internal::AnimatedSprite::playAnimation(std::string animation, bool once) {
+    this->_currentAnimationOnce = once;
+    if (this->_currentAnimation != animation) {
+        this->_currentAnimation = animation;
+        this->_frameIndex = 0;
+        this->_sprite.setTextureRect(sf::IntRect(this->_sprite.getTextureRect().left, this->_sprite.getTextureRect().top, this->_animations[this->_currentAnimation][0].width, this->_animations[this->_currentAnimation][0].height));
+    }
+}
+
+void l2d_internal::AnimatedSprite::setVisible(bool visible) {
+    this->_visible = visible;
+}
+
+void l2d_internal::AnimatedSprite::stopAnimation() {
+    this->_frameIndex = 0;
+}
+
+void l2d_internal::AnimatedSprite::update(float elapsedTime) {
+    Sprite::update(elapsedTime);
+    this->_timeElapsed += elapsedTime;
+    if (this->_timeElapsed > this->_timeToUpdate) {
+        this->_timeElapsed -= this->_timeToUpdate;
+        if (this->_frameIndex < this->_animations[this->_currentAnimation].size() - 1) {
+            ++this->_frameIndex;
+            this->_sprite.setTextureRect(this->_animations[this->_currentAnimation][this->_frameIndex]);
+        }
+        else {
+            if (this->_currentAnimationOnce) {
+                this->setVisible(!this->_currentAnimationOnce);
+            }
+            this->stopAnimation();
+        }
+    }
+}
+
+void l2d_internal::AnimatedSprite::draw(sf::Shader *ambientLight) {
+    if (this->_visible) {
+        this->_sprite.setPosition((this->_sprite.getPosition().x + this->_offsets[this->_currentAnimation].x),
+                                  (this->_sprite.getPosition().y + this->_offsets[this->_currentAnimation].y));
+        this->_sprite.setTextureRect(this->_animations[this->_currentAnimation][this->_frameIndex]);
+        Sprite::draw(ambientLight);
+    }
+}
+
+sf::Sprite l2d_internal::AnimatedSprite::getSprite() const {
+    return this->_sprite;
+}
+
+/*
  * Tile
  */
 

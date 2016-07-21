@@ -175,6 +175,8 @@ void l2d::Editor::update(sf::Time t) {
         static std::vector<std::shared_ptr<sf::Texture>> tilesets;
 
         static int mapSelectIndex = 0;
+        static int animationSelectIndex = -1;
+        static int spriteSelectIndex = -1;
 
         static bool showSpecificTileProperties = false;
         static std::shared_ptr<l2d_internal::Tile> showSpecificTilePropertiesTile = nullptr;
@@ -213,9 +215,9 @@ void l2d::Editor::update(sf::Time t) {
             static bool loaded = false;
 
             ImGui::SetNextWindowPosCenter();
-            ImGui::SetNextWindowSize(ImVec2(500, 400));
+            ImGui::SetNextWindowSize(ImVec2(500, 480));
             static std::string configureMapErrorText = "";
-            ImGui::Begin("Configure map editor", nullptr, ImVec2(500,400), 100.0f, ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::Begin("Configure", nullptr, ImVec2(500,480), 100.0f, ImGuiWindowFlags_AlwaysAutoResize);
 
             ImGui::PushID("ConfigureMapPath");
             ImGui::Text("Map path");
@@ -270,6 +272,30 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::Separator();
             ImGui::PopID();
 
+            ImGui::PushID("ConfigureSpritesPath");
+            ImGui::Text("Sprite path");
+            static char spritePath[500] = "";
+            if (l2d_internal::utils::getConfigValue("sprite_path") != "" && !loaded) {
+                strcpy(spritePath, l2d_internal::utils::getConfigValue("sprite_path").c_str());
+            }
+            ImGui::PushItemWidth(300);
+            ImGui::InputText("", spritePath, 500);
+            ImGui::PopItemWidth();
+            ImGui::Separator();
+            ImGui::PopID();
+
+            ImGui::PushID("ConfigureAnimationPath");
+            ImGui::Text("Animation path");
+            static char animationPath[500] = "";
+            if (l2d_internal::utils::getConfigValue("animation_path") != "" && !loaded) {
+                strcpy(animationPath, l2d_internal::utils::getConfigValue("animation_path").c_str());
+            }
+            ImGui::PushItemWidth(300);
+            ImGui::InputText("", animationPath, 500);
+            ImGui::PopItemWidth();
+            ImGui::Separator();
+            ImGui::PopID();
+
             ImGui::PopItemWidth();
 
             if (ImGui::Button("Save")) {
@@ -290,6 +316,12 @@ void l2d::Editor::update(sf::Time t) {
                 else if (screenSizeX < 0 || screenSizeY < 0) {
                     configureMapErrorText = "Screen size cannot be negative!";
                 }
+                else if (strlen(spritePath) <= 0) {
+                    configureMapErrorText = "You must enter the location of your sprites!";
+                }
+                else if (strlen(animationPath) <= 0) {
+                    configureMapErrorText = "You must enter the location of your animations!";
+                }
                 else {
                     configureMapErrorText = "";
                     //Everything checks out, so save.
@@ -303,6 +335,8 @@ void l2d::Editor::update(sf::Time t) {
                         os << "tile_scale_y=" << tileScaleY << "\n";
                         os << "screen_size_x=" << screenSizeX << "\n";
                         os << "screen_size_y=" << screenSizeY << "\n";
+                        os << "sprite_path=" << spritePath << "\n";
+                        os << "animation_path=" << animationPath << "\n";
                         os.close();
                         if (this->_level.getName() != "l2dSTART") {
                             std::string name = this->_level.getName();
@@ -473,6 +507,9 @@ void l2d::Editor::update(sf::Time t) {
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
                 mainHasFocus = false;
+                if (ImGui::MenuItem("Configure")) {
+                    configWindowVisible = true;
+                }
                 if (ImGui::MenuItem("Exit")) {
                     this->_enabled = false; //TODO: do you want to save?
                 }
@@ -518,9 +555,6 @@ void l2d::Editor::update(sf::Time t) {
                         startStatusTimer("Map saved successfully!", 200);
                         mainHasFocus = false;
                     }
-                }
-                if (ImGui::MenuItem("Configure")) {
-                    configWindowVisible = true;
                 }
                 if (this->_level.getName() != "l2dSTART") {
                     ImGui::Separator();
@@ -812,12 +846,57 @@ void l2d::Editor::update(sf::Time t) {
             }
             ImGui::End();
         }
+
+
+        /*
+         * Animation editor
+         */
+
         if (cbAnimationEditor) {
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(this->_window->getSize().x - 20, this->_window->getSize().y - 80));
             ImGui::Begin("Animation editor", nullptr, ImVec2(this->_window->getSize().x - 20, this->_window->getSize().y - 80), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
+
+            std::stringstream ss;
+            ss << l2d_internal::utils::getConfigValue("animation_path") << "*";
+            std::vector<const char*> existingAnimations = l2d_internal::utils::getFilesInDirectory(ss.str());
+
+            ImGui::PushItemWidth(500);
+            ImGui::Combo("Load an animation", &animationSelectIndex, &existingAnimations[0], static_cast<int>(existingAnimations.size()));
+            ImGui::PopItemWidth();
+
+            ImGui::Separator();
+
+            //TODO: Once the Lua file is populated, load the spritesheet from there if it exists
+            ss.str("");
+            ss << l2d_internal::utils::getConfigValue("sprite_path") << "*";
+            std::vector<const char*> spriteList = l2d_internal::utils::getFilesInDirectory(ss.str());
+
+            ImGui::PushItemWidth(500);
+            ImGui::Combo("Spritesheet", &spriteSelectIndex, &spriteList[0], static_cast<int>(spriteList.size()));
+            ImGui::PopItemWidth();
+
+            ImGui::Separator();
+
+            ImGui::Dummy(ImVec2(1, 30));
+
+            if (spriteSelectIndex > -1) {
+                static l2d_internal::AnimatedSprite sprite(this->_graphics, spriteList[spriteSelectIndex], sf::Vector2i(0, 0),
+                                                           sf::Vector2i(14, 20), sf::Vector2f(0, 0), 0.2f);
+                static bool addedAnimation = false;
+                if (!addedAnimation) {
+                    sprite.addAnimation(5, sf::Vector2i(0, 20), "flint_run_down", sf::Vector2i(14, 20), sf::Vector2i(0, 0));
+                    sprite.playAnimation("flint_run_down");
+                    addedAnimation = true;
+                }
+                sprite.update(t.asSeconds());
+                ImGui::Image(sprite.getSprite(), ImVec2(98, 140));//TODO: STOP HARDCODING THIS NUMBER. do some cross multiplication or something to figure out if you should scale and by how much depending on how big the sprite is
+            }
+
             ImGui::End();
         }
+
+
 
         //Status bar
         ImGui::Begin("Background", nullptr, ImGui::GetIO().DisplaySize, 0.0f,

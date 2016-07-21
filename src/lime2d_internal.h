@@ -147,12 +147,83 @@ namespace l2d_internal {
         virtual void update(float elapsedTime);
         /*!
          * Passes the internal sf::Sprite to the graphics class for drawing
+         * @param ambientLight The ambient light shader. Defaults to null.
          */
         virtual void draw(sf::Shader* ambientLight = nullptr);
     protected:
         sf::Texture _texture; /*!< The sprite's texture after being loaded*/
         sf::Sprite _sprite;  /*!< The internal sf::Sprite. Holds position, size, and more*/
         std::shared_ptr<Graphics> _graphics; /*!< A pointer to the internal graphics object*/
+    };
+
+    /*!
+     * The internal AnimatedSprite class for Lime2D
+     * Extends off of the base Sprite class. Handles animations.
+     */
+    class AnimatedSprite : public Sprite {
+    public:
+        /*!
+         * The main AnimatedSprite constructor
+         * @param filePath The path to the spritesheet
+         * @param srcPos The coordinates of the first frame of the sprite on the spritesheet
+         * @param size The size of the sprite (in pixels)
+         * @param destPos The location on the map to draw the animated sprite
+         * @param timeToUpdate The amount of time between animation frames
+         */
+        AnimatedSprite(std::shared_ptr<Graphics> graphics, const std::string &filePath, sf::Vector2i srcPos, sf::Vector2i size, sf::Vector2f destPos, float timeToUpdate);
+        /*!
+         * Plays the specified animation
+         * @param animation The animation to play
+         * @param once Whether or not to only play the animation once
+         */
+        void playAnimation(std::string animation, bool once = false);
+        /*!
+         * The update function for the animated sprite class
+         * @param elapsedTime The amount of time the previous frame took to execute
+         */
+        virtual void update(float elapsedTime) override;
+        /*!
+         * Draws the animated sprite at the current frame
+         * @param ambientLight The ambient light shader. Defaults to null.
+         */
+        virtual void draw(sf::Shader* ambientLight = nullptr) override;
+        /*!
+         * Adds a new animation to the animated sprite
+         * @param frames The number of frames in the new animation
+         * @param srcPos The coordinates of the first frame of the animation on the spritesheet
+         * @param name The name of the new animation
+         * @param size The size of the sprite/animation (in pixels)
+         * @param offset The offset (if there is one)
+         */
+        void addAnimation(int frames, sf::Vector2i srcPos, std::string name, sf::Vector2i size, sf::Vector2i offset);
+        /*!
+         * Sets the visibility of the animated sprite
+         * @param visible Whether or not the animated sprite is visible
+         */
+        void setVisible(bool visible);
+        /*!
+         * Gets the internal sprite
+         * @return The internal sprite
+         */
+        sf::Sprite getSprite() const;
+    protected:
+        float _timeToUpdate; /*!< The amount of time between animation frames*/
+        bool _currentAnimationOnce; /*!< Whether or not this animation should only be played once*/
+        std::string _currentAnimation; /*!< The current animation being played for the sprite*/
+        /*!
+         * Resets the current animation
+         */
+        void resetAnimation();
+        /*!
+         * Stop the current animation
+         */
+        void stopAnimation();
+    private:
+        std::map<std::string, std::vector<sf::IntRect>> _animations; /*!< A list of the animations in the form of rectangles on the spritesheet*/
+        std::map<std::string, sf::Vector2i> _offsets; /*!< A list of the offsets for the animations*/
+        int _frameIndex; /*!< The current frame the animation is on*/
+        float _timeElapsed; /*!< The amount of time that has elapsed since the last animation frame*/
+        bool _visible; /*!< Whether or not the animation is currently visible*/
     };
 
     /*!
