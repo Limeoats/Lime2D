@@ -885,7 +885,7 @@ void l2d::Editor::update(sf::Time t) {
                                                            sf::Vector2i(14, 20), sf::Vector2f(0, 0), 0.2f);
                 static bool addedAnimation = false;
                 if (!addedAnimation) {
-                    sprite.addAnimation(5, sf::Vector2i(0, 20), "flint_run_down", sf::Vector2i(14, 20), sf::Vector2i(0, 0));
+                    sprite.addAnimation(5, sf::Vector2i(0, 0), "flint_run_down", sf::Vector2i(15, 20), sf::Vector2i(0, 0));
                     sprite.playAnimation("flint_run_down");
                     addedAnimation = true;
                 }
