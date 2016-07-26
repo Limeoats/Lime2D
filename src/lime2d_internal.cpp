@@ -898,34 +898,21 @@ std::vector<std::string> l2d_internal::LuaScript::getTableKeys(const std::string
                 "return orderedNext, t, nil "
             "end "
             "function getKeys(variable) "
-            "s = \"\""
+            "s = \"\" "
             "for key, value in orderedPairs(_G[variable]) do "
             "   s = s..key..\",\" "
             "   end "
             "return s "
-            "end";
-    luaL_loadstring(L, code.c_str()); //Load our new Lua function
+            "end ";
+    luaL_loadstring(L, code.c_str()); //Put the new getKeys function on the top of the Lua stack
     lua_pcall(L, 0, 0, 0);
     lua_getglobal(L, "getKeys");
-    lua_pushstring(L, variable.c_str());
-    lua_pcall(L, 1, 1, 0); //Execute the function
-    //At this point, the string is on the top of the stack.
-    //Now we need to get it from the top of the stack and tokenize it.
-    std::string test = lua_tostring(L, -1);
-    std::vector<std::string> strings;
-    std::string temp = "";
-    for (unsigned int i = 0; i < test.size(); ++i) {
-        if (test.at(i) != ',') {
-            temp += test.at(i);
-        }
-        else {
-            strings.push_back(temp);
-            temp = "";
-        }
-    }
+    lua_pushstring(L, variable.c_str()); //Push the variable name onto the stack
+    lua_pcall(L, 1, 1, 0); //Call getKeys with one argument: variable
+    std::string test = lua_tostring(L, -1); //Get the comma separated key string from the top of the stack
+    std::vector<std::string> strings = l2d_internal::utils::split(test, ',');
     this->clean();
     return strings;
-
 }
 
 void l2d_internal::LuaScript::clean() {
