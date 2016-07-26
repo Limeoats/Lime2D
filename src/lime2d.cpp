@@ -872,7 +872,7 @@ void l2d::Editor::update(sf::Time t) {
                 static bool addedAnimation = false;
                 static l2d_internal::LuaScript script(existingAnimationSprites[animationSpriteSelectIndex]);
                 std::vector<std::string> existingAnimationsStrings = script.getTableKeys("animations");
-                std::vector<const char *> existingAnimations;
+                std::vector<const char*> existingAnimations;
                 for (auto &str : existingAnimationsStrings) {
                     existingAnimations.push_back(str.c_str());
                 }

@@ -18,25 +18,6 @@ animations = {
         },
         time_to_update = 0.2
     },
-    flint_run_up = {
-        name = "flint_run_up",
-        description = "Flint run up",
-        sprite_path = "content/sprites/flint.png",
-        frames = 5,
-        src_pos = {
-            x = 5,
-            y = 0
-        },
-        size = {
-            w = 15,
-            h = 20
-        },
-        offset = {
-            x = 0,
-            y = 0
-        },
-        time_to_update = 0.2
-    },
     flint_run_left = {
         name = "flint_run_left",
         description = "Flint run left",
@@ -75,4 +56,23 @@ animations = {
         },
         time_to_update = 0.2
     },
+    flint_run_up = {
+        name = "flint_run_up",
+        description = "Flint run up",
+        sprite_path = "content/sprites/flint.png",
+        frames = 5,
+        src_pos = {
+            x = 5,
+            y = 0
+        },
+        size = {
+            w = 15,
+            h = 20
+        },
+        offset = {
+            x = 0,
+            y = 0
+        },
+        time_to_update = 0.2
+    }
 }
