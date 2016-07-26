@@ -176,7 +176,8 @@ void l2d::Editor::update(sf::Time t) {
 
         static int mapSelectIndex = 0;
         static int animationSelectIndex = -1;
-        static int spriteSelectIndex = -1;
+        static int animationSpriteSelectIndex = -1;
+        static int spritesheetSelectIndex = -1;
 
         static bool showSpecificTileProperties = false;
         static std::shared_ptr<l2d_internal::Tile> showSpecificTilePropertiesTile = nullptr;
@@ -859,38 +860,73 @@ void l2d::Editor::update(sf::Time t) {
 
             std::stringstream ss;
             ss << l2d_internal::utils::getConfigValue("animation_path") << "*";
-            std::vector<const char*> existingAnimations = l2d_internal::utils::getFilesInDirectory(ss.str());
+            std::vector<const char*> existingAnimationSprites = l2d_internal::utils::getFilesInDirectory(ss.str());
 
             ImGui::PushItemWidth(500);
-            ImGui::Combo("Load an animation", &animationSelectIndex, &existingAnimations[0], static_cast<int>(existingAnimations.size()));
+            ImGui::Combo("Choose an animated sprite", &animationSpriteSelectIndex, &existingAnimationSprites[0], static_cast<int>(existingAnimationSprites.size()));
             ImGui::PopItemWidth();
-
             ImGui::Separator();
 
-            //TODO: Once the Lua file is populated, load the spritesheet from there if it exists
-            ss.str("");
-            ss << l2d_internal::utils::getConfigValue("sprite_path") << "*";
-            std::vector<const char*> spriteList = l2d_internal::utils::getFilesInDirectory(ss.str());
-
-            ImGui::PushItemWidth(500);
-            ImGui::Combo("Spritesheet", &spriteSelectIndex, &spriteList[0], static_cast<int>(spriteList.size()));
-            ImGui::PopItemWidth();
-
-            ImGui::Separator();
-
-            ImGui::Dummy(ImVec2(1, 30));
-
-            if (spriteSelectIndex > -1) {
-                static l2d_internal::AnimatedSprite sprite(this->_graphics, spriteList[spriteSelectIndex], sf::Vector2i(0, 0),
-                                                           sf::Vector2i(14, 20), sf::Vector2f(0, 0), 0.2f);
+            //Based on animationSpriteSelectIndex, parse the lua file and get the list of animations
+            if (animationSpriteSelectIndex > -1) {
                 static bool addedAnimation = false;
-                if (!addedAnimation) {
-                    sprite.addAnimation(5, sf::Vector2i(0, 0), "flint_run_down", sf::Vector2i(15, 20), sf::Vector2i(0, 0));
-                    sprite.playAnimation("flint_run_down");
-                    addedAnimation = true;
+                static l2d_internal::LuaScript script(existingAnimationSprites[animationSpriteSelectIndex]);
+                std::vector<std::string> existingAnimationsStrings = script.getTableKeys("animations");
+                std::vector<const char *> existingAnimations;
+                for (auto &str : existingAnimationsStrings) {
+                    existingAnimations.push_back(str.c_str());
                 }
-                sprite.update(t.asSeconds());
-                ImGui::Image(sprite.getSprite(), ImVec2(98, 140));//TODO: STOP HARDCODING THIS NUMBER. do some cross multiplication or something to figure out if you should scale and by how much depending on how big the sprite is
+
+                ImGui::PushItemWidth(500);
+                if (ImGui::Combo("Choose an animation", &animationSelectIndex, &existingAnimations[0],
+                             static_cast<int>(existingAnimations.size()))) {
+                    addedAnimation = false;
+                }
+                ImGui::PopItemWidth();
+                ImGui::Separator();
+
+                if (animationSelectIndex > -1) {
+                    ss.str("");
+                    ss << l2d_internal::utils::getConfigValue("sprite_path") << "*";
+                    std::vector<const char *> spriteList = l2d_internal::utils::getFilesInDirectory(ss.str());
+
+                    std::string p = script.get<std::string>(
+                            "animations." + existingAnimationsStrings[animationSelectIndex] + ".sprite_path");
+                    for (unsigned int i = 0; i < spriteList.size(); ++i) {
+                        if (strcmp(spriteList[i], p.c_str()) == 0) {
+                            spritesheetSelectIndex = i;
+                        }
+                    }
+
+                    ImGui::PushItemWidth(500);
+                    if (ImGui::Combo("Spritesheet", &spritesheetSelectIndex, &spriteList[0],
+                                 static_cast<int>(spriteList.size()))) {
+                        addedAnimation = false;
+                    }
+                    ImGui::PopItemWidth();
+                    ImGui::Separator();
+
+
+                    ImGui::Dummy(ImVec2(1, 30));
+
+                    if (spritesheetSelectIndex > -1) {
+                        static std::shared_ptr<l2d_internal::AnimatedSprite> sprite = std::make_shared<l2d_internal::AnimatedSprite>(
+                                this->_graphics, spriteList[spritesheetSelectIndex], sf::Vector2i(script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.x"), script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.y")),
+                                sf::Vector2i(script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.w"), script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.h")),
+                        sf::Vector2f(0,0), script.get<float>("animations." + existingAnimationsStrings[animationSelectIndex] + ".time_to_update"));
+                        if (!addedAnimation) {
+                            sprite->addAnimation(script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".frames"),
+                                                 sf::Vector2i(script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.x"), script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.y")),
+                                                 script.get<std::string>("animations." + existingAnimationsStrings[animationSelectIndex] + ".name"),
+                                                 sf::Vector2i(script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.w"), script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.h")),
+                                                 sf::Vector2i(script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.x"), script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.y")));
+                            sprite->playAnimation(script.get<std::string>("animations." + existingAnimationsStrings[animationSelectIndex] + ".name"));
+                            addedAnimation = true;
+                        }
+                        sprite->update(t.asSeconds());
+                        ImGui::Image(sprite->getSprite(), ImVec2(98, 140)); //TODO: STOP HARDCODING THIS NUMBER. do some cross multiplication or something to figure out if you should scale and by how much depending on how big the sprite is
+                    }
+                }
             }
 
             ImGui::End();

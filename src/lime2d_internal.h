@@ -9,6 +9,12 @@
 #ifndef LIME2D_LIME2D_INTERNAL_H
 #define LIME2D_LIME2D_INTERNAL_H
 
+extern "C" {
+    #include "lua.h"
+    #include "lauxlib.h"
+    #include "lualib.h"
+};
+
 
 #include <SFML/Graphics.hpp>
 #include <memory>
@@ -495,7 +501,164 @@ namespace l2d_internal {
         sf::FloatRect _rect; /*!< The rectangle representing the position and size of the camera*/
         std::shared_ptr<Level> _level; /*!< A pointer to the currently loaded level*/
     };
+
+    /*!
+     * The internal LuaScript class
+     * Handles the reading and writing of Lua scripts
+     */
+    class LuaScript {
+    public:
+        /*!
+         * The LuaScript constructor
+         * @param filePath  The path to the lua script
+         */
+        LuaScript(const std::string &filePath);
+        /*!
+         * The LuaScript destructor. Frees memory
+         */
+        ~LuaScript();
+        /*!
+         * Prints the error and the variable if something goes wrong
+         * @param variable The variable with the error
+         * @param error An error message describing what went wrong
+         */
+        void printError(const std::string &variable, const std::string error);
+        /*!
+         * A default for string variables
+         * @return Default value for string variables
+         */
+        template<typename T>
+        T lua_getDefault() {
+            return {};
+        }
+        /*!
+         * Default lua_get function.
+         * This function is overloaded with different data types below
+         * @param variable The variable being gotten from the script
+         * @return Default = 0
+         */
+        template<typename T>
+        T lua_get(const std::string &variable) {
+            (void)variable;
+            return 0;
+        }
+        /*!
+         * Get the value of the variable from the script
+         * @param variable The variable being gotten from the script
+         * @return The value of the variable
+         */
+        template<typename T>
+        T get(const std::string &variable) {
+            if (this->L == nullptr) {
+                this->printError(variable, "Lua script is not loaded.");
+                return lua_getDefault<T>();
+            }
+            T result;
+            if (lua_getVariable(variable)) {
+                result = lua_get<T>(variable);
+            }
+            else {
+                result = lua_getDefault<T>();
+            }
+            this->clean();
+            return result;
+        }
+        /*!
+         * Get all of the keys under a variable
+         * @param variable The variable being checked
+         * @return A list of the names of the keys
+         */
+        std::vector<std::string> getTableKeys(const std::string &variable);
+    private:
+        lua_State* L; /*!< The current lua state*/
+
+        /*!
+         * The internal function for getting the variable value
+         * @param variable The variable being gotten from the script
+         * @return The value of the variable
+         */
+        bool lua_getVariable(const std::string &variable);
+        /*!
+         * Removes the top item from the Lua stack
+         */
+        void clean();
+    };
+
+    /*!
+     * Boolean overload for lua_get
+     * @param variable The variable being checked
+     * @return The boolean value of the variable
+     */
+    template<>
+    inline bool LuaScript::lua_get<bool>(const std::string &variable) {
+        if (!lua_isboolean(this->L, -1)) {
+            this->printError(variable, "Not a boolean");
+        }
+        return static_cast<bool>(lua_toboolean(this->L, -1));
+    }
+    /*!
+     * Float overload for lua_get
+     * @param variable The variable being checked
+     * @return The float value of the variable
+     */
+    template<>
+    inline float LuaScript::lua_get<float>(const std::string &variable) {
+        if (!lua_isnumber(this->L, -1)) {
+            this->printError(variable, "Not a number");
+        }
+        return static_cast<float>(lua_tonumber(this->L, -1));
+    }
+    /*!
+     * Integer overload for lua_get
+     * @param variable The variable being checked
+     * @return The integer value of the variable
+     */
+    template<>
+    inline int LuaScript::lua_get<int>(const std::string &variable) {
+        if (!lua_isnumber(this->L, -1)) {
+            this->printError(variable, "Not a number");
+        }
+        return static_cast<int>(lua_tonumber(this->L, -1));
+    }
+    /*!
+     * Uint8 overload for lua_get
+     * @param variable The variable being checked
+     * @return The Uint8 value of the variable
+     */
+    template<>
+    inline sf::Uint8 LuaScript::lua_get<sf::Uint8>(const std::string &variable) {
+        if (!lua_isnumber(this->L, -1)) {
+            this->printError(variable, "Not a number");
+        }
+        return static_cast<sf::Uint8>(lua_tonumber(this->L, -1));
+    }
+    /*!
+     * String overload for lua_get
+     * @param variable The variable being checked
+     * @return The string value of the variable
+     */
+    template<>
+    inline std::string LuaScript::lua_get<std::string>(const std::string &variable) {
+        std::string s = "null";
+        if (lua_isstring(this->L, -1)) {
+            s = std::string(lua_tostring(this->L, -1));
+        }
+        else {
+            this->printError(variable, "Not a string");
+        }
+        return s;
+    }
+    /*!
+     * Default overload for lua_get
+     * @return The null string
+     */
+    template<>
+    inline std::string LuaScript::lua_getDefault<std::string>() {
+        return "null";
+    }
 }
+
+
 
 
 #endif //LIME2D_LIME2D_INTERNAL_H

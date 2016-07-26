@@ -804,3 +804,102 @@ void l2d_internal::Camera::update(float elapsedTime, sf::Vector2f tileSize, bool
         }
     }
 }
+
+/*
+ * LuaScript
+ */
+l2d_internal::LuaScript::LuaScript(const std::string &filePath) {
+    this->L = luaL_newstate();
+    if (luaL_loadfile(this->L, filePath.c_str()) || lua_pcall(this->L, 0, 0, 0)) {
+        std::cerr << "Unable to load Lua script." << std::endl;
+        this->L = nullptr;
+    }
+    if (this->L != nullptr) {
+        luaL_openlibs(this->L);
+    }
+}
+
+l2d_internal::LuaScript::~LuaScript() {
+    if (this->L != nullptr) {
+        lua_close(this->L);
+    }
+}
+
+void l2d_internal::LuaScript::printError(const std::string &variable, const std::string error) {
+    std::cerr << "Error: Unable to get [" << variable << "]" << std::endl << error << std::endl;
+}
+
+bool l2d_internal::LuaScript::lua_getVariable(const std::string &variable) {
+    int level = 0;
+    std::string var = "";
+    for (int i = 0; i < variable.length(); ++i) {
+        if (variable.at(i) == '.') {
+            if (level == 0) {
+                lua_getglobal(this->L, var.c_str());
+            }
+            else {
+                lua_getfield(this->L, -1, var.c_str());
+            }
+            if (lua_isnil(this->L, -1)) {
+                this->printError(variable, var + " is not defined.");
+                return false;
+            }
+            else {
+                var = "";
+                ++level;
+            }
+        }
+        else {
+            var += variable.at(i);
+        }
+    }
+    if (level == 0) {
+        lua_getglobal(this->L, var.c_str());
+    }
+    else {
+        lua_getfield(this->L, -1, var.c_str());
+    }
+    if (lua_isnil(L, -1)) {
+        this->printError(variable, var + " is not defined.");
+        return false;
+    }
+    return true;
+}
+
+std::vector<std::string> l2d_internal::LuaScript::getTableKeys(const std::string &variable) {
+    std::string code =
+            "function getKeys(variable) "
+            "s = \"\""
+            "for k, v in pairs(_G[variable]) do "
+            "   s = s..k..\",\" "
+            "   end "
+            "return s "
+            "end";
+    luaL_loadstring(L, code.c_str()); //Load our new Lua function
+    lua_pcall(L, 0, 0, 0);
+    lua_getglobal(L, "getKeys");
+    lua_pushstring(L, variable.c_str());
+    lua_pcall(L, 1, 1, 0); //Execute the function
+    //At this point, the string is on the top of the stack.
+    //Now we need to get it from the top of the stack and tokenize it.
+    std::string test = lua_tostring(L, -1);
+    std::vector<std::string> strings;
+    std::string temp = "";
+    for (unsigned int i = 0; i < test.size(); ++i) {
+        if (test.at(i) != ',') {
+            temp += test.at(i);
+        }
+        else {
+            strings.push_back(temp);
+            temp = "";
+        }
+    }
+    this->clean();
+    return strings;
+
+}
+
+void l2d_internal::LuaScript::clean() {
+    int n = lua_gettop(this->L);
+    lua_pop(this->L, n);
+}
