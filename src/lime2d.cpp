@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+#include <memory>
 
 #include "lime2d.h"
 
@@ -854,6 +855,18 @@ void l2d::Editor::update(sf::Time t) {
          */
 
         if (cbAnimationEditor) {
+            static bool addedAnimation = false;
+            static std::unique_ptr<l2d_internal::LuaScript> script = nullptr;
+            static std::shared_ptr<l2d_internal::AnimatedSprite> sprite = nullptr;
+            static int frames;
+            static std::string animationName;
+            static std::string animationDescription;
+            static std::string animationPath;
+            static sf::Vector2i srcPos;
+            static sf::Vector2i size;
+            static sf::Vector2i offset;
+            static float timeToUpdate;
+
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(this->_window->getSize().x - 20, this->_window->getSize().y - 80));
             ImGui::Begin("Animation editor", nullptr, ImVec2(this->_window->getSize().x - 20, this->_window->getSize().y - 80), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
@@ -869,48 +882,46 @@ void l2d::Editor::update(sf::Time t) {
 
             //Based on animationSpriteSelectIndex, parse the lua file and get the list of animations
             if (animationSpriteSelectIndex > -1) {
-                static bool addedAnimation = false;
-                static l2d_internal::LuaScript script(existingAnimationSprites[animationSpriteSelectIndex]);
-                std::vector<std::string> existingAnimationsStrings = script.getTableKeys("animations");
+                script = std::make_unique<l2d_internal::LuaScript>(existingAnimationSprites[animationSpriteSelectIndex]);
+                std::vector<std::string> existingAnimationsStrings = script.get()->getTableKeys("animations");
                 std::vector<const char*> existingAnimations;
                 for (auto &str : existingAnimationsStrings) {
                     existingAnimations.push_back(str.c_str());
                 }
 
                 ImGui::PushItemWidth(500);
-                static std::shared_ptr<l2d_internal::AnimatedSprite> sprite = nullptr;
-                static int frames;
-                static std::string animationName;
-                static std::string animationDescription;
-                static std::string animationPath;
-                static sf::Vector2i srcPos;
-                static sf::Vector2i size;
-                static sf::Vector2i offset;
-                static float timeToUpdate;
-
                 if (ImGui::Combo("Choose an animation", &animationSelectIndex, &existingAnimations[0],
                              static_cast<int>(existingAnimations.size()))) {
                     addedAnimation = false;
-                    frames = script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".frames");
-                    animationName = script.get<std::string>("animations." + existingAnimationsStrings[animationSelectIndex] + ".name");
-                    animationDescription = script.get<std::string>("animations." + existingAnimationsStrings[animationSelectIndex] + ".description");
-                    animationPath = script.get<std::string>("animations." + existingAnimationsStrings[animationSelectIndex] + ".sprite_path");
-                    srcPos = sf::Vector2i(script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.x"), script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.y"));
-                    size = sf::Vector2i(script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.w"), script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.h"));
-                    offset = sf::Vector2i(script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.x"), script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.y"));
-                    timeToUpdate = script.get<float>("animations." + existingAnimationsStrings[animationSelectIndex] + ".time_to_update");
+                    frames = script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".frames");
+                    animationName = script.get()->get<std::string>("animations." + existingAnimationsStrings[animationSelectIndex] + ".name");
+                    animationDescription = script.get()->get<std::string>("animations." + existingAnimationsStrings[animationSelectIndex] + ".description");
+                    animationPath = script.get()->get<std::string>("animations." + existingAnimationsStrings[animationSelectIndex] + ".sprite_path");
+                    srcPos = sf::Vector2i(script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.x"), script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.y"));
+                    size = sf::Vector2i(script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.w"), script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.h"));
+                    offset = sf::Vector2i(script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.x"), script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.y"));
+                    timeToUpdate = script.get()->get<float>("animations." + existingAnimationsStrings[animationSelectIndex] + ".time_to_update");
+
+                    sprite = std::make_shared<l2d_internal::AnimatedSprite>(
+                            this->_graphics, animationPath, srcPos, size, sf::Vector2f(0,0), timeToUpdate);
+                    sprite->addAnimation(frames, srcPos, animationName, size, offset);
+                    sprite->playAnimation(animationName);
                 }
                 ImGui::PopItemWidth();
                 ImGui::Separator();
 
-
-
                 if (animationSelectIndex > -1) {
+                    sprite->update(t.asSeconds());
+                    sprite->updateAnimation(frames, srcPos, animationName, animationDescription, animationPath, size, offset, timeToUpdate <= 0 ? 0 : timeToUpdate);
+
+                    ImGui::Image(sprite->getSprite(), ImVec2(98, 140)); //TODO: STOP HARDCODING THIS NUMBER. do some cross multiplication or something to figure out if you should scale and by how much depending on how big the sprite is
+
+                    ImGui::Separator();
+
                     ss.str("");
                     ss << l2d_internal::utils::getConfigValue("sprite_path") << "*";
-                    std::vector<const char *> spriteList = l2d_internal::utils::getFilesInDirectory(ss.str());
-
-                    std::string p = script.get<std::string>(
+                    std::vector<const char*> spriteList = l2d_internal::utils::getFilesInDirectory(ss.str());
+                    std::string p = script.get()->get<std::string>(
                             "animations." + existingAnimationsStrings[animationSelectIndex] + ".sprite_path");
                     for (unsigned int i = 0; i < spriteList.size(); ++i) {
                         if (strcmp(spriteList[i], p.c_str()) == 0) {
@@ -919,42 +930,19 @@ void l2d::Editor::update(sf::Time t) {
                     }
 
                     ImGui::PushItemWidth(500);
-                    if (ImGui::Combo("Spritesheet", &spritesheetSelectIndex, &spriteList[0],
-                                 static_cast<int>(spriteList.size()))) {
-                        addedAnimation = false;
-
-                    }
+                    ImGui::Combo("Spritesheet", &spritesheetSelectIndex, &spriteList[0], static_cast<int>(spriteList.size()));
                     ImGui::PopItemWidth();
                     ImGui::Separator();
 
-                    if (spritesheetSelectIndex > -1) {
-                        if (!addedAnimation) {
-                            sprite = std::make_shared<l2d_internal::AnimatedSprite>(
-                                    this->_graphics, spriteList[spritesheetSelectIndex], sf::Vector2i(script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.x"), script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.y")),
-                                    sf::Vector2i(script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.w"), script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.h")),
-                                    sf::Vector2f(0,0), timeToUpdate);
-                            sprite->addAnimation(script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".frames"),
-                                                 sf::Vector2i(script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.x"), script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.y")),
-                                                 script.get<std::string>("animations." + existingAnimationsStrings[animationSelectIndex] + ".name"),
-                                                 sf::Vector2i(script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.w"), script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.h")),
-                                                 sf::Vector2i(script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.x"), script.get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.y")));
-                            sprite->playAnimation(script.get<std::string>("animations." + existingAnimationsStrings[animationSelectIndex] + ".name"));
-                            addedAnimation = true;
-                        }
-                        if (addedAnimation == true) {
-                            sprite->update(t.asSeconds());
-                            sprite->updateAnimation(frames, srcPos, animationName, animationDescription, animationPath, size, offset, timeToUpdate <= 0 ? 0 : timeToUpdate);
-                        }
-                        ImGui::Image(sprite->getSprite(), ImVec2(98, 140)); //TODO: STOP HARDCODING THIS NUMBER. do some cross multiplication or something to figure out if you should scale and by how much depending on how big the sprite is
+                    ImGui::PushItemWidth(100);
+                    ImGui::PushID("AnimationEditorTimeToUpdate");
+                    ImGui::Text("Time to update");
+                    ImGui::InputFloat("", &timeToUpdate, 0.01f, 1.0f, 2);
+                    ImGui::Separator();
+                    ImGui::PopID();
 
-                        ImGui::Separator();
-                        ImGui::PushItemWidth(100);
-                        ImGui::PushID("AnimationEditorTimeToUpdate");
-                        ImGui::Text("Time to update");
-                        ImGui::SliderFloat("", &timeToUpdate, 0.0f, 1.0f, "%.2f", 1.0f);
-                        ImGui::Separator();
-                        ImGui::PopID();
-                    }
+                    //Prevent negatives
+                    timeToUpdate = std::max(timeToUpdate, 0.0f);
                 }
             }
 
