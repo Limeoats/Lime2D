@@ -143,6 +143,28 @@ void l2d_internal::AnimatedSprite::addAnimation(int frames, sf::Vector2i srcPos,
     this->_offsets.insert(std::pair<std::string, sf::Vector2i>(name, offset));
 }
 
+void l2d_internal::AnimatedSprite::updateAnimation(int frames, sf::Vector2i srcPos, std::string name,
+                                                   std::string description, std::string filePath, sf::Vector2i size,
+                                                   sf::Vector2i offset, float timeToUpdate) {
+    //Find the animation based on the name
+    if (this->_animations.find(name) == this->_animations.end()) {
+        return;
+    }
+    //Basically "redo" the stuff done in addAnimation to update it
+    this->removeAnimation(name);
+
+    this->addAnimation(frames, srcPos, name, size, offset);
+    this->_timeToUpdate = timeToUpdate;
+}
+
+void l2d_internal::AnimatedSprite::removeAnimation(std::string name) {
+    auto it = this->_animations.find(name);
+    if (it == this->_animations.end()) {
+        return;
+    }
+    this->_animations.erase(it);
+}
+
 void l2d_internal::AnimatedSprite::resetAnimation() {
     this->_animations.clear(), this->_offsets.clear();
 }
@@ -882,7 +904,7 @@ std::vector<std::string> l2d_internal::LuaScript::getTableKeys(const std::string
                 "t.__orderedIndex = __genOrderedIndex(t) "
                 "key = t.__orderedIndex[1] "
             "else "
-                "for i = 1, table.getn(t.__orderedIndex) do "
+                    "for i = 1, #t.__orderedIndex do "
                     "if t.__orderedIndex[i] == state then "
                         "key = t.__orderedIndex[i + 1] "
                     "end "
@@ -903,7 +925,7 @@ std::vector<std::string> l2d_internal::LuaScript::getTableKeys(const std::string
             "   s = s..key..\",\" "
             "   end "
             "return s "
-            "end ";
+            "end  ";
     luaL_loadstring(L, code.c_str()); //Put the new getKeys function on the top of the Lua stack
     lua_pcall(L, 0, 0, 0);
     lua_getglobal(L, "getKeys");

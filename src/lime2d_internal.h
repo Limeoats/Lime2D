@@ -203,6 +203,23 @@ namespace l2d_internal {
          */
         void addAnimation(int frames, sf::Vector2i srcPos, std::string name, sf::Vector2i size, sf::Vector2i offset);
         /*!
+         * Update an animation
+         * @param frames New number of frames
+         * @param srcPos New src pos
+         * @param name New name
+         * @param description New description
+         * @param filePath New file path
+         * @param size New size
+         * @param offset New offset
+         * @param timeToUpdate New time to update
+         */
+        void updateAnimation(int frames, sf::Vector2i srcPos, std::string name, std::string description, std::string filePath, sf::Vector2i size, sf::Vector2i offset, float timeToUpdate);
+        /*!
+         * Remove an animation for the animated sprite
+         * @param name The name of the animation to be removed
+         */
+        void removeAnimation(std::string name);
+        /*!
          * Sets the visibility of the animated sprite
          * @param visible Whether or not the animated sprite is visible
          */
