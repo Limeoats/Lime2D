@@ -914,7 +914,8 @@ void l2d::Editor::update(sf::Time t) {
                     sprite->update(t.asSeconds());
                     sprite->updateAnimation(frames, srcPos, animationName, animationDescription, animationPath, size, offset, timeToUpdate <= 0 ? 0 : timeToUpdate);
 
-                    ImGui::Image(sprite->getSprite(), ImVec2(98, 140)); //TODO: STOP HARDCODING THIS NUMBER. do some cross multiplication or something to figure out if you should scale and by how much depending on how big the sprite is
+                    //ImGui::Image(sprite->getSprite(), ImVec2(98, 140)); //TODO: STOP HARDCODING THIS NUMBER. do some cross multiplication or something to figure out if you should scale and by how much depending on how big the sprite is
+                    ImGui::Image(sprite->getSprite(), ImVec2(15, 20));
 
                     ImGui::Separator();
 
@@ -929,10 +930,63 @@ void l2d::Editor::update(sf::Time t) {
                         }
                     }
 
+                    static bool loaded = false;
+
                     ImGui::PushItemWidth(500);
-                    ImGui::Combo("Spritesheet", &spritesheetSelectIndex, &spriteList[0], static_cast<int>(spriteList.size()));
+                    ImGui::PushID("AnimationName");
+                    ImGui::Text("Name");
+                    static char animationNameArray[500] = "";
+                    if (!loaded) {
+                        strncpy(animationNameArray, animationName.c_str(), sizeof(animationNameArray));
+                    }
+                    ImGui::InputText("", animationNameArray, sizeof(animationNameArray));
+                    ImGui::PopID();
                     ImGui::PopItemWidth();
                     ImGui::Separator();
+
+                    ImGui::PushItemWidth(500);
+                    ImGui::PushID("AnimationDescription");
+                    ImGui::Text("Description");
+                    static char animationDescriptionArray[1000] = "";
+                    if (!loaded) {
+                        strncpy(animationDescriptionArray, animationDescription.c_str(), sizeof(animationDescriptionArray));
+                    }
+                    ImGui::InputText("", animationDescriptionArray, sizeof(animationDescriptionArray));
+                    ImGui::PopID();
+                    ImGui::PopItemWidth();
+                    ImGui::Separator();
+
+                    ImGui::PushItemWidth(500);
+                    ImGui::PushID("AnimationSpriteSheet");
+                    ImGui::Text("Sprite sheet");
+                    ImGui::Combo("", &spritesheetSelectIndex, &spriteList[0], static_cast<int>(spriteList.size()));
+                    ImGui::PopID();
+                    ImGui::PopItemWidth();
+                    ImGui::Separator();
+
+                    ImGui::PushItemWidth(100);
+                    ImGui::PushID("AnimationSrcPos");
+                    ImGui::Text("Source position");
+                    ImGui::InputInt("x", &srcPos.x, 1);
+                    ImGui::InputInt("y", &srcPos.y, 1);
+                    ImGui::Separator();
+                    ImGui::PopID();
+
+                    ImGui::PushItemWidth(100);
+                    ImGui::PushID("AnimationSize");
+                    ImGui::Text("Size");
+                    ImGui::InputInt("w", &size.x, 1);
+                    ImGui::InputInt("h", &size.y, 1);
+                    ImGui::Separator();
+                    ImGui::PopID();
+
+                    ImGui::PushItemWidth(100);
+                    ImGui::PushID("AnimationOffset");
+                    ImGui::Text("Offset");
+                    ImGui::InputInt("x", &offset.x, 1);
+                    ImGui::InputInt("y", &offset.y, 1);
+                    ImGui::Separator();
+                    ImGui::PopID();
 
                     ImGui::PushItemWidth(100);
                     ImGui::PushID("AnimationEditorTimeToUpdate");
@@ -940,6 +994,16 @@ void l2d::Editor::update(sf::Time t) {
                     ImGui::InputFloat("", &timeToUpdate, 0.01f, 1.0f, 2);
                     ImGui::Separator();
                     ImGui::PopID();
+
+                    if (ImGui::Button("Save")) {
+                        //TODO: save to lua file
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Cancel")) {
+                        //TODO: reload from lua file
+                    }
+
+                    loaded = true;
 
                     //Prevent negatives
                     timeToUpdate = std::max(timeToUpdate, 0.0f);
