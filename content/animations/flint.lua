@@ -76,3 +76,4 @@ animations = {
         time_to_update = 0.2
     }
 }
+

@@ -19,6 +19,7 @@ extern "C" {
 #include <SFML/Graphics.hpp>
 #include <memory>
 #include <stack>
+#include <sstream>
 
 namespace l2d_internal {
 
@@ -586,8 +587,57 @@ namespace l2d_internal {
          * @return A list of the names of the keys
          */
         std::vector<std::string> getTableKeys(const std::string &variable);
+
+        /*!
+         * Set a new value for the given key
+         * @param key The key
+         * @param value The new value
+         */
+        template<typename T>
+        void lua_set(const std::string &key, T value) {
+            if (this->L == nullptr) {
+                this->printError(key, "Lua script is not loaded.");
+                return;
+            }
+            std::stringstream ss;
+            ss << value;
+
+            int level = 0;
+            std::string var = "";
+            for (int i = 0; i < key.length(); ++i) {
+                if (key.at(i) == '.') {
+                    if (level == 0) {
+                        lua_getglobal(this->L, var.c_str());
+                    }
+                    else {
+                        lua_getfield(this->L, -1, var.c_str());
+                    }
+                    if (lua_isnil(this->L, -1)) {
+                        this->printError(key, var + " is not defined.");
+                    }
+                    else {
+                        var = "";
+                        ++level;
+                    }
+                }
+                else {
+                    var += key.at(i);
+                }
+            }
+            lua_getfield(this->L, -1, var.c_str());
+            lua_pop(this->L, 1);
+            lua_pushstring(this->L, ss.str().c_str());
+            lua_setfield(this->L, -2, var.c_str());
+            this->clean();
+        }
+
+        /*!
+         * Save the lua file in its current state
+         */
+        void lua_save(std::string globalKey);
     private:
         lua_State* L; /*!< The current lua state*/
+        std::string _fileName; /*!< The current lua script file name*/
 
         /*!
          * The internal function for getting the variable value

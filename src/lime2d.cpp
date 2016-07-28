@@ -884,16 +884,13 @@ void l2d::Editor::update(sf::Time t) {
             //Based on animationSpriteSelectIndex, parse the lua file and get the list of animations
             if (animationSpriteSelectIndex > -1) {
                 script = std::make_unique<l2d_internal::LuaScript>(existingAnimationSprites[animationSpriteSelectIndex]);
-                std::vector<std::string> existingAnimationsStrings = script.get()->getTableKeys("animations");
+                std::vector<std::string> existingAnimationsStrings = script.get()->getTableKeys("animations.flint_run_down");
                 std::vector<const char*> existingAnimations;
                 for (auto &str : existingAnimationsStrings) {
                     existingAnimations.push_back(str.c_str());
                 }
 
-                ImGui::PushItemWidth(500);
-                if (ImGui::Combo("Choose an animation", &animationSelectIndex, &existingAnimations[0],
-                             static_cast<int>(existingAnimations.size()))) {
-                    addedAnimation = false;
+                static auto setAnimationFromScript = [&]() {
                     frames = script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".frames");
                     animationName = script.get()->get<std::string>("animations." + existingAnimationsStrings[animationSelectIndex] + ".name");
                     animationDescription = script.get()->get<std::string>("animations." + existingAnimationsStrings[animationSelectIndex] + ".description");
@@ -902,6 +899,13 @@ void l2d::Editor::update(sf::Time t) {
                     size = sf::Vector2i(script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.w"), script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.h"));
                     offset = sf::Vector2i(script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.x"), script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.y"));
                     timeToUpdate = script.get()->get<float>("animations." + existingAnimationsStrings[animationSelectIndex] + ".time_to_update");
+                };
+
+                ImGui::PushItemWidth(500);
+                if (ImGui::Combo("Choose an animation", &animationSelectIndex, &existingAnimations[0],
+                             static_cast<int>(existingAnimations.size()))) {
+                    addedAnimation = false;
+                    setAnimationFromScript();
 
                     sprite = std::make_shared<l2d_internal::AnimatedSprite>(
                             this->_graphics, animationPath, srcPos, size, sf::Vector2f(0,0), timeToUpdate);
@@ -917,18 +921,17 @@ void l2d::Editor::update(sf::Time t) {
                     sprite->update(t.asSeconds());
                     sprite->updateAnimation(frames, srcPos, animationName, animationDescription, animationPath, size, offset, timeToUpdate <= 0 ? 0 : timeToUpdate);
 
-                    //ImGui::Image(sprite->getSprite(), ImVec2(98, 140)); //TODO: STOP HARDCODING THIS NUMBER. do some cross multiplication or something to figure out if you should scale and by how much depending on how big the sprite is
                     ImGui::Image(sprite->getSprite(), spriteDisplaySize);
                     ImGui::SameLine();
                     //Zoom buttons
-                    if (ImGui::Button("+", ImVec2(20, 20))) {
-                        spriteDisplaySize.x *= 1.2f;
-                        spriteDisplaySize.y *= 1.2f;
-                    }
-                    ImGui::SameLine();
                     if (ImGui::Button("-", ImVec2(20, 20))) {
                         spriteDisplaySize.x /= 1.2f;
                         spriteDisplaySize.y /= 1.2f;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("+", ImVec2(20, 20))) {
+                        spriteDisplaySize.x *= 1.2f;
+                        spriteDisplaySize.y *= 1.2f;
                     }
 
                     ImGui::Separator();
@@ -1011,10 +1014,22 @@ void l2d::Editor::update(sf::Time t) {
 
                     if (ImGui::Button("Save")) {
                         //TODO: save to lua file
+                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".name", animationNameArray);
+                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".description", animationDescriptionArray);
+                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".sprite_path", animationPath);
+                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".frames", frames);
+                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.x", srcPos.x);
+                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.y", srcPos.y);
+                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.w", size.x);
+                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.h", size.y);
+                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.x", offset.x);
+                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.y", offset.y);
+                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".time_to_update", timeToUpdate);
+                        script.get()->lua_save("animations");
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("Cancel")) {
-                        //TODO: reload from lua file
+                        setAnimationFromScript();
                     }
 
                     loaded = true;
@@ -1030,8 +1045,6 @@ void l2d::Editor::update(sf::Time t) {
 
             ImGui::End();
         }
-
-
 
         //Status bar
         ImGui::Begin("Background", nullptr, ImGui::GetIO().DisplaySize, 0.0f,

@@ -838,6 +838,7 @@ l2d_internal::LuaScript::LuaScript(const std::string &filePath) {
     }
     if (this->L != nullptr) {
         luaL_openlibs(this->L);
+        this->_fileName = filePath;
     }
 }
 
@@ -921,9 +922,10 @@ std::vector<std::string> l2d_internal::LuaScript::getTableKeys(const std::string
             "end "
             "function getKeys(variable) "
             "s = \"\" "
-            "for key, value in orderedPairs(_G[variable]) do "
+            "x = string.gmatch(variable, \"[^.]+\"); "
+            "for key, value in orderedPairs(_G[\"animations\"][\"flint_run_down\"]) do "
             "   s = s..key..\",\" "
-            "   end "
+            "end "
             "return s "
             "end  ";
     luaL_loadstring(L, code.c_str()); //Put the new getKeys function on the top of the Lua stack
@@ -935,6 +937,30 @@ std::vector<std::string> l2d_internal::LuaScript::getTableKeys(const std::string
     std::vector<std::string> strings = l2d_internal::utils::split(test, ',');
     this->clean();
     return strings;
+}
+
+void l2d_internal::LuaScript::lua_save(std::string globalKey) {
+    std::ofstream os(this->_fileName);
+    if (os.is_open()) {
+        std::function<void(std::vector<std::string>)> doSubKeys = [&](std::vector<std::string> keys) {
+            for (int i = 0; i < keys.size(); ++i) {
+                os << keys[i] << " = ";
+                if (this->getTableKeys(globalKey + "." + keys[i]).size() > 0) {
+                    os << "{" << std::endl;
+                    doSubKeys(this->getTableKeys(globalKey + "." + keys[i]));
+                    os << "}" << std::endl;
+                }
+                else {
+                    os << this->get<std::string>(globalKey + "." + keys[i]) + "," << std::endl;
+                    return;
+                }
+            }
+        };
+        os << globalKey << " = {" << std::endl;
+        doSubKeys(this->getTableKeys(globalKey));
+        os << "}";
+        os.close();
+    }
 }
 
 void l2d_internal::LuaScript::clean() {
