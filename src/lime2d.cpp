@@ -884,7 +884,7 @@ void l2d::Editor::update(sf::Time t) {
             //Based on animationSpriteSelectIndex, parse the lua file and get the list of animations
             if (animationSpriteSelectIndex > -1) {
                 script = std::make_unique<l2d_internal::LuaScript>(existingAnimationSprites[animationSpriteSelectIndex]);
-                std::vector<std::string> existingAnimationsStrings = script.get()->getTableKeys("animations.flint_run_down");
+                std::vector<std::string> existingAnimationsStrings = script.get()->getTableKeys("animations");
                 std::vector<const char*> existingAnimations;
                 for (auto &str : existingAnimationsStrings) {
                     existingAnimations.push_back(str.c_str());

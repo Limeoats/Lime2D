@@ -1,79 +1,78 @@
 animations = {
-    flint_run_down = {
-        name = "flint_run_down",
-        description = "Flint run down",
-        sprite_path = "content/sprites/flint.png",
-        frames = 5,
-        src_pos = {
-            x = 0,
-            y = 0
-        },
-        size = {
-            w = 15,
-            h = 20
-        },
-        offset = {
-            x = 0,
-            y = 0
-        },
-        time_to_update = 0.2
-    },
-    flint_run_left = {
-        name = "flint_run_left",
-        description = "Flint run left",
-        sprite_path = "content/sprites/flint.png",
-        frames = 5,
-        src_pos = {
-            x = 5,
-            y = 20
-        },
-        size = {
-            w = 14,
-            h = 20,
-        },
-        offset = {
-            x = 0,
-            y = 0
-        },
-        time_to_update = 0.2
-    },
-    flint_run_right = {
-        name = "flint_run_right",
-        description = "Flint run right",
-        sprite_path = "content/sprites/flint.png",
-        frames = 5,
-        src_pos = {
-            x = 0,
-            y = 20
-        },
-        size = {
-            w = 14,
-            h = 20,
-        },
-        offset = {
-            x = 0,
-            y = 0
-        },
-        time_to_update = 0.2
-    },
-    flint_run_up = {
-        name = "flint_run_up",
-        description = "Flint run up",
-        sprite_path = "content/sprites/flint.png",
-        frames = 5,
-        src_pos = {
-            x = 5,
-            y = 0
-        },
-        size = {
-            w = 15,
-            h = 20
-        },
-        offset = {
-            x = 0,
-            y = 0
-        },
-        time_to_update = 0.2
-    }
+	flint_run_down = {
+		description = "Flint run downfdsa",
+		frames = "5",
+		name = "flint_run_downasdf",
+		offset = {
+			x = "0",
+			y = "0",
+		},
+		size = {
+			h = "20",
+			w = "15",
+		},
+		sprite_path = "content/sprites/flint.png",
+		src_pos = {
+			x = "0",
+			y = "0",
+		},
+		time_to_update = "0.2",
+	},
+	flint_run_left = {
+		description = "Flint run left",
+		frames = "5",
+		name = "flint_run_left",
+		offset = {
+			x = "0",
+			y = "0",
+		},
+		size = {
+			h = "20",
+			w = "14",
+		},
+		sprite_path = "content/sprites/flint.png",
+		src_pos = {
+			x = "5",
+			y = "20",
+		},
+		time_to_update = "0.2",
+	},
+	flint_run_right = {
+		description = "Flint run right",
+		frames = "5",
+		name = "flint_run_right",
+		offset = {
+			x = "0",
+			y = "0",
+		},
+		size = {
+			h = "20",
+			w = "14",
+		},
+		sprite_path = "content/sprites/flint.png",
+		src_pos = {
+			x = "0",
+			y = "20",
+		},
+		time_to_update = "0.2",
+	},
+	flint_run_up = {
+		description = "Flint run up",
+		frames = "5",
+		name = "flint_run_up",
+		offset = {
+			x = "0",
+			y = "0",
+		},
+		size = {
+			h = "20",
+			w = "15",
+		},
+		sprite_path = "content/sprites/flint.png",
+		src_pos = {
+			x = "5",
+			y = "0",
+		},
+		time_to_update = "0.2",
+	},
 }
-

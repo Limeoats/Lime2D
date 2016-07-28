@@ -922,9 +922,12 @@ std::vector<std::string> l2d_internal::LuaScript::getTableKeys(const std::string
             "end "
             "function getKeys(variable) "
             "s = \"\" "
-            "x = string.gmatch(variable, \"[^.]+\"); "
-            "for key, value in orderedPairs(_G[\"animations\"][\"flint_run_down\"]) do "
-            "   s = s..key..\",\" "
+            "local v = _G "
+            "for w in string.gmatch(variable, \"[%w_]+\") do "
+                "v = v[w] "
+            "end "
+            "for key, value in orderedPairs(v) do "
+                "s = s..key..\",\" "
             "end "
             "return s "
             "end  ";
@@ -935,29 +938,40 @@ std::vector<std::string> l2d_internal::LuaScript::getTableKeys(const std::string
     lua_pcall(L, 1, 1, 0); //Call getKeys with one argument: variable
     std::string test = lua_tostring(L, -1); //Get the comma separated key string from the top of the stack
     std::vector<std::string> strings = l2d_internal::utils::split(test, ',');
+    if (strings[0] == "[string \"function __genOrderedIndex(t) local orderedIn...\"]:1: bad argument #1 to 'pairs' (table expected") {
+        strings.clear();
+    }
     this->clean();
     return strings;
 }
 
 void l2d_internal::LuaScript::lua_save(std::string globalKey) {
     std::ofstream os(this->_fileName);
+    long level = 0;
     if (os.is_open()) {
-        std::function<void(std::vector<std::string>)> doSubKeys = [&](std::vector<std::string> keys) {
+        std::function<void(std::vector<std::string>, std::string)> doSubKeys = [&](std::vector<std::string> keys, std::string currentKey) {
+            level = std::count(currentKey.begin(), currentKey.end(), '.') + 1;
             for (int i = 0; i < keys.size(); ++i) {
+                for (int a = 0; a < level; ++a) {
+                    os << "\t";
+                }
                 os << keys[i] << " = ";
-                if (this->getTableKeys(globalKey + "." + keys[i]).size() > 0) {
+                if (this->getTableKeys(currentKey + "." + keys[i]).size() > 0) {
                     os << "{" << std::endl;
-                    doSubKeys(this->getTableKeys(globalKey + "." + keys[i]));
-                    os << "}" << std::endl;
+                    doSubKeys(this->getTableKeys(currentKey + "." + keys[i]), currentKey + "." + keys[i]);
+                    level = std::count(currentKey.begin(), currentKey.end(), '.') + 1;
+                    for (int a = 0; a < level; ++a) {
+                        os << "\t";
+                    }
+                    os << "}," << std::endl;
                 }
                 else {
-                    os << this->get<std::string>(globalKey + "." + keys[i]) + "," << std::endl;
-                    return;
+                    os << "\"" << this->get<std::string>(currentKey + "." + keys[i]) + "\"," << std::endl;
                 }
             }
         };
         os << globalKey << " = {" << std::endl;
-        doSubKeys(this->getTableKeys(globalKey));
+        doSubKeys(this->getTableKeys(globalKey), globalKey);
         os << "}";
         os.close();
     }
