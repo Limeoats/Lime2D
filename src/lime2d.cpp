@@ -856,6 +856,7 @@ void l2d::Editor::update(sf::Time t) {
 
         if (cbAnimationEditor) {
             static bool addedAnimation = false;
+            static ImVec2 spriteDisplaySize;
             static std::unique_ptr<l2d_internal::LuaScript> script = nullptr;
             static std::shared_ptr<l2d_internal::AnimatedSprite> sprite = nullptr;
             static int frames;
@@ -906,6 +907,8 @@ void l2d::Editor::update(sf::Time t) {
                             this->_graphics, animationPath, srcPos, size, sf::Vector2f(0,0), timeToUpdate);
                     sprite->addAnimation(frames, srcPos, animationName, size, offset);
                     sprite->playAnimation(animationName);
+
+                    spriteDisplaySize = ImVec2(sprite->getSprite().getTextureRect().width, sprite->getSprite().getTextureRect().height);
                 }
                 ImGui::PopItemWidth();
                 ImGui::Separator();
@@ -915,7 +918,18 @@ void l2d::Editor::update(sf::Time t) {
                     sprite->updateAnimation(frames, srcPos, animationName, animationDescription, animationPath, size, offset, timeToUpdate <= 0 ? 0 : timeToUpdate);
 
                     //ImGui::Image(sprite->getSprite(), ImVec2(98, 140)); //TODO: STOP HARDCODING THIS NUMBER. do some cross multiplication or something to figure out if you should scale and by how much depending on how big the sprite is
-                    ImGui::Image(sprite->getSprite(), ImVec2(15, 20));
+                    ImGui::Image(sprite->getSprite(), spriteDisplaySize);
+                    ImGui::SameLine();
+                    //Zoom buttons
+                    if (ImGui::Button("+", ImVec2(20, 20))) {
+                        spriteDisplaySize.x *= 1.2f;
+                        spriteDisplaySize.y *= 1.2f;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("-", ImVec2(20, 20))) {
+                        spriteDisplaySize.x /= 1.2f;
+                        spriteDisplaySize.y /= 1.2f;
+                    }
 
                     ImGui::Separator();
 
@@ -1006,6 +1020,10 @@ void l2d::Editor::update(sf::Time t) {
                     loaded = true;
 
                     //Prevent negatives
+                    srcPos.x = std::max(srcPos.x, 0);
+                    srcPos.y = std::max(srcPos.y, 0);
+                    size.x = std::max(size.x, 0);
+                    size.y = std::max(size.y, 0);
                     timeToUpdate = std::max(timeToUpdate, 0.0f);
                 }
             }
