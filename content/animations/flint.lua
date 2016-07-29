@@ -1,8 +1,8 @@
 animations = {
 	flint_run_down = {
-		description = "Flint run downfdsa",
+		description = "Flint run down",
 		frames = "5",
-		name = "flint_run_downasdf",
+		name = "flint_run_down",
 		offset = {
 			x = "0",
 			y = "0",

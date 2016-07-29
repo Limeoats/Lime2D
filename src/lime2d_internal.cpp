@@ -938,7 +938,7 @@ std::vector<std::string> l2d_internal::LuaScript::getTableKeys(const std::string
     lua_pcall(L, 1, 1, 0); //Call getKeys with one argument: variable
     std::string test = lua_tostring(L, -1); //Get the comma separated key string from the top of the stack
     std::vector<std::string> strings = l2d_internal::utils::split(test, ',');
-    if (strings[0] == "[string \"function __genOrderedIndex(t) local orderedIn...\"]:1: bad argument #1 to 'pairs' (table expected") {
+    if (strings[0].find("[string \"function __genOrderedIndex(t) local") != std::string::npos) {
         strings.clear();
     }
     this->clean();
@@ -948,21 +948,22 @@ std::vector<std::string> l2d_internal::LuaScript::getTableKeys(const std::string
 void l2d_internal::LuaScript::lua_save(std::string globalKey) {
     std::ofstream os(this->_fileName);
     long level = 0;
+    auto tab = [&level, &os]() {
+        for (int a = 0; a < level; ++a) {
+            os << "\t";
+        }
+    };
     if (os.is_open()) {
         std::function<void(std::vector<std::string>, std::string)> doSubKeys = [&](std::vector<std::string> keys, std::string currentKey) {
             level = std::count(currentKey.begin(), currentKey.end(), '.') + 1;
             for (int i = 0; i < keys.size(); ++i) {
-                for (int a = 0; a < level; ++a) {
-                    os << "\t";
-                }
+                tab();
                 os << keys[i] << " = ";
                 if (this->getTableKeys(currentKey + "." + keys[i]).size() > 0) {
                     os << "{" << std::endl;
                     doSubKeys(this->getTableKeys(currentKey + "." + keys[i]), currentKey + "." + keys[i]);
                     level = std::count(currentKey.begin(), currentKey.end(), '.') + 1;
-                    for (int a = 0; a < level; ++a) {
-                        os << "\t";
-                    }
+                    tab();
                     os << "}," << std::endl;
                 }
                 else {
