@@ -10,7 +10,7 @@ Since it is an in-game editor, you can edit maps in real-time with your player, 
 
 ### Installation
 Lime2D has not yet been released, so there are no binaries to be downloaded yet. 
-Please keep an eye on [http://www.limeoats.com/Lime2D](http://www.limeoats.com/Lime2D) to find out when 
+Please keep an eye on [http://www.limeoats.com/lime2D](http://www.limeoats.com/Lime2D) to find out when 
  the official release date will be. 
 
 ### License
@@ -18,5 +18,5 @@ Please keep an eye on [http://www.limeoats.com/Lime2D](http://www.limeoats.com/L
 This project is under the [Apache License](https://github.com/Limeoats/Lime2D/blob/master/LICENSE.md).
  
 ### Links
-* http://www.limeoats.com/Lime2D
-* http://www.patreon.com/Limeoats
+* [http://www.limeoats.com/Lime2D](http://www.limeoats.com/lime2d)
+* [http://www.patreon.com/Limeoats](http://www.patreon.com/Limeoats)
