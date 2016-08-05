@@ -164,6 +164,7 @@ void l2d::Editor::update(sf::Time t) {
         static bool newMapExistsOverwriteVisible = false;
         static bool tilesetWindowVisible = false;
         static bool lightEditorWindowVisible = false;
+        static bool newAnimationWindowVisible = false;
         static bool mainHasFocus = true;
 
         static sf::Vector2f mousePos(0.0f, 0.0f);
@@ -586,6 +587,10 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Animation", cbAnimationEditor)) {
+                if (ImGui::MenuItem("New animation")) {
+                    newAnimationWindowVisible = true;
+                    mainHasFocus = false;
+                }
                 mainHasFocus = false;
                 ImGui::EndMenu();
             }
@@ -854,7 +859,57 @@ void l2d::Editor::update(sf::Time t) {
          * Animation editor
          */
 
-        if (cbAnimationEditor) {
+        if (cbAnimationEditor && newAnimationWindowVisible) {
+            static std::string newSpriteErrorMessage = "";
+
+            std::stringstream ss;
+            ss << l2d_internal::utils::getConfigValue("sprite_path") << "*";
+            std::vector<const char*> spriteList = l2d_internal::utils::getFilesInDirectory(ss.str());
+
+            ImGui::SetNextWindowPosCenter();
+            ImGui::SetNextWindowSize(ImVec2(380, 160));
+            ImGui::Begin("Create new animation", nullptr, ImVec2(380, 200), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
+
+            ImGui::PushItemWidth(364);
+            ImGui::PushID("NewAnimatedSpriteName");
+            ImGui::Text("Sprite name");
+            static char newSpriteName[1000] = "";
+            ImGui::InputText("", newSpriteName, sizeof(newSpriteName));
+            ImGui::PopID();
+            ImGui::PopItemWidth();
+            ImGui::Separator();
+
+            ImGui::PushItemWidth(364);
+            ImGui::PushID("NewAnimationSpriteSheet");
+            ImGui::Text("Sprite sheet");
+            ImGui::Combo("", &spritesheetSelectIndex, &spriteList[0], static_cast<int>(spriteList.size()));
+            ImGui::PopID();
+            ImGui::PopItemWidth();
+            ImGui::Separator();
+
+            if (ImGui::Button("Create")) {
+                if (strlen(newSpriteName) <= 0) {
+                    newSpriteErrorMessage = "You must enter a name for the sprite!";
+                }
+                else if (spritesheetSelectIndex < 0) {
+                    newSpriteErrorMessage = "You must select a sprite sheet for the new sprite!";
+                }
+                else {
+                    newSpriteErrorMessage = "";
+                    l2d_internal::utils::createNewAnimationFile(newSpriteName, spriteList[spritesheetSelectIndex]);
+                    newAnimationWindowVisible = false;
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                strcpy(newSpriteName, "");
+                newSpriteErrorMessage = "";
+                newAnimationWindowVisible = false;
+            }
+            ImGui::Text(newSpriteErrorMessage.c_str());
+            ImGui::End();
+        }
+        if (cbAnimationEditor && !newAnimationWindowVisible) {
             static bool addedAnimation = false;
             static ImVec2 spriteDisplaySize;
             static std::unique_ptr<l2d_internal::LuaScript> script = nullptr;
@@ -912,7 +967,7 @@ void l2d::Editor::update(sf::Time t) {
                     sprite->addAnimation(frames, srcPos, animationName, size, offset);
                     sprite->playAnimation(animationName);
 
-                    spriteDisplaySize = ImVec2(sprite->getSprite().getTextureRect().width, sprite->getSprite().getTextureRect().height);
+                    spriteDisplaySize = ImVec2(size.x, size.y);
                 }
                 ImGui::PopItemWidth();
                 ImGui::Separator();
@@ -951,32 +1006,29 @@ void l2d::Editor::update(sf::Time t) {
 
                     ImGui::PushItemWidth(500);
                     ImGui::PushID("AnimationName");
-                    ImGui::Text("Name");
                     static char animationNameArray[500] = "";
                     if (!loaded) {
                         strncpy(animationNameArray, animationName.c_str(), sizeof(animationNameArray));
                     }
-                    ImGui::InputText("", animationNameArray, sizeof(animationNameArray));
+                    ImGui::InputText("Name", animationNameArray, sizeof(animationNameArray));
                     ImGui::PopID();
                     ImGui::PopItemWidth();
                     ImGui::Separator();
 
                     ImGui::PushItemWidth(500);
                     ImGui::PushID("AnimationDescription");
-                    ImGui::Text("Description");
                     static char animationDescriptionArray[1000] = "";
                     if (!loaded) {
                         strncpy(animationDescriptionArray, animationDescription.c_str(), sizeof(animationDescriptionArray));
                     }
-                    ImGui::InputText("", animationDescriptionArray, sizeof(animationDescriptionArray));
+                    ImGui::InputText("Description", animationDescriptionArray, sizeof(animationDescriptionArray));
                     ImGui::PopID();
                     ImGui::PopItemWidth();
                     ImGui::Separator();
 
                     ImGui::PushItemWidth(500);
                     ImGui::PushID("AnimationSpriteSheet");
-                    ImGui::Text("Sprite sheet");
-                    ImGui::Combo("", &spritesheetSelectIndex, &spriteList[0], static_cast<int>(spriteList.size()));
+                    ImGui::Combo("Sprite sheet", &spritesheetSelectIndex, &spriteList[0], static_cast<int>(spriteList.size()));
                     ImGui::PopID();
                     ImGui::PopItemWidth();
                     ImGui::Separator();
@@ -992,8 +1044,12 @@ void l2d::Editor::update(sf::Time t) {
                     ImGui::PushItemWidth(100);
                     ImGui::PushID("AnimationSize");
                     ImGui::Text("Size");
-                    ImGui::InputInt("w", &size.x, 1);
-                    ImGui::InputInt("h", &size.y, 1);
+                    if (ImGui::InputInt("w", &size.x, 1)) {
+                        spriteDisplaySize = ImVec2(size.x, size.y);
+                    }
+                    if (ImGui::InputInt("h", &size.y, 1)) {
+                        spriteDisplaySize = ImVec2(size.x, size.y);
+                    }
                     ImGui::Separator();
                     ImGui::PopID();
 
@@ -1009,6 +1065,13 @@ void l2d::Editor::update(sf::Time t) {
                     ImGui::PushID("AnimationEditorTimeToUpdate");
                     ImGui::Text("Time to update");
                     ImGui::InputFloat("", &timeToUpdate, 0.01f, 1.0f, 2);
+                    ImGui::Separator();
+                    ImGui::PopID();
+
+                    ImGui::PushItemWidth(100);
+                    ImGui::PushID("AnimationEditorFrames");
+                    ImGui::Text("Frames");
+                    ImGui::InputInt("", &frames, 1);
                     ImGui::Separator();
                     ImGui::PopID();
 

@@ -16,7 +16,7 @@ animations = {
 			x = "0",
 			y = "0",
 		},
-		time_to_update = "0.2",
+		time_to_update = "0.3",
 	},
 	flint_run_left = {
 		description = "Flint run left",

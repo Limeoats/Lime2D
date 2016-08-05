@@ -52,6 +52,32 @@ std::string l2d_internal::utils::getConfigValue(std::string key) {
     return configMap.size() <= 0 ? "" : configMap[key];
 }
 
+void l2d_internal::utils::createNewAnimationFile(std::string name, std::string spriteSheetPath) {
+    std::ofstream os(l2d_internal::utils::getConfigValue("animation_path") + name + ".lua");
+    os << "animations = {" << std::endl;
+    os << "\tanimation_1 = {" << std::endl;
+    os << "\t\tdescription = \"\"," << std::endl;
+    os << "\t\tframes = \"0\"," << std::endl;
+    os << "\t\tname = \"" << "animation_1" << "\"," << std::endl;
+    os << "\t\toffset = {" << std::endl;
+    os << "\t\t\tx = \"0\"," << std::endl;
+    os << "\t\t\ty = \"0\"," << std::endl;
+    os << "\t\t}," << std::endl;
+    os << "\t\tsize = {" << std::endl;
+    os << "\t\t\tw = \"0\"," << std::endl;
+    os << "\t\t\th = \"0\"," << std::endl;
+    os << "\t\t}," << std::endl;
+    os << "\t\tsprite_path = \"" << spriteSheetPath << "\"," << std::endl;
+    os << "\t\tsrc_pos = {" << std::endl;
+    os << "\t\t\tx = \"0\"," << std::endl;
+    os << "\t\t\ty = \"0\"," << std::endl;
+    os << "\t\t}," << std::endl;
+    os << "\t\ttime_to_update = \"0\"," << std::endl;
+    os << "\t}," << std::endl;
+    os << "}";
+    os.close();
+}
+
 /*
  * Graphics
  */

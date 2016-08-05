@@ -65,6 +65,11 @@ namespace l2d_internal {
          * @return The value of the configuration being retrieved
          */
         std::string getConfigValue(std::string key);
+        /*!
+         * Create a new animation Lua file
+         * @param name The name of the new sprite
+         */
+        void createNewAnimationFile(std::string name, std::string spriteSheetPath);
     }
 
     /*!
