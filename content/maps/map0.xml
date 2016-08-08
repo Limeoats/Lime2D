@@ -1092,7 +1092,7 @@
     </tiles>
     <objects>
         <lights>
-            <ambient color="2540333823" intensity="1.8"/>
+            <ambient color="778130943" intensity="1.8"/>
         </lights>
     </objects>
 </map>

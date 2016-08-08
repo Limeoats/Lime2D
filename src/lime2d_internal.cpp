@@ -57,15 +57,15 @@ void l2d_internal::utils::createNewAnimationFile(std::string name, std::string s
     os << "animations = {" << std::endl;
     os << "\tanimation_1 = {" << std::endl;
     os << "\t\tdescription = \"\"," << std::endl;
-    os << "\t\tframes = \"0\"," << std::endl;
+    os << "\t\tframes = \"1\"," << std::endl;
     os << "\t\tname = \"" << "animation_1" << "\"," << std::endl;
     os << "\t\toffset = {" << std::endl;
     os << "\t\t\tx = \"0\"," << std::endl;
     os << "\t\t\ty = \"0\"," << std::endl;
     os << "\t\t}," << std::endl;
     os << "\t\tsize = {" << std::endl;
-    os << "\t\t\tw = \"0\"," << std::endl;
-    os << "\t\t\th = \"0\"," << std::endl;
+    os << "\t\t\tw = \"1\"," << std::endl;
+    os << "\t\t\th = \"1\"," << std::endl;
     os << "\t\t}," << std::endl;
     os << "\t\tsprite_path = \"" << spriteSheetPath << "\"," << std::endl;
     os << "\t\tsrc_pos = {" << std::endl;
