@@ -4,7 +4,7 @@ Lime2D is an open source in-game map/animation editor for 2D C++ game developmen
 Since it is an in-game editor, you can edit maps in real-time with your player, physics, collisions, and everything else being rendered. This will make for extremely efficient 2D level creation.
 
 ### External libraries used
-* [SFML](http://www.sfml-dev.org/)
+* [SFML 2.4.0](http://www.sfml-dev.org/)
 * [ImGui](https://github.com/ocornut/imgui)
 * [TinyXML2](http://www.grinninglizard.com/tinyxml2/index.html)
 

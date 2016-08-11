@@ -74,9 +74,9 @@ void l2d::Editor::render() {
     if (this->_enabled) {
         //If map editor
         if (this->_level.getName() != "l2dSTART") {
-            this->_ambientLight.setParameter("texture", sf::Shader::CurrentTexture);
-            this->_ambientLight.setParameter("color", this->_level.getAmbientColor().r / 255.0f, this->_level.getAmbientColor().g / 255.0f, this->_level.getAmbientColor().b / 255.0f);
-            this->_ambientLight.setParameter("intensity", this->_level.getAmbientIntensity());
+            this->_ambientLight.setUniform("texture", sf::Shader::CurrentTexture);
+            this->_ambientLight.setUniform("color", sf::Glsl::Vec3(this->_level.getAmbientColor().r / 255.0f, this->_level.getAmbientColor().g / 255.0f, this->_level.getAmbientColor().b / 255.0f));
+            this->_ambientLight.setUniform("intensity", this->_level.getAmbientIntensity());
             this->_level.draw(&this->_ambientLight);
             if (this->_showGridLines) {
                 //Horizontal lines
