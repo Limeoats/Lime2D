@@ -579,7 +579,7 @@ void l2d::Editor::update(sf::Time t) {
                         }
                         ImGui::EndMenu();
                     }
-                    if (ImGui::Checkbox("Show grid lines", &cbShowGridLines)) {
+                    if (ImGui::Checkbox("Show grid lines    G", &cbShowGridLines)) {
                         this->_showGridLines = cbShowGridLines;
                     }
                     mainHasFocus = false;
@@ -1089,6 +1089,7 @@ void l2d::Editor::update(sf::Time t) {
                         script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.y", offset.y);
                         script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".time_to_update", timeToUpdate);
                         script.get()->lua_save("animations");
+                        startStatusTimer("Animation saved successfully!", 200);
                     }
                     ImGui::SameLine();
                     if (ImGui::Button("Cancel")) {

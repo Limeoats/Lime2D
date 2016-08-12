@@ -14,7 +14,7 @@ set(SOURCE_FILES src/main.cpp src/lime2d.cpp
 add_executable(Lime2D ${SOURCE_FILES})
 
 include(FindPkgConfig)
-find_package(SFML COMPONENTS system window graphics network audio)
+find_package(SFML COMPONENTS system window graphics network audio REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Lua REQUIRED)
 
