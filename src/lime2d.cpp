@@ -1076,7 +1076,6 @@ void l2d::Editor::update(sf::Time t) {
                     ImGui::PopID();
 
                     if (ImGui::Button("Save")) {
-                        //TODO: save to lua file
                         script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".name", animationNameArray);
                         script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".description", animationDescriptionArray);
                         script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".sprite_path", animationPath);
@@ -1106,7 +1105,6 @@ void l2d::Editor::update(sf::Time t) {
                     timeToUpdate = std::max(timeToUpdate, 0.0f);
                 }
             }
-
             ImGui::End();
         }
 
@@ -1124,15 +1122,17 @@ void l2d::Editor::update(sf::Time t) {
         }
         ImGui::End();
 
-        this->_level.update(t.asSeconds());
-        this->_graphics->update(t.asSeconds(), sf::Vector2f(this->_level.getTileSize()), this->_windowHasFocus);
-
+        //Status timer
         if (currentStatusTimer > 0) {
             currentStatusTimer -= 1;
         }
-        if (currentStatusTimer <= 0) {
+        else {
             showCurrentStatus = false;
         }
+
+        //Updating internal classes
+        this->_level.update(t.asSeconds());
+        this->_graphics->update(t.asSeconds(), sf::Vector2f(this->_level.getTileSize()), this->_windowHasFocus);
     }
 }
 
