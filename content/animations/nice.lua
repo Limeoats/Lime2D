@@ -1,8 +1,8 @@
 animations = {
-	nice_animation_1 = {
+	this_is_a_nice_animation_1 = {
 		description = "nice description",
 		frames = "5",
-		name = "nice_animation_1",
+		name = "this_is_a_nice_animation_1",
 		offset = {
 			x = "0",
 			y = "0",

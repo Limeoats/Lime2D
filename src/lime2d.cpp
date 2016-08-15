@@ -1108,7 +1108,9 @@ void l2d::Editor::update(sf::Time t) {
                         script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.y", offset.y);
                         script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".time_to_update", timeToUpdate);
                         script.get()->lua_save("animations");
-                        script.get()->updateKeyName(originalAnimationName, animationNameArray);
+                        if (originalAnimationName != animationNameArray) {
+                            script.get()->updateKeyName(originalAnimationName, animationNameArray);
+                        }
                         startStatusTimer("Animation saved successfully!", 200);
                     }
                     ImGui::SameLine();
