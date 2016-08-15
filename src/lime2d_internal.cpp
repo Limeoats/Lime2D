@@ -216,7 +216,7 @@ void l2d_internal::AnimatedSprite::update(float elapsedTime) {
     Sprite::update(elapsedTime);
     this->_timeElapsed += elapsedTime;
     if (this->_timeElapsed > this->_timeToUpdate) {
-        this->_timeElapsed -= this->_timeToUpdate;
+        this->_timeElapsed = 0;
         if (this->_frameIndex < this->_animations[this->_currentAnimation].size() - 1) {
             ++this->_frameIndex;
             this->_sprite.setTextureRect(this->_animations[this->_currentAnimation][this->_frameIndex]);

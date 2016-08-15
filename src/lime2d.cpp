@@ -1103,6 +1103,7 @@ void l2d::Editor::update(sf::Time t) {
                     size.x = std::max(size.x, 0);
                     size.y = std::max(size.y, 0);
                     timeToUpdate = std::max(timeToUpdate, 0.0f);
+                    frames = std::max(frames, 1);
                 }
             }
             ImGui::End();

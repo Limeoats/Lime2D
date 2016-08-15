@@ -57,9 +57,9 @@ animations = {
 		time_to_update = "0.2",
 	},
 	flint_run_up = {
-		description = "Flint run up",
+		description = "Flint run left",
 		frames = "5",
-		name = "flint_run_up",
+		name = "flint_run_left",
 		offset = {
 			x = "0",
 			y = "0",
