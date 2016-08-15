@@ -164,6 +164,7 @@ void l2d::Editor::update(sf::Time t) {
         static bool newMapExistsOverwriteVisible = false;
         static bool tilesetWindowVisible = false;
         static bool lightEditorWindowVisible = false;
+        static bool newAnimatedSpriteWindowVisible = false;
         static bool newAnimationWindowVisible = false;
         static bool mainHasFocus = true;
 
@@ -208,7 +209,7 @@ void l2d::Editor::update(sf::Time t) {
 
         //Set mainHasFocus (very important)
         //This tells Lime2D that it can draw tiles to the screen. We don't want it drawing if other windows have focus.
-        mainHasFocus = !(tilesetWindowVisible || newMapBoxVisible || tilePropertiesWindowVisible || configWindowVisible || mapSelectBoxVisible || aboutBoxVisible || lightEditorWindowVisible);
+        mainHasFocus = !(tilesetWindowVisible || newMapBoxVisible || tilePropertiesWindowVisible || configWindowVisible || mapSelectBoxVisible || aboutBoxVisible || lightEditorWindowVisible || newAnimatedSpriteWindowVisible);
 
         cbShowGridLines = this->_showGridLines;
 
@@ -587,9 +588,17 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Animation", cbAnimationEditor)) {
-                if (ImGui::MenuItem("New animation")) {
-                    newAnimationWindowVisible = true;
+                if (ImGui::BeginMenu("New")) {
+                    if (ImGui::MenuItem("Animated sprite")) {
+                        newAnimatedSpriteWindowVisible = true;
+                        mainHasFocus = false;
+                    }
+                    if (ImGui::MenuItem("Animation", nullptr, false, animationSpriteSelectIndex > -1)) {
+                        //Open new animation window
+                        mainHasFocus = false;
+                    }
                     mainHasFocus = false;
+                    ImGui::EndMenu();
                 }
                 mainHasFocus = false;
                 ImGui::EndMenu();
@@ -859,7 +868,8 @@ void l2d::Editor::update(sf::Time t) {
          * Animation editor
          */
 
-        if (cbAnimationEditor && newAnimationWindowVisible) {
+        //Add a new animated sprite
+        if (cbAnimationEditor && newAnimatedSpriteWindowVisible && !newAnimationWindowVisible) {
             static std::string newSpriteErrorMessage = "";
 
             std::stringstream ss;
@@ -868,7 +878,7 @@ void l2d::Editor::update(sf::Time t) {
 
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(380, 160));
-            ImGui::Begin("Create new animation", nullptr, ImVec2(380, 200), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
+            ImGui::Begin("Create new animated sprite", nullptr, ImVec2(380, 200), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
 
             ImGui::PushItemWidth(364);
             ImGui::PushID("NewAnimatedSpriteName");
@@ -897,25 +907,32 @@ void l2d::Editor::update(sf::Time t) {
                 else {
                     newSpriteErrorMessage = "";
                     l2d_internal::utils::createNewAnimationFile(newSpriteName, spriteList[spritesheetSelectIndex]);
-                    newAnimationWindowVisible = false;
+                    newAnimatedSpriteWindowVisible = false;
                 }
             }
             ImGui::SameLine();
             if (ImGui::Button("Cancel")) {
                 strcpy(newSpriteName, "");
                 newSpriteErrorMessage = "";
-                newAnimationWindowVisible = false;
+                newAnimatedSpriteWindowVisible = false;
             }
             ImGui::Text(newSpriteErrorMessage.c_str());
             ImGui::End();
         }
-        if (cbAnimationEditor && !newAnimationWindowVisible) {
+
+        //Add a new animation to the currently loaded animated sprite
+        if (cbAnimationEditor && newAnimationWindowVisible && !newAnimatedSpriteWindowVisible) {
+            //TODO
+        }
+
+        if (cbAnimationEditor && !newAnimatedSpriteWindowVisible && !newAnimationWindowVisible) {
             static bool addedAnimation = false;
             static ImVec2 spriteDisplaySize;
             static std::unique_ptr<l2d_internal::LuaScript> script = nullptr;
             static std::shared_ptr<l2d_internal::AnimatedSprite> sprite = nullptr;
             static int frames;
             static std::string animationName;
+            static std::string originalAnimationName;
             static std::string animationDescription;
             static std::string animationPath;
             static sf::Vector2i srcPos;
@@ -932,7 +949,9 @@ void l2d::Editor::update(sf::Time t) {
             std::vector<const char*> existingAnimationSprites = l2d_internal::utils::getFilesInDirectory(ss.str());
 
             ImGui::PushItemWidth(500);
-            ImGui::Combo("Choose an animated sprite", &animationSpriteSelectIndex, &existingAnimationSprites[0], static_cast<int>(existingAnimationSprites.size()));
+            if (ImGui::Combo("Choose an animated sprite", &animationSpriteSelectIndex, &existingAnimationSprites[0], static_cast<int>(existingAnimationSprites.size()))) {
+                animationSelectIndex = -1;
+            }
             ImGui::PopItemWidth();
             ImGui::Separator();
 
@@ -955,13 +974,14 @@ void l2d::Editor::update(sf::Time t) {
                     offset = sf::Vector2i(script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.x"), script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.y"));
                     timeToUpdate = script.get()->get<float>("animations." + existingAnimationsStrings[animationSelectIndex] + ".time_to_update");
                 };
-
+                static bool loaded = false;
                 ImGui::PushItemWidth(500);
                 if (ImGui::Combo("Choose an animation", &animationSelectIndex, &existingAnimations[0],
                              static_cast<int>(existingAnimations.size()))) {
+                    loaded = false;
                     addedAnimation = false;
                     setAnimationFromScript();
-
+                    originalAnimationName = script.get()->get<std::string>("animations." + existingAnimationsStrings[animationSelectIndex] + ".name");
                     sprite = std::make_shared<l2d_internal::AnimatedSprite>(
                             this->_graphics, animationPath, srcPos, size, sf::Vector2f(0,0), timeToUpdate);
                     sprite->addAnimation(frames, srcPos, animationName, size, offset);
@@ -1002,7 +1022,7 @@ void l2d::Editor::update(sf::Time t) {
                         }
                     }
 
-                    static bool loaded = false;
+
 
                     ImGui::PushItemWidth(500);
                     ImGui::PushID("AnimationName");
@@ -1088,6 +1108,7 @@ void l2d::Editor::update(sf::Time t) {
                         script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.y", offset.y);
                         script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".time_to_update", timeToUpdate);
                         script.get()->lua_save("animations");
+                        script.get()->updateKeyName(originalAnimationName, animationNameArray);
                         startStatusTimer("Animation saved successfully!", 200);
                     }
                     ImGui::SameLine();

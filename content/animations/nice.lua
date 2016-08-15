@@ -1,8 +1,8 @@
 animations = {
-	animation_1 = {
-		description = "julia<3",
+	nice_animation_1 = {
+		description = "nice description",
 		frames = "5",
-		name = "animation_1",
+		name = "nice_animation_1",
 		offset = {
 			x = "0",
 			y = "0",
@@ -16,6 +16,7 @@ animations = {
 			x = "0",
 			y = "0",
 		},
-		time_to_update = "0.2",
+		time_to_update = "0.14",
 	},
 }
+

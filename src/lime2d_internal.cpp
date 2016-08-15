@@ -1004,6 +1004,26 @@ void l2d_internal::LuaScript::lua_save(std::string globalKey) {
     }
 }
 
+void l2d_internal::LuaScript::updateKeyName(std::string oldValue, std::string newValue) {
+    std::ifstream in(this->_fileName);
+    std::stringstream ss;
+    bool done = false;
+    for (std::string line; std::getline(in, line); ) {
+        size_t pos = line.find(oldValue);
+        if (pos != std::string::npos) {
+            if (!done) {
+                line.replace(pos, oldValue.length(), newValue);
+                done = true;
+            }
+        }
+        ss << line << std::endl;
+    }
+    in.close();
+    std::ofstream out(this->_fileName, std::ios_base::trunc);
+    out << ss.str() << std::endl;
+    out.close();
+}
+
 void l2d_internal::LuaScript::clean() {
     int n = lua_gettop(this->L);
     lua_pop(this->L, n);

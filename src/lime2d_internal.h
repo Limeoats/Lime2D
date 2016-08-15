@@ -635,11 +635,16 @@ namespace l2d_internal {
             lua_setfield(this->L, -2, var.c_str());
             this->clean();
         }
-
         /*!
          * Save the lua file in its current state
          */
         void lua_save(std::string globalKey);
+        /*!
+         * Update a key name in the Lua file
+         * @param oldValue The old value of the key name
+         * @param newValue The new value of the key name
+         */
+        void updateKeyName(std::string oldValue, std::string newValue);
     private:
         lua_State* L; /*!< The current lua state*/
         std::string _fileName; /*!< The current lua script file name*/
