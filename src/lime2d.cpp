@@ -181,6 +181,8 @@ void l2d::Editor::update(sf::Time t) {
         static int animationSelectIndex = -1;
         static int animationSpriteSelectIndex = -1;
         static int spritesheetSelectIndex = -1;
+        static std::string selectedAnimationFileName = "";
+        static std::string selectedAnimationSpriteSheetPath = "";
 
         static bool showSpecificTileProperties = false;
         static std::shared_ptr<l2d_internal::Tile> showSpecificTilePropertiesTile = nullptr;
@@ -595,6 +597,7 @@ void l2d::Editor::update(sf::Time t) {
                     }
                     if (ImGui::MenuItem("Animation", nullptr, false, animationSpriteSelectIndex > -1)) {
                         //Open new animation window
+                        newAnimationWindowVisible = true;
                         mainHasFocus = false;
                     }
                     mainHasFocus = false;
@@ -922,7 +925,42 @@ void l2d::Editor::update(sf::Time t) {
 
         //Add a new animation to the currently loaded animated sprite
         if (cbAnimationEditor && newAnimationWindowVisible && !newAnimatedSpriteWindowVisible) {
-            //TODO
+            static std::string newAnimationErrorMessage = "";
+
+            std::stringstream ss;
+
+            ImGui::SetNextWindowPosCenter();
+            ImGui::SetNextWindowSize(ImVec2(380, 160));
+            ImGui::Begin("Create new animation", nullptr, ImVec2(380, 200), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
+
+            ImGui::PushItemWidth(364);
+            ImGui::PushID("NewAnimationName");
+            ImGui::Text("Animation name");
+            static char newAnimationNameArray[1000] = "";
+            ImGui::InputText("", newAnimationNameArray, sizeof(newAnimationNameArray));
+            ImGui::PopID();
+            ImGui::PopItemWidth();
+            ImGui::Separator();
+
+            if (ImGui::Button("Create")) {
+                if (strlen(newAnimationNameArray) <= 0) {
+                    newAnimationErrorMessage = "You must enter a name for the animation!";
+                }
+                else {
+                    newAnimationErrorMessage = "";
+                    l2d_internal::utils::addNewAnimationToAnimationFile(selectedAnimationFileName, newAnimationNameArray);
+                    animationSpriteSelectIndex = -1;
+                    newAnimationWindowVisible = false;
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                strcpy(newAnimationNameArray, "");
+                newAnimationErrorMessage = "";
+                newAnimationWindowVisible = false;
+            }
+            ImGui::Text(newAnimationErrorMessage.c_str());
+            ImGui::End();
         }
 
         if (cbAnimationEditor && !newAnimatedSpriteWindowVisible && !newAnimationWindowVisible) {
@@ -951,6 +989,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::PushItemWidth(500);
             if (ImGui::Combo("Choose an animated sprite", &animationSpriteSelectIndex, &existingAnimationSprites[0], static_cast<int>(existingAnimationSprites.size()))) {
                 animationSelectIndex = -1;
+                selectedAnimationFileName = existingAnimationSprites[animationSpriteSelectIndex];
             }
             ImGui::PopItemWidth();
             ImGui::Separator();
@@ -958,21 +997,21 @@ void l2d::Editor::update(sf::Time t) {
             //Based on animationSpriteSelectIndex, parse the lua file and get the list of animations
             if (animationSpriteSelectIndex > -1) {
                 script = std::make_unique<l2d_internal::LuaScript>(existingAnimationSprites[animationSpriteSelectIndex]);
-                std::vector<std::string> existingAnimationsStrings = script.get()->getTableKeys("animations");
+                std::vector<std::string> existingAnimationsStrings = script.get()->getTableKeys("animations.list");
                 std::vector<const char*> existingAnimations;
                 for (auto &str : existingAnimationsStrings) {
                     existingAnimations.push_back(str.c_str());
                 }
 
                 static auto setAnimationFromScript = [&]() {
-                    frames = script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".frames");
-                    animationName = script.get()->get<std::string>("animations." + existingAnimationsStrings[animationSelectIndex] + ".name");
-                    animationDescription = script.get()->get<std::string>("animations." + existingAnimationsStrings[animationSelectIndex] + ".description");
-                    animationPath = script.get()->get<std::string>("animations." + existingAnimationsStrings[animationSelectIndex] + ".sprite_path");
-                    srcPos = sf::Vector2i(script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.x"), script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.y"));
-                    size = sf::Vector2i(script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.w"), script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.h"));
-                    offset = sf::Vector2i(script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.x"), script.get()->get<int>("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.y"));
-                    timeToUpdate = script.get()->get<float>("animations." + existingAnimationsStrings[animationSelectIndex] + ".time_to_update");
+                    frames = script.get()->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".frames");
+                    animationName = script.get()->get<std::string>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".name");
+                    animationDescription = script.get()->get<std::string>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".description");
+                    animationPath = script.get()->get<std::string>("animations.sprite_path");
+                    srcPos = sf::Vector2i(script.get()->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.x"), script.get()->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.y"));
+                    size = sf::Vector2i(script.get()->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".size.w"), script.get()->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".size.h"));
+                    offset = sf::Vector2i(script.get()->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".offset.x"), script.get()->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".offset.y"));
+                    timeToUpdate = script.get()->get<float>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".time_to_update");
                 };
                 static bool loaded = false;
                 ImGui::PushItemWidth(500);
@@ -981,7 +1020,7 @@ void l2d::Editor::update(sf::Time t) {
                     loaded = false;
                     addedAnimation = false;
                     setAnimationFromScript();
-                    originalAnimationName = script.get()->get<std::string>("animations." + existingAnimationsStrings[animationSelectIndex] + ".name");
+                    originalAnimationName = script.get()->get<std::string>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".name");
                     sprite = std::make_shared<l2d_internal::AnimatedSprite>(
                             this->_graphics, animationPath, srcPos, size, sf::Vector2f(0,0), timeToUpdate);
                     sprite->addAnimation(frames, srcPos, animationName, size, offset);
@@ -1015,7 +1054,7 @@ void l2d::Editor::update(sf::Time t) {
                     ss << l2d_internal::utils::getConfigValue("sprite_path") << "*";
                     std::vector<const char*> spriteList = l2d_internal::utils::getFilesInDirectory(ss.str());
                     std::string p = script.get()->get<std::string>(
-                            "animations." + existingAnimationsStrings[animationSelectIndex] + ".sprite_path");
+                            "animations.sprite_path");
                     for (unsigned int i = 0; i < spriteList.size(); ++i) {
                         if (strcmp(spriteList[i], p.c_str()) == 0) {
                             spritesheetSelectIndex = i;
@@ -1096,17 +1135,17 @@ void l2d::Editor::update(sf::Time t) {
                     ImGui::PopID();
 
                     if (ImGui::Button("Save")) {
-                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".name", animationNameArray);
-                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".description", animationDescriptionArray);
-                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".sprite_path", animationPath);
-                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".frames", frames);
-                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.x", srcPos.x);
-                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.y", srcPos.y);
-                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.w", size.x);
-                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".size.h", size.y);
-                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.x", offset.x);
-                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".offset.y", offset.y);
-                        script.get()->lua_set("animations." + existingAnimationsStrings[animationSelectIndex] + ".time_to_update", timeToUpdate);
+                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".name", animationNameArray);
+                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".description", animationDescriptionArray);
+                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".sprite_path", animationPath);
+                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".frames", frames);
+                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.x", srcPos.x);
+                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.y", srcPos.y);
+                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".size.w", size.x);
+                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".size.h", size.y);
+                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".offset.x", offset.x);
+                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".offset.y", offset.y);
+                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".time_to_update", timeToUpdate);
                         script.get()->lua_save("animations");
                         if (originalAnimationName != animationNameArray) {
                             script.get()->updateKeyName(originalAnimationName, animationNameArray);

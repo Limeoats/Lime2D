@@ -55,27 +55,65 @@ std::string l2d_internal::utils::getConfigValue(std::string key) {
 void l2d_internal::utils::createNewAnimationFile(std::string name, std::string spriteSheetPath) {
     std::ofstream os(l2d_internal::utils::getConfigValue("animation_path") + name + ".lua");
     os << "animations = {" << std::endl;
-    os << "\tanimation_1 = {" << std::endl;
-    os << "\t\tdescription = \"\"," << std::endl;
-    os << "\t\tframes = \"1\"," << std::endl;
-    os << "\t\tname = \"" << "animation_1" << "\"," << std::endl;
-    os << "\t\toffset = {" << std::endl;
-    os << "\t\t\tx = \"0\"," << std::endl;
-    os << "\t\t\ty = \"0\"," << std::endl;
-    os << "\t\t}," << std::endl;
-    os << "\t\tsize = {" << std::endl;
-    os << "\t\t\tw = \"1\"," << std::endl;
-    os << "\t\t\th = \"1\"," << std::endl;
-    os << "\t\t}," << std::endl;
+    os << "\tlist = {" << std::endl;
     os << "\t\tsprite_path = \"" << spriteSheetPath << "\"," << std::endl;
-    os << "\t\tsrc_pos = {" << std::endl;
-    os << "\t\t\tx = \"0\"," << std::endl;
-    os << "\t\t\ty = \"0\"," << std::endl;
+    os << "\t\tanimation_1 = {" << std::endl;
+    os << "\t\t\tdescription = \"\"," << std::endl;
+    os << "\t\t\tframes = \"1\"," << std::endl;
+    os << "\t\t\tname = \"" << "animation_1" << "\"," << std::endl;
+    os << "\t\t\toffset = {" << std::endl;
+    os << "\t\t\t\tx = \"0\"," << std::endl;
+    os << "\t\t\t\ty = \"0\"," << std::endl;
+    os << "\t\t\t}," << std::endl;
+    os << "\t\t\tsize = {" << std::endl;
+    os << "\t\t\t\tw = \"1\"," << std::endl;
+    os << "\t\t\t\th = \"1\"," << std::endl;
+    os << "\t\t\t}," << std::endl;
+    os << "\t\t\tsrc_pos = {" << std::endl;
+    os << "\t\t\t\tx = \"0\"," << std::endl;
+    os << "\t\t\t\ty = \"0\"," << std::endl;
+    os << "\t\t\t}," << std::endl;
+    os << "\t\t\ttime_to_update = \"0\"," << std::endl;
     os << "\t\t}," << std::endl;
-    os << "\t\ttime_to_update = \"0\"," << std::endl;
-    os << "\t}," << std::endl;
+    os << "\t}" << std::endl;
     os << "}";
     os.close();
+}
+
+void l2d_internal::utils::addNewAnimationToAnimationFile(std::string fileName, std::string animationName) {
+    std::ifstream in(fileName);
+    std::stringstream ss;
+    for (std::string line; std::getline(in, line); ) {
+        ss << line << std::endl;
+    }
+    in.close();
+    std::string str = ss.str();
+    size_t startPos = str.find_last_of(",");
+    if (startPos != std::string::npos) {
+        std::stringstream ssins;
+        ssins << "\n\t\t" << animationName << " = {" << std::endl;
+        ssins << "\t\t\tdescription = \"\"," << std::endl;
+        ssins << "\t\t\tframes = \"1\"," << std::endl;
+        ssins << "\t\t\tname = \"" << animationName << "\"," << std::endl;
+        ssins << "\t\t\toffset = {" << std::endl;
+        ssins << "\t\t\t\tx = \"0\"," << std::endl;
+        ssins << "\t\t\t\ty = \"0\"," << std::endl;
+        ssins << "\t\t\t}," << std::endl;
+        ssins << "\t\t\tsize = {" << std::endl;
+        ssins << "\t\t\t\tw = \"1\"," << std::endl;
+        ssins << "\t\t\t\th = \"1\"," << std::endl;
+        ssins << "\t\t\t}," << std::endl;
+        ssins << "\t\t\tsrc_pos = {" << std::endl;
+        ssins << "\t\t\t\tx = \"0\"," << std::endl;
+        ssins << "\t\t\t\ty = \"0\"," << std::endl;
+        ssins << "\t\t\t}," << std::endl;
+        ssins << "\t\t\ttime_to_update = \"0\"," << std::endl;
+        ssins << "\t\t}," << std::endl;
+        str.insert(startPos + 1, ssins.str());
+    }
+    std::ofstream out(fileName, std::ios_base::trunc);
+    out << str << std::endl;
+    out.close();
 }
 
 /*

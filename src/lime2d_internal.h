@@ -70,6 +70,11 @@ namespace l2d_internal {
          * @param name The name of the new sprite
          */
         void createNewAnimationFile(std::string name, std::string spriteSheetPath);
+        /*!
+         * Add a new animation to the Lua file
+         * @param fileName The name of the Lua file
+         */
+        void addNewAnimationToAnimationFile(std::string fileName, std::string animationName);
     }
 
     /*!
