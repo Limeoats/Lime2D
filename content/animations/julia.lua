@@ -18,6 +18,6 @@ animations = {
 				y = "0",
 			},
 			time_to_update = "0.2",
-		},
+        __},
 	}
 }

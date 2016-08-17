@@ -54,6 +54,14 @@ namespace l2d_internal {
          */
         std::vector<std::string> split(std::string str, char c);
         /*!
+         * Split a string by a delimiting string
+         * @param str The string being split
+         * @param delim The delimiting string
+         * @param count The number of times to do the split. Default is -1 (all)
+         * @return A vector containing each of the strings after the split
+         */
+        std::vector<std::string> split(const std::string& str, const std::string& delim, int count = -1);
+        /*!
          * Get the names of all files in a given directory
          * @param directory The location of the files
          * @return A vector containing the names of the files in the directory
@@ -73,8 +81,15 @@ namespace l2d_internal {
         /*!
          * Add a new animation to the Lua file
          * @param fileName The name of the Lua file
+         * @param animationName The name of the animation being added
          */
         void addNewAnimationToAnimationFile(std::string fileName, std::string animationName);
+        /*!
+         * Remove an animation from the Lua file
+         * @param fileName The name of the Lua file
+         * @param animationName The name of the animation being removed
+         */
+        void removeAnimationFromAnimationFile(std::string fileName, std::string animationName);
     }
 
     /*!

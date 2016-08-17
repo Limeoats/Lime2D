@@ -148,7 +148,6 @@ void l2d::Editor::update(sf::Time t) {
     if (this->_enabled) {
         ImGui::SFML::Update(t);
 
-
         /*
          *  Menu
          *  File, View, Map, Animation, Help
@@ -166,6 +165,7 @@ void l2d::Editor::update(sf::Time t) {
         static bool lightEditorWindowVisible = false;
         static bool newAnimatedSpriteWindowVisible = false;
         static bool newAnimationWindowVisible = false;
+        static bool removeAnimationWindowVisible = false;
         static bool mainHasFocus = true;
 
         static sf::Vector2f mousePos(0.0f, 0.0f);
@@ -182,7 +182,7 @@ void l2d::Editor::update(sf::Time t) {
         static int animationSpriteSelectIndex = -1;
         static int spritesheetSelectIndex = -1;
         static std::string selectedAnimationFileName = "";
-        static std::string selectedAnimationSpriteSheetPath = "";
+        static std::string selectedAnimationName = "";
 
         static bool showSpecificTileProperties = false;
         static std::shared_ptr<l2d_internal::Tile> showSpecificTilePropertiesTile = nullptr;
@@ -211,7 +211,8 @@ void l2d::Editor::update(sf::Time t) {
 
         //Set mainHasFocus (very important)
         //This tells Lime2D that it can draw tiles to the screen. We don't want it drawing if other windows have focus.
-        mainHasFocus = !(tilesetWindowVisible || newMapBoxVisible || tilePropertiesWindowVisible || configWindowVisible || mapSelectBoxVisible || aboutBoxVisible || lightEditorWindowVisible || newAnimatedSpriteWindowVisible);
+        mainHasFocus = !(tilesetWindowVisible || newMapBoxVisible || tilePropertiesWindowVisible || configWindowVisible || mapSelectBoxVisible || aboutBoxVisible || lightEditorWindowVisible || newAnimatedSpriteWindowVisible ||
+                            removeAnimationWindowVisible);
 
         cbShowGridLines = this->_showGridLines;
 
@@ -593,15 +594,26 @@ void l2d::Editor::update(sf::Time t) {
                 if (ImGui::BeginMenu("New")) {
                     if (ImGui::MenuItem("Animated sprite")) {
                         newAnimatedSpriteWindowVisible = true;
+                        newAnimationWindowVisible = false;
+                        removeAnimationWindowVisible = false;
                         mainHasFocus = false;
                     }
                     if (ImGui::MenuItem("Animation", nullptr, false, animationSpriteSelectIndex > -1)) {
                         //Open new animation window
                         newAnimationWindowVisible = true;
+                        newAnimatedSpriteWindowVisible = false;
+                        removeAnimationWindowVisible = false;
                         mainHasFocus = false;
                     }
                     mainHasFocus = false;
                     ImGui::EndMenu();
+                }
+                if (ImGui::MenuItem("Delete selected animation", nullptr, false, animationSelectIndex > -1)) {
+                    //Open remove animation window
+                    removeAnimationWindowVisible = true;
+                    newAnimationWindowVisible = false;
+                    newAnimatedSpriteWindowVisible = false;
+                    mainHasFocus = false;
                 }
                 mainHasFocus = false;
                 ImGui::EndMenu();
@@ -872,7 +884,7 @@ void l2d::Editor::update(sf::Time t) {
          */
 
         //Add a new animated sprite
-        if (cbAnimationEditor && newAnimatedSpriteWindowVisible && !newAnimationWindowVisible) {
+        if (cbAnimationEditor && newAnimatedSpriteWindowVisible) {
             static std::string newSpriteErrorMessage = "";
 
             std::stringstream ss;
@@ -924,7 +936,7 @@ void l2d::Editor::update(sf::Time t) {
         }
 
         //Add a new animation to the currently loaded animated sprite
-        if (cbAnimationEditor && newAnimationWindowVisible && !newAnimatedSpriteWindowVisible) {
+        if (cbAnimationEditor && newAnimationWindowVisible) {
             static std::string newAnimationErrorMessage = "";
 
             std::stringstream ss;
@@ -963,7 +975,30 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::End();
         }
 
-        if (cbAnimationEditor && !newAnimatedSpriteWindowVisible && !newAnimationWindowVisible) {
+        //Remove the selected animation
+        if (cbAnimationEditor && removeAnimationWindowVisible) {
+            ImGui::SetNextWindowPosCenter();
+            ImGui::SetNextWindowSize(ImVec2(280, 100));
+            ImGui::Begin("Remove selected animation", nullptr, ImVec2(280, 100), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
+            std::string txt = "Are you sure you want to delete \nthe selected animation?\n\"" + selectedAnimationName + "\"";
+            ImGui::Text(txt.c_str());
+            ImGui::Separator();
+            if (ImGui::Button("Yes")) {
+                //TODO: Delete the animation from the lua file
+                l2d_internal::utils::removeAnimationFromAnimationFile(selectedAnimationFileName, selectedAnimationName);
+                selectedAnimationName = "";
+                removeAnimationWindowVisible = false;
+                animationSpriteSelectIndex = -1; //Reset the whole sprite so the animation names will be updated from the Lua file
+                startStatusTimer("Animation deleted successfully", 200);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("No ")) {
+                removeAnimationWindowVisible = false;
+            }
+            ImGui::End();
+        }
+
+        if (cbAnimationEditor) {
             static bool addedAnimation = false;
             static ImVec2 spriteDisplaySize;
             static std::unique_ptr<l2d_internal::LuaScript> script = nullptr;
@@ -1020,6 +1055,7 @@ void l2d::Editor::update(sf::Time t) {
                     loaded = false;
                     addedAnimation = false;
                     setAnimationFromScript();
+                    selectedAnimationName = animationName;
                     originalAnimationName = script.get()->get<std::string>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".name");
                     sprite = std::make_shared<l2d_internal::AnimatedSprite>(
                             this->_graphics, animationPath, srcPos, size, sf::Vector2f(0,0), timeToUpdate);

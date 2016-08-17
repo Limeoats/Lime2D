@@ -31,6 +31,30 @@ std::vector<std::string> l2d_internal::utils::split(std::string str, char c) {
     return list;
 }
 
+std::vector<std::string> l2d_internal::utils::split(const std::string &str, const std::string &delim, int count) {
+    std::vector<std::string> tokens;
+    size_t prev = 0, pos = 0;
+    do {
+        pos = str.find(delim, prev);
+        if (pos == std::string::npos) {
+            pos = str.length();
+        }
+        std::string token = str.substr(prev, pos - prev);
+        if (!token.empty()) {
+            tokens.push_back(token);
+        }
+        prev = pos + delim.length();
+
+        //TODO: Temporary hack to make this work for removeAnimation function. Fix this in the future.
+        if (count == 1) {
+            tokens.push_back(str.substr(prev, str.length()));
+            return tokens;
+        }
+        //end horrible hack
+    } while (pos < str.length() && prev < str.length());
+    return tokens;
+}
+
 std::vector<const char*> l2d_internal::utils::getFilesInDirectory(std::string directory) {
     glob_t glob_result;
     std::vector<const char*> mapFiles;
@@ -74,7 +98,7 @@ void l2d_internal::utils::createNewAnimationFile(std::string name, std::string s
     os << "\t\t\t\ty = \"0\"," << std::endl;
     os << "\t\t\t}," << std::endl;
     os << "\t\t\ttime_to_update = \"0\"," << std::endl;
-    os << "\t\t}," << std::endl;
+    os << "\t\t__}," << std::endl;
     os << "\t}" << std::endl;
     os << "}";
     os.close();
@@ -83,9 +107,7 @@ void l2d_internal::utils::createNewAnimationFile(std::string name, std::string s
 void l2d_internal::utils::addNewAnimationToAnimationFile(std::string fileName, std::string animationName) {
     std::ifstream in(fileName);
     std::stringstream ss;
-    for (std::string line; std::getline(in, line); ) {
-        ss << line << std::endl;
-    }
+    ss << in.rdbuf();
     in.close();
     std::string str = ss.str();
     size_t startPos = str.find_last_of(",");
@@ -108,11 +130,31 @@ void l2d_internal::utils::addNewAnimationToAnimationFile(std::string fileName, s
         ssins << "\t\t\t\ty = \"0\"," << std::endl;
         ssins << "\t\t\t}," << std::endl;
         ssins << "\t\t\ttime_to_update = \"0\"," << std::endl;
-        ssins << "\t\t}," << std::endl;
+        ssins << "\t\t__}," << std::endl;
         str.insert(startPos + 1, ssins.str());
     }
     std::ofstream out(fileName, std::ios_base::trunc);
-    out << str << std::endl;
+    out << str;
+    out.close();
+}
+
+void l2d_internal::utils::removeAnimationFromAnimationFile(std::string fileName, std::string animationName) {
+    std::ifstream in(fileName);
+    std::stringstream ss;
+    ss << in.rdbuf();
+    in.close();
+    std::string str = ss.str();
+    std::vector<std::string> x = l2d_internal::utils::split(str, animationName);
+    std::string before = x[0];
+    int spaces = std::stoi(l2d_internal::utils::getConfigValue("lua_tab_size")) * 2;
+    std::stringstream oss;
+    oss << "__},\n";
+    for (int i = 0; i < spaces; ++i) {
+        oss << " ";
+    }
+    std::string after = utils::split(x[2], oss.str(), 1)[1];
+    std::ofstream out(fileName, std::ios_base::trunc);
+    out << before << after;
     out.close();
 }
 
