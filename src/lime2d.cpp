@@ -321,6 +321,13 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::Separator();
             ImGui::PopID();
 
+            ImGui::PushID("ConfigureCameraPanAmount");
+            ImGui::Text("Camera pan amount");
+            static float cameraPanAmount = l2d_internal::utils::getConfigValue("camera_pan_amount") == "" ? 4.0f : std::stof(l2d_internal::utils::getConfigValue("camera_pan_amount"));
+            ImGui::InputFloat("", &cameraPanAmount, 0.25f, 0.0f, 2);
+            ImGui::Separator();
+            ImGui::PopID();
+
             ImGui::PopItemWidth();
 
             if (ImGui::Button("Save")) {
@@ -331,15 +338,6 @@ void l2d::Editor::update(sf::Time t) {
                 }
                 else if (strlen(tilesetPath) <= 0) {
                     configureMapErrorText = "You must enter the location of your tilesets!";
-                }
-                else if (spriteScaleX < 0 || spriteScaleY < 0) {
-                    configureMapErrorText = "Sprite scale cannot be negative!";
-                }
-                else if (tileScaleX < 0 || tileScaleY < 0) {
-                    configureMapErrorText = "Tile scale cannot be negative!";
-                }
-                else if (screenSizeX < 0 || screenSizeY < 0) {
-                    configureMapErrorText = "Screen size cannot be negative!";
                 }
                 else if (strlen(spritePath) <= 0) {
                     configureMapErrorText = "You must enter the location of your sprites!";
@@ -362,13 +360,19 @@ void l2d::Editor::update(sf::Time t) {
                         os << "screen_size_y=" << screenSizeY << "\n";
                         os << "sprite_path=" << spritePath << "\n";
                         os << "animation_path=" << animationPath << "\n";
+                        os << "camera_pan_amount=" << cameraPanAmount << "\n";
                         os.close();
                         if (this->_level.getName() != "l2dSTART") {
                             std::string name = this->_level.getName();
                             configureMapErrorText = this->_level.loadMap(name);
                             if (configureMapErrorText.length() <= 0) {
                                 configWindowVisible = false;
+                                startStatusTimer("Configurations saved successfully!", 200);
                             }
+                        }
+                        else {
+                            configWindowVisible = false;
+                            startStatusTimer("Configurations saved successfully!", 200);
                         }
                     }
                     else {
@@ -382,6 +386,15 @@ void l2d::Editor::update(sf::Time t) {
                 configureMapErrorText = "";
             }
             ImGui::Text(configureMapErrorText.c_str());
+
+            spriteScaleX = std::max(0.0f, spriteScaleX);
+            spriteScaleY = std::max(0.0f, spriteScaleY);
+            tileScaleX = std::max(0.0f, tileScaleX);
+            tileScaleY = std::max(0.0f, tileScaleY);
+            screenSizeX = std::max(0, screenSizeX);
+            screenSizeY = std::max(0, screenSizeY);
+            cameraPanAmount = std::max(0.0f, cameraPanAmount);
+
             ImGui::End();
             loaded = true;
         }
