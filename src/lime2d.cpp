@@ -175,8 +175,6 @@ void l2d::Editor::update(sf::Time t) {
         static bool showCurrentStatus = false;
         static int currentStatusTimer = 0;
 
-        static std::vector<std::shared_ptr<sf::Texture>> tilesets;
-
         static int mapSelectIndex = 0;
         static int animationSelectIndex = -1;
         static int animationSpriteSelectIndex = -1;
@@ -200,12 +198,27 @@ void l2d::Editor::update(sf::Time t) {
 
         static l2d_internal::LightType selectedLightType = l2d_internal::LightType::None;
 
-        //startStatusTimer function is in written like this so that it can exist within the update function
+        //startStatusTimer function is written like this so that it can exist within the update function
         //This way, it can access the static timer variables without making them member variables
         static auto startStatusTimer = [&](std::string newStatus, int time) {
             currentStatus = newStatus;
             currentStatusTimer = time;
             showCurrentStatus = true;
+        };
+
+        //FilterLuaKeyInput function is a lambda function because it's only relevant in this function
+        //Use it on ImGui::TextInputs to avoid bad characters
+        static auto FilterLuaKeyInput = [](ImGuiTextEditCallbackData* data)->int {
+            if (data->EventChar == ' ' || data->EventChar == '.' || data->EventChar == '{' || data->EventChar == '}' ||
+                    data->EventChar == '<' || data->EventChar == '>' || data->EventChar == '-' || data->EventChar == ';' ||
+                    data->EventChar == '~' || data->EventChar == '`' || data->EventChar == '!' || data->EventChar == '@' ||
+                    data->EventChar == '#' || data->EventChar == '$' || data->EventChar == '%' || data->EventChar == '^' ||
+                    data->EventChar == '&' || data->EventChar == '*' || data->EventChar == '(' || data->EventChar == ')' ||
+                    data->EventChar == '+' || data->EventChar == '=' || data->EventChar == '\'' || data->EventChar == '\"' ||
+                    data->EventChar == '?' || data->EventChar == '[' || data->EventChar == ']' || data->EventChar == '\\' ||
+                    data->EventChar == '|' || data->EventChar == ',' || data->EventChar == '/')
+                return 1;
+            return 0;
         };
 
 
@@ -664,10 +677,7 @@ void l2d::Editor::update(sf::Time t) {
                                                                                     (tilePos.y - 1) * this->_level.getTileSize().y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))));
                         }
                         else {
-                            this->_level.updateTile(selectedTilesetPath, selectedTilesetSize, selectedTileSrcPos,
-                                                    sf::Vector2i(this->_level.getTileSize().x,
-                                                                 this->_level.getTileSize().y), tilePos, 1,
-                                                    selectedTileLayer);
+                            this->_level.updateTile(selectedTilesetPath, selectedTilesetSize, selectedTileSrcPos, tilePos, 1, selectedTileLayer);
                         }
                     }
                 }
@@ -899,7 +909,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::PushID("NewAnimatedSpriteName");
             ImGui::Text("Sprite name");
             static char newSpriteName[1000] = "";
-            ImGui::InputText("", newSpriteName, sizeof(newSpriteName));
+            ImGui::InputText("", newSpriteName, sizeof(newSpriteName), ImGuiInputTextFlags_CallbackCharFilter, FilterLuaKeyInput);
             ImGui::PopID();
             ImGui::PopItemWidth();
             ImGui::Separator();
@@ -939,8 +949,6 @@ void l2d::Editor::update(sf::Time t) {
         if (cbAnimationEditor && newAnimationWindowVisible) {
             static std::string newAnimationErrorMessage = "";
 
-            std::stringstream ss;
-
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(380, 160));
             ImGui::Begin("Create new animation", nullptr, ImVec2(380, 200), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
@@ -949,19 +957,34 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::PushID("NewAnimationName");
             ImGui::Text("Animation name");
             static char newAnimationNameArray[1000] = "";
-            ImGui::InputText("", newAnimationNameArray, sizeof(newAnimationNameArray));
+            ImGui::InputText("", newAnimationNameArray, sizeof(newAnimationNameArray), ImGuiInputTextFlags_CallbackCharFilter, FilterLuaKeyInput);
             ImGui::PopID();
             ImGui::PopItemWidth();
             ImGui::Separator();
+
+            static auto animationAlreadyExists = [](char* name)->bool {
+                static std::unique_ptr<l2d_internal::LuaScript> script = std::make_unique<l2d_internal::LuaScript>(selectedAnimationFileName);
+                auto keys = script->getTableKeys("animations.list");
+                for (auto &key : keys) {
+                    if (key == name) {
+                        return true;
+                    }
+                }
+                return false;
+            };
 
             if (ImGui::Button("Create")) {
                 if (strlen(newAnimationNameArray) <= 0) {
                     newAnimationErrorMessage = "You must enter a name for the animation!";
                 }
+                else if (animationAlreadyExists(newAnimationNameArray)) {
+                    newAnimationErrorMessage = "An animation with that name already exists!";
+                }
                 else {
                     newAnimationErrorMessage = "";
                     l2d_internal::utils::addNewAnimationToAnimationFile(selectedAnimationFileName, newAnimationNameArray);
                     animationSpriteSelectIndex = -1;
+                    strcpy(newAnimationNameArray, "");
                     newAnimationWindowVisible = false;
                 }
             }
@@ -972,6 +995,9 @@ void l2d::Editor::update(sf::Time t) {
                 newAnimationWindowVisible = false;
             }
             ImGui::Text(newAnimationErrorMessage.c_str());
+
+
+
             ImGui::End();
         }
 
@@ -984,10 +1010,10 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::Text(txt.c_str());
             ImGui::Separator();
             if (ImGui::Button("Yes")) {
-                //TODO: Delete the animation from the lua file
                 l2d_internal::utils::removeAnimationFromAnimationFile(selectedAnimationFileName, selectedAnimationName);
                 selectedAnimationName = "";
                 removeAnimationWindowVisible = false;
+                animationSelectIndex = -1;
                 animationSpriteSelectIndex = -1; //Reset the whole sprite so the animation names will be updated from the Lua file
                 startStatusTimer("Animation deleted successfully", 200);
             }
@@ -999,7 +1025,6 @@ void l2d::Editor::update(sf::Time t) {
         }
 
         if (cbAnimationEditor) {
-            static bool addedAnimation = false;
             static ImVec2 spriteDisplaySize;
             static std::unique_ptr<l2d_internal::LuaScript> script = nullptr;
             static std::shared_ptr<l2d_internal::AnimatedSprite> sprite = nullptr;
@@ -1053,7 +1078,6 @@ void l2d::Editor::update(sf::Time t) {
                 if (ImGui::Combo("Choose an animation", &animationSelectIndex, &existingAnimations[0],
                              static_cast<int>(existingAnimations.size()))) {
                     loaded = false;
-                    addedAnimation = false;
                     setAnimationFromScript();
                     selectedAnimationName = animationName;
                     originalAnimationName = script.get()->get<std::string>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".name");
@@ -1069,7 +1093,7 @@ void l2d::Editor::update(sf::Time t) {
 
                 if (animationSelectIndex > -1) {
                     sprite->update(t.asSeconds());
-                    sprite->updateAnimation(frames, srcPos, animationName, animationDescription, animationPath, size, offset, timeToUpdate <= 0 ? 0 : timeToUpdate);
+                    sprite->updateAnimation(frames, srcPos, animationName, size, offset, timeToUpdate <= 0 ? 0 : timeToUpdate);
 
                     ImGui::Image(sprite->getSprite(), spriteDisplaySize);
                     ImGui::SameLine();
@@ -1105,7 +1129,7 @@ void l2d::Editor::update(sf::Time t) {
                     if (!loaded) {
                         strncpy(animationNameArray, animationName.c_str(), sizeof(animationNameArray));
                     }
-                    ImGui::InputText("Name", animationNameArray, sizeof(animationNameArray));
+                    ImGui::InputText("Name", animationNameArray, sizeof(animationNameArray), ImGuiInputTextFlags_CallbackCharFilter, FilterLuaKeyInput);
                     ImGui::PopID();
                     ImGui::PopItemWidth();
                     ImGui::Separator();

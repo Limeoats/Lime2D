@@ -1,10 +1,9 @@
 animations = {
-    sprite_path = "content/sprites/flint.png",
 	list = {
-		okay = {
+		great_animation_1 = {
 			description = "",
 			frames = "1",
-			name = "animation_1",
+			name = "great_animation_1",
 			offset = {
 				x = "0",
 				y = "0",
@@ -19,10 +18,28 @@ animations = {
 			},
 			time_to_update = "0",
 		},
-		this_is_a_nice_animation_1 = {
-			description = "nice description",
+		great_new_animation_haha_1 = {
+			description = "",
+			frames = "1",
+			name = "great_new_animation_haha_1",
+			offset = {
+				x = "0",
+				y = "0",
+			},
+			size = {
+				h = "1",
+				w = "1",
+			},
+			src_pos = {
+				x = "0",
+				y = "0",
+			},
+			time_to_update = "0",
+		},
+		wow_nice = {
+			description = "",
 			frames = "5",
-			name = "this_is_a_nice_animation_1",
+			name = "wow_nice",
 			offset = {
 				x = "0",
 				y = "0",
@@ -36,26 +53,8 @@ animations = {
 				x = "0",
 				y = "0",
 			},
-			time_to_update = "0.14",
-		},
-		wow = {
-			description = "wow!!!!!!!",
-			frames = "1",
-			name = "wow",
-			offset = {
-				x = "0",
-				y = "0",
-			},
-			size = {
-				h = "1",
-				w = "1",
-			},
-			sprite_path = "content/sprites/flint.png",
-			src_pos = {
-				x = "0",
-				y = "0",
-			},
-			time_to_update = "0",
+			time_to_update = "0.16",
 		},
 	},
+	sprite_path = "content/sprites/flint.png",
 }
