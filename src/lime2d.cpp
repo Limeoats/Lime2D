@@ -9,8 +9,6 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
-#include <algorithm>
-#include <memory>
 
 #include "lime2d.h"
 
@@ -106,15 +104,15 @@ void l2d::Editor::render() {
                     };
                     this->_graphics->draw(line, 2, sf::Lines);
                 }
-                //Get the mouse position and draw a square or something around the correct grid tile
+                //Get the mouse position and draw a square around the correct grid tile
                 sf::Vector2f mousePos(
                         sf::Mouse::getPosition(*this->_window).x + this->_graphics->getCamera()->getRect().left,
                         sf::Mouse::getPosition(*this->_window).y + this->_graphics->getCamera()->getRect().top);
 
                 if (mousePos.x >= 0 && mousePos.x <= (this->_level.getSize().x * this->_level.getTileSize().x *
-                                                      std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) &&
+                                                      std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")) - 1) &&
                     mousePos.y >= 0 && mousePos.y <= (this->_level.getSize().y * this->_level.getTileSize().y *
-                                                      std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")))) {
+                                                      std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")) - 1)) {
                     sf::RectangleShape rectangle;
                     rectangle.setSize(sf::Vector2f(this->_level.getTileSize().x *
                                                    std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")) - 1,
