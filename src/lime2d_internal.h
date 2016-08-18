@@ -31,6 +31,9 @@ namespace l2d_internal {
     /*!
      * Enumerations
      */
+    enum class Features {
+        None, Map, Animation
+    };
     enum class LightType {
         None, Ambient, Point
     };
@@ -54,6 +57,14 @@ namespace l2d_internal {
          */
         std::vector<std::string> split(std::string str, char c);
         /*!
+         * Split a string by a delimiting string
+         * @param str The string being split
+         * @param delim The delimiting string
+         * @param count The number of times to do the split. Default is -1 (all)
+         * @return A vector containing each of the strings after the split
+         */
+        std::vector<std::string> split(const std::string& str, const std::string& delim, int count = -1);
+        /*!
          * Get the names of all files in a given directory
          * @param directory The location of the files
          * @return A vector containing the names of the files in the directory
@@ -73,8 +84,15 @@ namespace l2d_internal {
         /*!
          * Add a new animation to the Lua file
          * @param fileName The name of the Lua file
+         * @param animationName The name of the animation being added
          */
         void addNewAnimationToAnimationFile(std::string fileName, std::string animationName);
+        /*!
+         * Remove an animation from the Lua file
+         * @param fileName The name of the Lua file
+         * @param animationName The name of the animation being removed
+         */
+        void removeAnimationFromAnimationFile(std::string fileName, std::string animationName);
     }
 
     /*!
@@ -224,7 +242,7 @@ namespace l2d_internal {
          * @param offset New offset
          * @param timeToUpdate New time to update
          */
-        void updateAnimation(int frames, sf::Vector2i srcPos, std::string name, std::string description, std::string filePath, sf::Vector2i size, sf::Vector2i offset, float timeToUpdate);
+        void updateAnimation(int frames, sf::Vector2i srcPos, std::string name, sf::Vector2i size, sf::Vector2i offset, float timeToUpdate);
         /*!
          * Remove an animation for the animated sprite
          * @param name The name of the animation to be removed
@@ -454,12 +472,11 @@ namespace l2d_internal {
          * @param newTilesetPath The tileset containing the new tile to be drawn
          * @param newTilesetSize The size of the new tileset
          * @param srcPos The location on the tileset where the tile is
-         * @param size The size of the tile (in pixels)
          * @param destPos The location on the map to draw the new tile
          * @param tilesetId The id number of the tileset
          * @param layer The layer the updating is happening on
          */
-        void updateTile(std::string newTilesetPath, sf::Vector2i newTilesetSize, sf::Vector2i srcPos, sf::Vector2i size, sf::Vector2f destPos, int tilesetId, int layer);
+        void updateTile(std::string newTilesetPath, sf::Vector2i newTilesetSize, sf::Vector2i srcPos, sf::Vector2f destPos, int tilesetId, int layer);
         /*!
          * Checks if a tile exists
          * @param layer The layer the tile would be on

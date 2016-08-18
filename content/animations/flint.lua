@@ -18,25 +18,6 @@ animations = {
 			},
 			time_to_update = "0.2",
 		},
-		flint_run_everywhere = {
-			description = "",
-			frames = "5",
-			name = "flint_run_everywhere",
-			offset = {
-				x = "0",
-				y = "0",
-			},
-			size = {
-				h = "20",
-				w = "15",
-			},
-			sprite_path = "content/sprites/flint.png",
-			src_pos = {
-				x = "0",
-				y = "0",
-			},
-			time_to_update = "0.18",
-		},
 		flint_run_left = {
 			description = "Flint run left",
 			frames = "5",
@@ -85,11 +66,12 @@ animations = {
 				h = "20",
 				w = "15",
 			},
+			sprite_path = "content/sprites/flint.png",
 			src_pos = {
 				x = "5",
 				y = "0",
 			},
-			time_to_update = "0.2",
+			time_to_update = "0.07",
 		},
 	},
 	sprite_path = "content/sprites/flint.png",

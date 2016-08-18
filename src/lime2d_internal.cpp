@@ -31,6 +31,30 @@ std::vector<std::string> l2d_internal::utils::split(std::string str, char c) {
     return list;
 }
 
+std::vector<std::string> l2d_internal::utils::split(const std::string &str, const std::string &delim, int count) {
+    std::vector<std::string> tokens;
+    size_t prev = 0, pos = 0;
+    do {
+        pos = str.find(delim, prev);
+        if (pos == std::string::npos) {
+            pos = str.length();
+        }
+        std::string token = str.substr(prev, pos - prev);
+        if (!token.empty()) {
+            tokens.push_back(token);
+        }
+        prev = pos + delim.length();
+
+        //TODO: Temporary hack to make this work for removeAnimation function. Fix this in the future.
+        if (count == 1) {
+            tokens.push_back(str.substr(prev, str.length()));
+            return tokens;
+        }
+        //end horrible hack
+    } while (pos < str.length() && prev < str.length());
+    return tokens;
+}
+
 std::vector<const char*> l2d_internal::utils::getFilesInDirectory(std::string directory) {
     glob_t glob_result;
     std::vector<const char*> mapFiles;
@@ -55,8 +79,8 @@ std::string l2d_internal::utils::getConfigValue(std::string key) {
 void l2d_internal::utils::createNewAnimationFile(std::string name, std::string spriteSheetPath) {
     std::ofstream os(l2d_internal::utils::getConfigValue("animation_path") + name + ".lua");
     os << "animations = {" << std::endl;
+    os << "\tsprite_path = \"" << spriteSheetPath << "\"," << std::endl;
     os << "\tlist = {" << std::endl;
-    os << "\t\tsprite_path = \"" << spriteSheetPath << "\"," << std::endl;
     os << "\t\tanimation_1 = {" << std::endl;
     os << "\t\t\tdescription = \"\"," << std::endl;
     os << "\t\t\tframes = \"1\"," << std::endl;
@@ -83,9 +107,7 @@ void l2d_internal::utils::createNewAnimationFile(std::string name, std::string s
 void l2d_internal::utils::addNewAnimationToAnimationFile(std::string fileName, std::string animationName) {
     std::ifstream in(fileName);
     std::stringstream ss;
-    for (std::string line; std::getline(in, line); ) {
-        ss << line << std::endl;
-    }
+    ss << in.rdbuf();
     in.close();
     std::string str = ss.str();
     size_t startPos = str.find_last_of(",");
@@ -108,11 +130,28 @@ void l2d_internal::utils::addNewAnimationToAnimationFile(std::string fileName, s
         ssins << "\t\t\t\ty = \"0\"," << std::endl;
         ssins << "\t\t\t}," << std::endl;
         ssins << "\t\t\ttime_to_update = \"0\"," << std::endl;
-        ssins << "\t\t}," << std::endl;
+        ssins << "\t\t},";
         str.insert(startPos + 1, ssins.str());
     }
     std::ofstream out(fileName, std::ios_base::trunc);
-    out << str << std::endl;
+    out << str;
+    out.close();
+}
+
+void l2d_internal::utils::removeAnimationFromAnimationFile(std::string fileName, std::string animationName) {
+    std::ifstream in(fileName);
+    std::stringstream ss;
+    ss << in.rdbuf();
+    in.close();
+    std::string str = ss.str();
+    animationName += " = {";
+    std::vector<std::string> x = l2d_internal::utils::split(str, animationName);
+    std::string before = x.front();
+    std::stringstream oss;
+    oss << "\n\t\t},\n";
+    std::string after = utils::split(x.back(), oss.str(), 1).back();
+    std::ofstream out(fileName, std::ios_base::trunc);
+    out << before.substr(0, before.length() - 2) << after;
     out.close();
 }
 
@@ -207,8 +246,7 @@ void l2d_internal::AnimatedSprite::addAnimation(int frames, sf::Vector2i srcPos,
     this->_offsets.insert(std::pair<std::string, sf::Vector2i>(name, offset));
 }
 
-void l2d_internal::AnimatedSprite::updateAnimation(int frames, sf::Vector2i srcPos, std::string name,
-                                                   std::string description, std::string filePath, sf::Vector2i size,
+void l2d_internal::AnimatedSprite::updateAnimation(int frames, sf::Vector2i srcPos, std::string name, sf::Vector2i size,
                                                    sf::Vector2i offset, float timeToUpdate) {
     //Find the animation based on the name
     if (this->_animations.find(name) == this->_animations.end()) {
@@ -454,7 +492,7 @@ void l2d_internal::Level::loadMap(std::string &name) {
     if (pTileset != nullptr) {
         while (pTileset) {
             int tsId, tsWidth, tsHeight;
-            std::string tsName, tsPath;
+            std::string tsPath;
             pTileset->QueryIntAttribute("id", &tsId);
             pTileset->QueryIntAttribute("width", &tsWidth);
             pTileset->QueryIntAttribute("height", &tsHeight);
@@ -645,14 +683,14 @@ void l2d_internal::Level::saveMap(std::string name) {
     document.SaveFile(ss.str().c_str());
 }
 
-void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i newTilesetSize, sf::Vector2i srcPos, sf::Vector2i size,
+void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i newTilesetSize, sf::Vector2i srcPos,
                                      sf::Vector2f destPos, int tilesetId, int layer) {
     //Set oldLayerList for Undo
     std::vector<std::shared_ptr<l2d_internal::Layer>> tmpList;
-    for (int i = 0; i < this->_layerList.size(); ++i) {
+    for (unsigned int i = 0; i < this->_layerList.size(); ++i) {
         l2d_internal::Layer l;
         l.Id = this->_layerList.at(i).get()->Id;
-        for (int j = 0; j < this->_layerList[i].get()->Tiles.size(); ++j) {
+        for (unsigned int j = 0; j < this->_layerList[i].get()->Tiles.size(); ++j) {
             l.Tiles.push_back(this->_layerList[i].get()->Tiles.at(j));
         }
         tmpList.push_back(std::make_shared<l2d_internal::Layer>(l));
@@ -661,7 +699,7 @@ void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i ne
 
     //Add the tileset to the map if it isn't already
     std::shared_ptr<Tileset> tls = nullptr;
-    for (int i = 0; i < this->_tilesetList.size(); ++i) {
+    for (unsigned int i = 0; i < this->_tilesetList.size(); ++i) {
         if (this->_tilesetList[i].Id == tilesetId) {
             tls = std::make_shared<Tileset>(this->_tilesetList[i]);
             break;
@@ -689,9 +727,9 @@ void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i ne
     for (int i = 0; i < l.get()->Tiles.size(); ++i) {
         auto tile = l.get()->Tiles[i];
         int tileLayer = tile.get()->getLayer();
-        sf::Vector2f tilePos(tile.get()->getSprite().getPosition().x / static_cast<int>(this->_tileSize.x) /
+        sf::Vector2f tilePos(tile.get()->getSprite().getPosition().x / this->_tileSize.x /
                              static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) + 1,
-                             tile.get()->getSprite().getPosition().y / static_cast<int>(this->_tileSize.y) /
+                             tile.get()->getSprite().getPosition().y / this->_tileSize.y /
                              static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))) + 1);
         if (tileLayer == layer && tilePos.x == static_cast<int>(destPos.x) &&
             tilePos.y == static_cast<int>(destPos.y)) {
@@ -724,11 +762,7 @@ bool l2d_internal::Level::tileExists(int layer, sf::Vector2i pos) const {
     auto tile = std::find_if(l->get()->Tiles.begin(), l->get()->Tiles.end(), [&](std::shared_ptr<Tile> t) {
        return this->globalToLocalCoordinates(t.get()->getSprite().getPosition()) == pos;
     });
-    if (tile == l->get()->Tiles.end()) {
-        //The tile does not exist on the layer
-        return false;
-    }
-    return true;
+    return !(tile == l->get()->Tiles.end());
 }
 
 void l2d_internal::Level::removeTile(int layer, sf::Vector2f pos) {
@@ -737,10 +771,10 @@ void l2d_internal::Level::removeTile(int layer, sf::Vector2f pos) {
     }
     //Set oldLayerList for Undo
     std::vector<std::shared_ptr<l2d_internal::Layer>> tmpList;
-    for (int i = 0; i < this->_layerList.size(); ++i) {
+    for (unsigned int i = 0; i < this->_layerList.size(); ++i) {
         l2d_internal::Layer l;
         l.Id = this->_layerList.at(i).get()->Id;
-        for (int j = 0; j < this->_layerList[i].get()->Tiles.size(); ++j) {
+        for (unsigned int j = 0; j < this->_layerList[i].get()->Tiles.size(); ++j) {
             l.Tiles.push_back(this->_layerList[i].get()->Tiles.at(j));
         }
         tmpList.push_back(std::make_shared<l2d_internal::Layer>(l));
@@ -750,7 +784,7 @@ void l2d_internal::Level::removeTile(int layer, sf::Vector2f pos) {
     std::shared_ptr<Tile> t = nullptr;
     //Check if the layer exists. If not, create it
     std::shared_ptr<Layer> l = nullptr;
-    for (int i = 0; i < this->_layerList.size(); ++i) {
+    for (unsigned int i = 0; i < this->_layerList.size(); ++i) {
         if (this->_layerList[i]->Id == layer) {
             l = this->_layerList[i];
             break;
@@ -784,10 +818,10 @@ void l2d_internal::Level::removeTile(int layer, sf::Vector2f pos) {
 void l2d_internal::Level::undo() {
     if (!this->isUndoListEmpty()) {
         std::vector<std::shared_ptr<l2d_internal::Layer>> tmpList;
-        for (int i = 0; i < this->_oldLayerList.top().size(); ++i) {
+        for (unsigned int i = 0; i < this->_oldLayerList.top().size(); ++i) {
             l2d_internal::Layer l;
             l.Id = this->_oldLayerList.top().at(i).get()->Id;
-            for (int j = 0; j < this->_oldLayerList.top()[i].get()->Tiles.size(); ++j) {
+            for (unsigned int j = 0; j < this->_oldLayerList.top()[i].get()->Tiles.size(); ++j) {
                 l.Tiles.push_back(this->_oldLayerList.top()[i].get()->Tiles.at(j));
             }
             tmpList.push_back(std::make_shared<l2d_internal::Layer>(l));
@@ -795,10 +829,10 @@ void l2d_internal::Level::undo() {
 
         //Set up redo list
         std::vector<std::shared_ptr<l2d_internal::Layer>> tmpRedoList;
-        for (int i = 0; i < this->_layerList.size(); ++i) {
+        for (unsigned int i = 0; i < this->_layerList.size(); ++i) {
             l2d_internal::Layer l;
             l.Id = this->_layerList.at(i).get()->Id;
-            for (int j = 0; j < this->_layerList[i].get()->Tiles.size(); ++j) {
+            for (unsigned int j = 0; j < this->_layerList[i].get()->Tiles.size(); ++j) {
                 l.Tiles.push_back(this->_layerList[i].get()->Tiles.at(j));
             }
             tmpRedoList.push_back(std::make_shared<l2d_internal::Layer>(l));
@@ -817,10 +851,10 @@ bool l2d_internal::Level::isUndoListEmpty() const {
 void l2d_internal::Level::redo() {
     if (!this->isRedoListEmpty()) {
         std::vector<std::shared_ptr<l2d_internal::Layer>> tmpList;
-        for (int i = 0; i < this->_redoList.top().size(); ++i) {
+        for (unsigned int i = 0; i < this->_redoList.top().size(); ++i) {
             l2d_internal::Layer l;
             l.Id = this->_redoList.top().at(i).get()->Id;
-            for (int j = 0; j < this->_redoList.top()[i].get()->Tiles.size(); ++j) {
+            for (unsigned int j = 0; j < this->_redoList.top()[i].get()->Tiles.size(); ++j) {
                 l.Tiles.push_back(this->_redoList.top()[i].get()->Tiles.at(j));
             }
             tmpList.push_back(std::make_shared<l2d_internal::Layer>(l));
@@ -828,10 +862,10 @@ void l2d_internal::Level::redo() {
 
         //Set up undo list
         std::vector<std::shared_ptr<l2d_internal::Layer>> tmpUndoList;
-        for (int i = 0; i < this->_layerList.size(); ++i) {
+        for (unsigned int i = 0; i < this->_layerList.size(); ++i) {
             l2d_internal::Layer l;
             l.Id = this->_layerList.at(i).get()->Id;
-            for (int j = 0; j < this->_layerList[i].get()->Tiles.size(); ++j) {
+            for (unsigned int j = 0; j < this->_layerList[i].get()->Tiles.size(); ++j) {
                 l.Tiles.push_back(this->_layerList[i].get()->Tiles.at(j));
             }
             tmpUndoList.push_back(std::make_shared<l2d_internal::Layer>(l));
@@ -919,7 +953,7 @@ void l2d_internal::LuaScript::printError(const std::string &variable, const std:
 bool l2d_internal::LuaScript::lua_getVariable(const std::string &variable) {
     int level = 0;
     std::string var = "";
-    for (int i = 0; i < variable.length(); ++i) {
+    for (unsigned int i = 0; i < variable.length(); ++i) {
         if (variable.at(i) == '.') {
             if (level == 0) {
                 lua_getglobal(this->L, var.c_str());
@@ -1002,8 +1036,10 @@ std::vector<std::string> l2d_internal::LuaScript::getTableKeys(const std::string
     lua_pcall(L, 1, 1, 0); //Call getKeys with one argument: variable
     std::string test = lua_tostring(L, -1); //Get the comma separated key string from the top of the stack
     std::vector<std::string> strings = l2d_internal::utils::split(test, ',');
-    if (strings[0].find("[string \"function __genOrderedIndex(t) local") != std::string::npos) {
-        strings.clear();
+    if (strings.size() > 0) {
+        if (strings[0].find("[string \"function __genOrderedIndex(t) local") != std::string::npos) {
+            strings.clear();
+        }
     }
     this->clean();
     return strings;
