@@ -399,8 +399,9 @@ namespace l2d_internal {
         /*!
          * Loads an existing map into memory
          * @param name The name of the map to load
+         * @return Any error messages
          */
-        void loadMap(std::string &name);
+        std::string loadMap(std::string &name);
         /*!
          * Saves the currently loaded map
          * @param name The file name for the map being saved

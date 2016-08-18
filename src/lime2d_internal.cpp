@@ -455,10 +455,14 @@ void l2d_internal::Level::createMap(std::string name, sf::Vector2i size, sf::Vec
     this->loadMap(name);
 }
 
-void l2d_internal::Level::loadMap(std::string &name) {
+std::string l2d_internal::Level::loadMap(std::string &name) {
     this->_name = name;
     if (name == "l2dSTART") {
-        return;
+        return "";
+    }
+    if (name.length() <= 0) {
+        this->_name = "l2dSTART";
+        return "You cannot open a map that has no name!";
     }
 
     this->_layerList.clear();
@@ -577,6 +581,7 @@ void l2d_internal::Level::loadMap(std::string &name) {
             pObjects = pObjects->NextSiblingElement("objects");
         }
     }
+    return "";
 }
 
 void l2d_internal::Level::saveMap(std::string name) {

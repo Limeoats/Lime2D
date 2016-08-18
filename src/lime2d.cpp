@@ -365,10 +365,11 @@ void l2d::Editor::update(sf::Time t) {
                         os.close();
                         if (this->_level.getName() != "l2dSTART") {
                             std::string name = this->_level.getName();
-                            this->_level.loadMap(name);
+                            configureMapErrorText = this->_level.loadMap(name);
+                            if (configureMapErrorText.length() <= 0) {
+                                configWindowVisible = false;
+                            }
                         }
-                        configWindowVisible = false;
-                        configureMapErrorText = "";
                     }
                     else {
                         configureMapErrorText = "Unable to save file. Please refer to www.limeoats.com/lime2d for more information.";
@@ -399,6 +400,7 @@ void l2d::Editor::update(sf::Time t) {
 
         //Map select box
         if (mapSelectBoxVisible) {
+            std::string mapSelectErrorMessage = "";
             std::stringstream ss;
             ss << l2d_internal::utils::getConfigValue("map_path") << "*";
             std::vector<const char*> mapFiles = l2d_internal::utils::getFilesInDirectory(ss.str());
@@ -414,13 +416,16 @@ void l2d::Editor::update(sf::Time t) {
                 //Get the name of the file
                 std::vector<std::string> fullNameSplit = l2d_internal::utils::split(mapFiles[mapSelectIndex], '/');
                 std::vector<std::string> fileNameSplit = l2d_internal::utils::split(fullNameSplit.back(), '.');
-                this->_level.loadMap(fileNameSplit.front());
-                mapSelectBoxVisible = false;
+                mapSelectErrorMessage = this->_level.loadMap(fileNameSplit.front());
+                if (mapSelectErrorMessage.length() <= 0) {
+                    mapSelectBoxVisible = false;
+                }
             }
             ImGui::SameLine();
             if (ImGui::Button("Cancel")) {
                 mapSelectBoxVisible = false;
             }
+            ImGui::Text(mapSelectErrorMessage.c_str());
             ImGui::End();
         }
 

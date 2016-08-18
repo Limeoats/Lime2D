@@ -1,7 +1,7 @@
 animations = {
 	list = {
 		great_animation_1 = {
-			description = "",
+			description = "great animation!! :)",
 			frames = "1",
 			name = "great_animation_1",
 			offset = {
@@ -12,6 +12,7 @@ animations = {
 				h = "1",
 				w = "1",
 			},
+			sprite_path = "content/sprites/flint.png",
 			src_pos = {
 				x = "0",
 				y = "0",
@@ -37,7 +38,7 @@ animations = {
 			time_to_update = "0",
 		},
 		wow_nice = {
-			description = "",
+			description = "wow nice animation!",
 			frames = "5",
 			name = "wow_nice",
 			offset = {
