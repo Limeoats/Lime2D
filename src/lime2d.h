@@ -53,9 +53,9 @@ namespace l2d {
         bool _windowHasFocus; /*!< Whether or not the game window currently has focus*/
         bool _showGridLines; /*!< Whether or not to show grid lines when using the map editor*/
         bool _eraserActive; /*!< Whether or not the eraser is currently active*/
-
         bool _tilesetEnabled; /*!< Whether or not the tileset window is currently enabled*/
 
+        l2d_internal::Features _currentFeature; /*!< The currently enabled Lime2D feature*/
         sf::RenderWindow* _window; /*!< The window being drawn to*/
         std::shared_ptr<l2d_internal::Graphics>  _graphics; /*!< A pointer to the internal graphics class*/
         l2d_internal::Level _level; /*!< The instance of the current internal level*/

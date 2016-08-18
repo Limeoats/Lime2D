@@ -28,16 +28,15 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
     _showGridLines(true),
     _tilesetEnabled(false),
     _eraserActive(false),
-    _windowHasFocus(true)
+    _windowHasFocus(true),
+    _currentFeature(l2d_internal::Features::None)
 {
     this->_enabled = enabled;
     ImGui::SFML::Init(*window);
     this->_window = window;
-
     if (!this->_ambientLight.loadFromFile("content/shaders/ambient.frag", sf::Shader::Fragment)) {
         return;
     }
-
 }
 
 void l2d::Editor::toggle() {
@@ -46,34 +45,42 @@ void l2d::Editor::toggle() {
 
 void l2d::Editor::processEvent(sf::Event &event) {
     ImGui::SFML::ProcessEvent(event);
-    if (event.type == sf::Event::GainedFocus) {
-        this->_windowHasFocus = true;
-    }
-    if (event.type == sf::Event::LostFocus) {
-        this->_windowHasFocus = false;
-    }
-    if (event.type == sf::Event::KeyReleased) {
-        if (event.key.code == sf::Keyboard::T) {
-            if (this->_level.getName() != "l2dSTART") {
-                this->_tilesetEnabled = !this->_tilesetEnabled;
+    switch (event.type) {
+        case sf::Event::GainedFocus:
+            this->_windowHasFocus = true;
+            break;
+        case sf::Event::LostFocus:
+            this->_windowHasFocus = false;
+            break;
+        case sf::Event::KeyReleased:
+            switch (event.key.code) {
+                case sf::Keyboard::T:
+                    if (this->_level.getName() != "l2dSTART") {
+                        this->_tilesetEnabled = !this->_tilesetEnabled;
+                    }
+                    break;
+                case sf::Keyboard::G:
+                    this->_showGridLines = !this->_showGridLines;
+                    break;
+                case sf::Keyboard::U:
+                    this->_level.undo();
+                    break;
+                case sf::Keyboard::R:
+                    this->_level.redo();
+                    break;
+                default:
+                    break;
             }
-        }
-        else if (event.key.code == sf::Keyboard::G) {
-            this->_showGridLines = !this->_showGridLines;
-        }
-        else if (event.key.code == sf::Keyboard::U) {
-            this->_level.undo();
-        }
-        else if (event.key.code == sf::Keyboard::R) {
-            this->_level.redo();
-        }
+            break;
+        default:
+            break;
     }
 }
 
 void l2d::Editor::render() {
     if (this->_enabled) {
         //If map editor
-        if (this->_level.getName() != "l2dSTART") {
+        if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map) {
             this->_ambientLight.setUniform("texture", sf::Shader::CurrentTexture);
             this->_ambientLight.setUniform("color", sf::Glsl::Vec3(this->_level.getAmbientColor().r / 255.0f, this->_level.getAmbientColor().g / 255.0f, this->_level.getAmbientColor().b / 255.0f));
             this->_ambientLight.setUniform("intensity", this->_level.getAmbientIntensity());
@@ -551,11 +558,25 @@ void l2d::Editor::update(sf::Time t) {
                 mainHasFocus = false;
                 if (ImGui::Checkbox("Map Editor", &cbMapEditor)) {
                     cbAnimationEditor = false;
-                    currentFeature = "Map Editor";
+                    if (cbMapEditor) {
+                        this->_currentFeature = l2d_internal::Features::Map;
+                        currentFeature = "Map Editor";
+                    }
+                    else {
+                        this->_currentFeature = l2d_internal::Features::None;
+                        currentFeature = "Lime2D";
+                    }
                 }
                 if (ImGui::Checkbox("Animation Editor", &cbAnimationEditor)) {
                     cbMapEditor = false;
-                    currentFeature = "Animation Editor";
+                    if (cbAnimationEditor) {
+                        this->_currentFeature = l2d_internal::Features::Animation;
+                        currentFeature = "Animation Editor";
+                    }
+                    else {
+                        this->_currentFeature = l2d_internal::Features::None;
+                        currentFeature = "Lime2D";
+                    }
                 }
                 ImGui::EndMenu();
             }
@@ -641,7 +662,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::EndMainMenuBar();
         }
 
-        if (this->_level.getName() != "l2dSTART") {
+        if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map) {
             //Right clicking on a tile
             if (ImGui::IsMouseClicked(1)) {
                 mousePos = sf::Vector2f(
@@ -732,7 +753,7 @@ void l2d::Editor::update(sf::Time t) {
             tilesetWindowVisible = this->_tilesetEnabled;
 
             //Tileset window
-            if (tilesetWindowVisible) {
+            if (tilesetWindowVisible && this->_currentFeature == l2d_internal::Features::Map) {
                 static int tilesetComboIndex = -1;
                 static bool showTilesetImage = false;
                 static sf::Texture tilesetTexture;

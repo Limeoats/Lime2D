@@ -31,6 +31,9 @@ namespace l2d_internal {
     /*!
      * Enumerations
      */
+    enum class Features {
+        None, Map, Animation
+    };
     enum class LightType {
         None, Ambient, Point
     };
