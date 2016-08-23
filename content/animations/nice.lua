@@ -1,4 +1,5 @@
 animations = {
+	sprite_path = "content/sprites/flint.png",
 	list = {
 		great_animation_1 = {
 			description = "great animation!! :)",
@@ -56,6 +57,23 @@ animations = {
 			},
 			time_to_update = "0.16",
 		},
-	},
-	sprite_path = "content/sprites/flint.png",
+        asdfasdfasdf = {
+            description = "",
+            frames = "1",
+            name = "asdfasdfasdf",
+            offset = {
+                x = "0",
+                y = "0",
+            },
+            size = {
+                w = "1",
+                h = "1",
+            },
+            src_pos = {
+                x = "0",
+                y = "0",
+            },
+            time_to_update = "0",
+        },
+	}
 }

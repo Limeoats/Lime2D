@@ -1,4 +1,5 @@
 animations = {
+    sprite_path = "content/sprites/flint.png",
 	list = {
 		flint_run_down = {
 			description = "Flint run down",
@@ -73,6 +74,5 @@ animations = {
 			},
 			time_to_update = "0.07",
 		},
-	},
-	sprite_path = "content/sprites/flint.png",
+	}
 }
