@@ -9,6 +9,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <array>
 
 #include "lime2d.h"
 
@@ -84,32 +85,8 @@ void l2d::Editor::render() {
             this->_ambientLight.setUniform("intensity", this->_level.getAmbientIntensity());
             this->_level.draw(&this->_ambientLight);
             if (this->_showGridLines) {
-                //Horizontal lines
-                for (int i = 0; i < this->_level.getSize().y + 1; ++i) {
-                    sf::Vertex line[] = {
-                            sf::Vertex(sf::Vector2f(0, i * (this->_level.getTileSize().y * std::stof(
-                                    l2d_internal::utils::getConfigValue("tile_scale_y"))))),
-                            sf::Vertex(sf::Vector2f(this->_level.getSize().x * this->_level.getTileSize().x *
-                                                    std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")),
-                                                    i * (this->_level.getTileSize().y *
-                                                         std::stof(
-                                                                 l2d_internal::utils::getConfigValue("tile_scale_y")))))
-                    };
-                    this->_graphics->draw(line, 2, sf::Lines);
-                }
-                //Vertical lines
-                for (int i = 0; i < this->_level.getSize().x + 1; ++i) {
-                    sf::Vertex line[] = {
-                            sf::Vertex(sf::Vector2f(i * (this->_level.getTileSize().x * std::stof(
-                                    l2d_internal::utils::getConfigValue("tile_scale_x"))), 0)),
-                            sf::Vertex(sf::Vector2f(i * this->_level.getTileSize().x *
-                                                    std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")),
-                                                    this->_level.getSize().y * (this->_level.getTileSize().y *
-                                                                                std::stof(
-                                                                                        l2d_internal::utils::getConfigValue(
-                                                                                                "tile_scale_y")))))
-                    };
-                    this->_graphics->draw(line, 2, sf::Lines);
+                for (auto &t : this->_gridLines) {
+                    this->_graphics->draw(t.data(), 2, sf::Lines);
                 }
                 //Get the mouse position and draw a square around the correct grid tile
                 sf::Vector2f mousePos(
@@ -224,6 +201,38 @@ void l2d::Editor::update(sf::Time t) {
                 data->EventChar == '|' || data->EventChar == ',' || data->EventChar == '/')
                 return 1;
             return 0;
+        };
+
+        //createGridLines function is only called when a map is loaded to avoid recreating the list of lines every time
+        //the render function is called.
+        static auto createGridLines = [&]() {
+            if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map) {
+                std::array<sf::Vertex, 2> line;
+                //Horizontal lines
+                for (int i = 0; i < this->_level.getSize().y + 1; ++i) {
+                    line = {
+                        sf::Vertex(sf::Vector2f(0, i * (this->_level.getTileSize().y * std::stof(
+                                    l2d_internal::utils::getConfigValue("tile_scale_y"))))),
+                        sf::Vertex(sf::Vector2f(this->_level.getSize().x * this->_level.getTileSize().x *
+                                                        std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")),
+                                                i * (this->_level.getTileSize().y *
+                                                        std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")))))
+                    };
+                    this->_gridLines.push_back(line);
+                }
+                //Vertical lines
+                for (int i = 0; i < this->_level.getSize().x + 1; ++i) {
+                    line = {
+                        sf::Vertex(sf::Vector2f(i * (this->_level.getTileSize().x * std::stof(
+                                    l2d_internal::utils::getConfigValue("tile_scale_x"))), 0)),
+                        sf::Vertex(sf::Vector2f(i * this->_level.getTileSize().x *
+                                                    std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")),
+                                                    this->_level.getSize().y * (this->_level.getTileSize().y *
+                                                            std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")))))
+                    };
+                    this->_gridLines.push_back(line);
+                }
+            }
         };
 
 
@@ -366,6 +375,7 @@ void l2d::Editor::update(sf::Time t) {
                             std::string name = this->_level.getName();
                             configureMapErrorText = this->_level.loadMap(name);
                             if (configureMapErrorText.length() <= 0) {
+                                createGridLines();
                                 configWindowVisible = false;
                                 startStatusTimer("Configurations saved successfully!", 200);
                             }
@@ -431,6 +441,7 @@ void l2d::Editor::update(sf::Time t) {
                 std::vector<std::string> fileNameSplit = l2d_internal::utils::split(fullNameSplit.back(), '.');
                 mapSelectErrorMessage = this->_level.loadMap(fileNameSplit.front());
                 if (mapSelectErrorMessage.length() <= 0) {
+                    createGridLines();
                     mapSelectBoxVisible = false;
                 }
             }

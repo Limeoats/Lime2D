@@ -60,6 +60,7 @@ namespace l2d {
         std::shared_ptr<l2d_internal::Graphics>  _graphics; /*!< A pointer to the internal graphics class*/
         l2d_internal::Level _level; /*!< The instance of the current internal level*/
         sf::Shader _ambientLight; /*!< The ambient light for the level*/
+        std::vector<std::array<sf::Vertex, 2>> _gridLines; /*!< The grid lines to be drawn over a map*/
     };
 }
 
