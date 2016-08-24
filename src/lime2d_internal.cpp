@@ -6,16 +6,16 @@
  */
 
 #include <glob.h>
-
 #include <sstream>
 #include <fstream>
 #include <tuple>
 #include <iostream>
-#include "lime2d_internal.h"
 
 #include "../libext/tinyxml2.h"
+#include "lime2d_internal.h"
 
-using namespace tinyxml2;
+#define tx2 tinyxml2
+
 
 /*
  * Utils
@@ -479,12 +479,12 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
     this->_ambientColor = sf::Color::White;
     this->_ambientIntensity = 1.0f;
 
-    XMLDocument document;
+    tx2::XMLDocument document;
     std::stringstream ss;
     ss << l2d_internal::utils::getConfigValue("map_path") << name << ".xml";
     document.LoadFile(ss.str().c_str());
 
-    XMLElement* pMap = document.FirstChildElement("map");
+    tx2::XMLElement* pMap = document.FirstChildElement("map");
 
     //Get the width and height of the map
     int width, height;
@@ -499,7 +499,7 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
     this->_tileSize = sf::Vector2i(tWidth, tHeight);
 
     //Loading the tilesets
-    XMLElement* pTileset = pMap->FirstChildElement("tileset");
+    tx2::XMLElement* pTileset = pMap->FirstChildElement("tileset");
     if (pTileset != nullptr) {
         while (pTileset) {
             int tsId, tsWidth, tsHeight;
@@ -513,15 +513,15 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
         }
     }
 
-    XMLElement* pTiles = pMap->FirstChildElement("tiles");
+    tx2::XMLElement* pTiles = pMap->FirstChildElement("tiles");
     if (pTiles != nullptr) {
         while (pTiles) {
-            XMLElement* pPos = pTiles->FirstChildElement("pos");
+            tx2::XMLElement* pPos = pTiles->FirstChildElement("pos");
             if (pPos != nullptr) {
                 while (pPos) {
                     int posX = pPos->IntAttribute("x");
                     int posY = pPos->IntAttribute("y");
-                    XMLElement* pTile = pPos->FirstChildElement("tile");
+                    tx2::XMLElement* pTile = pPos->FirstChildElement("tile");
                     if (pTile != nullptr) {
                         while (pTile) {
                             int layer = pTile->IntAttribute("layer");
@@ -569,15 +569,15 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
         }
     }
     //Objects
-    XMLElement* pObjects = pMap->FirstChildElement("objects");
+    tx2::XMLElement* pObjects = pMap->FirstChildElement("objects");
     if (pObjects != nullptr) {
         while (pObjects) {
             //Lights
-            XMLElement* pLights = pObjects->FirstChildElement("lights");
+            tx2::XMLElement* pLights = pObjects->FirstChildElement("lights");
             if (pLights != nullptr) {
                 while (pLights) {
                     //Ambient light
-                    XMLElement* pAmbientLight = pLights->FirstChildElement("ambient");
+                    tx2::XMLElement* pAmbientLight = pLights->FirstChildElement("ambient");
                     if (pAmbientLight != nullptr) {
                         this->_ambientColor = sf::Color(static_cast<sf::Uint32>(pAmbientLight->IntAttribute("color")));
                         this->_ambientIntensity = pAmbientLight->FloatAttribute("intensity");
@@ -592,16 +592,16 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
 }
 
 void l2d_internal::Level::saveMap(std::string name) {
-    XMLDocument document;
+    tx2::XMLDocument document;
     std::stringstream ss;
     ss << l2d_internal::utils::getConfigValue("map_path") << name << ".xml";
     document.LoadFile(ss.str().c_str());
     document.Clear();
-    XMLDeclaration* pDeclaration = document.NewDeclaration("xml version=\"1.0\" encoding=\"UTF-8\"");
+    tx2::XMLDeclaration* pDeclaration = document.NewDeclaration("xml version=\"1.0\" encoding=\"UTF-8\"");
     document.InsertFirstChild(pDeclaration);
 
     //Map node
-    XMLElement* pMap = document.NewElement("map");
+    tx2::XMLElement* pMap = document.NewElement("map");
     pMap->SetAttribute("name", name.c_str());
     pMap->SetAttribute("width", this->_size.x);
     pMap->SetAttribute("height", this->_size.y);
@@ -610,7 +610,7 @@ void l2d_internal::Level::saveMap(std::string name) {
 
     //Tilesets
     for (Tileset &t : this->_tilesetList) {
-        XMLElement* pTileset = document.NewElement("tileset");
+        tx2::XMLElement* pTileset = document.NewElement("tileset");
         pTileset->SetAttribute("id", t.Id);
         pTileset->SetAttribute("path", t.Path.c_str());
         pTileset->SetAttribute("width", t.Size.x);
@@ -619,7 +619,7 @@ void l2d_internal::Level::saveMap(std::string name) {
     }
 
     //Tiles
-    XMLElement* pTiles = document.NewElement("tiles");
+    tx2::XMLElement* pTiles = document.NewElement("tiles");
 
     //Pos nodes
     std::vector<std::shared_ptr<Tile>> allTiles;
@@ -641,9 +641,9 @@ void l2d_internal::Level::saveMap(std::string name) {
 
         //If the pos was already created previously, use it instead of creating a new one
         //This will group all tiles from all layers that exist in one pos together
-        XMLElement* lastPosX = pTiles->LastChildElement("pos");
-        XMLElement* lastPosY = pTiles->LastChildElement("pos");
-        XMLElement* pPos;
+        tx2::XMLElement* lastPosX = pTiles->LastChildElement("pos");
+        tx2::XMLElement* lastPosY = pTiles->LastChildElement("pos");
+        tx2::XMLElement* pPos;
         if (lastPosX == nullptr || lastPosY == nullptr) {
             pPos = document.NewElement("pos");
         }
@@ -656,7 +656,7 @@ void l2d_internal::Level::saveMap(std::string name) {
         pPos->SetAttribute("y", y);
 
         //Tile elements
-        XMLElement *pTile = document.NewElement("tile");
+        tx2::XMLElement *pTile = document.NewElement("tile");
         pTile->SetAttribute("layer", tile.get()->getLayer());
         pTile->SetAttribute("tileset", tile.get()->getTilesetId());
         int tileNumber;
@@ -678,11 +678,11 @@ void l2d_internal::Level::saveMap(std::string name) {
     pMap->InsertEndChild(pTiles);
 
     //Save objects
-    XMLElement* pObjects = document.NewElement("objects");
+    tx2::XMLElement* pObjects = document.NewElement("objects");
     //Lights
-    XMLElement* pLights = document.NewElement("lights");
+    tx2::XMLElement* pLights = document.NewElement("lights");
     if (this->_ambientColor != sf::Color::White && this->_ambientIntensity != 1.0f) {
-        XMLElement* pAmbientLight = document.NewElement("ambient");
+        tx2::XMLElement* pAmbientLight = document.NewElement("ambient");
         pAmbientLight->SetAttribute("color", this->_ambientColor.toInteger());
         pAmbientLight->SetAttribute("intensity", this->_ambientIntensity);
         pLights->InsertEndChild(pAmbientLight);

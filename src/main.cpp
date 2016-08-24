@@ -14,6 +14,9 @@ using namespace std;
 
 int main() {
     sf::RenderWindow window(sf::VideoMode(800, 600), "Lime2D", sf::Style::Titlebar | sf::Style::Close);
+    sf::Image img;
+    img.loadFromFile("content/sprites/mstile-310x310.png");
+    window.setIcon(img.getSize().x, img.getSize().y, img.getPixelsPtr());
     window.setVerticalSyncEnabled(true);
     l2d::Editor editor(false, &window);
 
@@ -25,7 +28,7 @@ int main() {
             if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
                 window.close();
             }
-            else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Num0) {
+            else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Tilde) {
                 editor.toggle();
             }
         }
