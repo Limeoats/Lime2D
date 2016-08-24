@@ -9,6 +9,7 @@
 #define LIME2D_LIME2D_H
 
 #include <SFML/Graphics.hpp>
+#include <array>
 
 #include "lime2d_internal.h"
 

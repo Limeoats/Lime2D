@@ -9,7 +9,6 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
-#include <array>
 
 #include "lime2d.h"
 

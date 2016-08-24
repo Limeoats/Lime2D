@@ -28,7 +28,7 @@ int main() {
             if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
                 window.close();
             }
-            else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Tilde) {
+            else if (event.type == sf::Event::TextEntered && event.text.unicode == '=') {
                 editor.toggle();
             }
         }
