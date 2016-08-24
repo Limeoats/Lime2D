@@ -423,7 +423,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::Text("Select a map from the list below.");
             ImGui::Separator();
             ImGui::PushItemWidth(-1);
-            ImGui::ListBox("", &mapSelectIndex, &mapFiles[0], mapFiles.size(), 10);
+            ImGui::ListBox("", &mapSelectIndex, &mapFiles[0], static_cast<int>(mapFiles.size()), 10);
             ImGui::Separator();
             if (ImGui::Button("Open")) {
                 //Get the name of the file
@@ -787,7 +787,7 @@ void l2d::Editor::update(sf::Time t) {
                 ss << l2d_internal::utils::getConfigValue("tileset_path") << "*";
                 std::vector<const char*> tilesetFiles = l2d_internal::utils::getFilesInDirectory(ss.str());
                 ImGui::PushItemWidth(400);
-                if (ImGui::Combo("Select tileset", &tilesetComboIndex, &tilesetFiles[0], tilesetFiles.size())) {
+                if (ImGui::Combo("Select tileset", &tilesetComboIndex, &tilesetFiles[0], static_cast<int>(tilesetFiles.size()))) {
                     showTilesetImage = true;
                     selectedTilesetPath = tilesetFiles[tilesetComboIndex];
                     selectedTileLayer = 1;
