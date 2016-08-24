@@ -1,5 +1,4 @@
 animations = {
-    sprite_path = "content/sprites/flint.png",
 	list = {
 		flint_run_down = {
 			description = "Flint run down",
@@ -18,7 +17,7 @@ animations = {
 				y = "0",
 			},
 			time_to_update = "0.2",
-		},
+		__},
 		flint_run_left = {
 			description = "Flint run left",
 			frames = "5",
@@ -36,7 +35,7 @@ animations = {
 				y = "20",
 			},
 			time_to_update = "0.2",
-		},
+		__},
 		flint_run_right = {
 			description = "Flint run right",
 			frames = "5",
@@ -54,7 +53,7 @@ animations = {
 				y = "20",
 			},
 			time_to_update = "0.2",
-		},
+		__},
 		flint_run_up = {
 			description = "Flint run up",
 			frames = "5",
@@ -67,12 +66,12 @@ animations = {
 				h = "20",
 				w = "15",
 			},
-			sprite_path = "content/sprites/flint.png",
 			src_pos = {
 				x = "5",
 				y = "0",
 			},
 			time_to_update = "0.07",
-		},
-	}
+		__},
+	},
+    sprite_path = "content/sprites/flint.png"
 }

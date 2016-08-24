@@ -1,5 +1,4 @@
 animations = {
-	sprite_path = "content/sprites/flint.png",
 	list = {
 		great_animation_1 = {
 			description = "great animation!! :)",
@@ -19,7 +18,7 @@ animations = {
 				y = "0",
 			},
 			time_to_update = "0",
-		},
+		__},
 		great_new_animation_haha_1 = {
 			description = "",
 			frames = "1",
@@ -37,7 +36,7 @@ animations = {
 				y = "0",
 			},
 			time_to_update = "0",
-		},
+		__},
 		wow_nice = {
 			description = "wow nice animation!",
 			frames = "5",
@@ -56,7 +55,7 @@ animations = {
 				y = "0",
 			},
 			time_to_update = "0.16",
-		},
+		__},
         asdfasdfasdf = {
             description = "",
             frames = "1",
@@ -74,6 +73,7 @@ animations = {
                 y = "0",
             },
             time_to_update = "0",
-        },
-	}
+        __},
+	},
+	sprite_path = "content/sprites/flint.png"
 }

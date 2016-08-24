@@ -79,7 +79,6 @@ std::string l2d_internal::utils::getConfigValue(std::string key) {
 void l2d_internal::utils::createNewAnimationFile(std::string name, std::string spriteSheetPath) {
     std::ofstream os(l2d_internal::utils::getConfigValue("animation_path") + name + ".lua");
     os << "animations = {" << std::endl;
-    os << "\tsprite_path = \"" << spriteSheetPath << "\"," << std::endl;
     os << "\tlist = {" << std::endl;
     os << "\t\tanimation_1 = {" << std::endl;
     os << "\t\t\tdescription = \"\"," << std::endl;
@@ -98,8 +97,9 @@ void l2d_internal::utils::createNewAnimationFile(std::string name, std::string s
     os << "\t\t\t\ty = \"0\"," << std::endl;
     os << "\t\t\t}," << std::endl;
     os << "\t\t\ttime_to_update = \"0\"," << std::endl;
-    os << "\t\t}," << std::endl;
-    os << "\t}" << std::endl;
+    os << "\t\t__}," << std::endl;
+    os << "\t}," << std::endl;
+    os << "\tsprite_path = \"" << spriteSheetPath << "\"" << std::endl;
     os << "}";
     os.close();
 }
@@ -110,10 +110,17 @@ void l2d_internal::utils::addNewAnimationToAnimationFile(std::string fileName, s
     ss << in.rdbuf();
     in.close();
     std::string str = ss.str();
-    size_t startPos = str.find_last_of(",");
+
+    std::vector<size_t> positions;
+    size_t pos = str.find(",");
+    while (pos != std::string::npos) {
+        positions.push_back(pos);
+        pos = str.find(",", pos + 1);
+    }
+    size_t startPos = positions.size() <= 1 ? (str.find("list = {") + 9) : positions[positions.size() - 2];
     if (startPos != std::string::npos) {
         std::stringstream ssins;
-        ssins << "\n\t\t" << animationName << " = {" << std::endl;
+        ssins << "" << (positions.size() > 1 ? "\n\t" : "") << "\t" << animationName << " = {" << std::endl;
         ssins << "\t\t\tdescription = \"\"," << std::endl;
         ssins << "\t\t\tframes = \"1\"," << std::endl;
         ssins << "\t\t\tname = \"" << animationName << "\"," << std::endl;
@@ -130,7 +137,8 @@ void l2d_internal::utils::addNewAnimationToAnimationFile(std::string fileName, s
         ssins << "\t\t\t\ty = \"0\"," << std::endl;
         ssins << "\t\t\t}," << std::endl;
         ssins << "\t\t\ttime_to_update = \"0\"," << std::endl;
-        ssins << "\t\t},";
+        ssins << "\t\t__},";
+        if (positions.size() <= 1) ssins << "\n\t";
         str.insert(startPos + 1, ssins.str());
     }
     std::ofstream out(fileName, std::ios_base::trunc);
@@ -147,9 +155,8 @@ void l2d_internal::utils::removeAnimationFromAnimationFile(std::string fileName,
     animationName += " = {";
     std::vector<std::string> x = l2d_internal::utils::split(str, animationName);
     std::string before = x.front();
-    std::stringstream oss;
-    oss << "\n\t\t},\n";
-    std::string after = utils::split(x.back(), oss.str(), 1).back();
+    auto t = x.back().find("__},");
+    std::string after = x.back().substr(t+5); //+5 grabs __}, and the new line and gets rid of it too
     std::ofstream out(fileName, std::ios_base::trunc);
     out << before.substr(0, before.length() - 2) << after;
     out.close();
@@ -1069,10 +1076,10 @@ void l2d_internal::LuaScript::lua_save(std::string globalKey) {
                     doSubKeys(this->getTableKeys(currentKey + "." + keys[i]), currentKey + "." + keys[i]);
                     level = std::count(currentKey.begin(), currentKey.end(), '.') + 1;
                     tab();
-                    os << "}," << std::endl;
+                    os << "" << (level == 2 ? "__" : "") << "}," << std::endl;
                 }
                 else {
-                    os << "\"" << this->get<std::string>(currentKey + "." + keys[i]) + "\"," << std::endl;
+                    os << "\"" << this->get<std::string>(currentKey + "." + keys[i]) + "\"" + (keys[i] != "sprite_path" ? "," : "") << std::endl;
                 }
             }
         };

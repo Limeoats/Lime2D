@@ -1021,6 +1021,7 @@ void l2d::Editor::update(sf::Time t) {
                     newAnimationErrorMessage = "";
                     l2d_internal::utils::addNewAnimationToAnimationFile(selectedAnimationFileName, newAnimationNameArray);
                     animationSpriteSelectIndex = -1;
+                    animationSelectIndex = -1;
                     strcpy(newAnimationNameArray, "");
                     newAnimationWindowVisible = false;
                 }
@@ -1234,7 +1235,6 @@ void l2d::Editor::update(sf::Time t) {
                     if (ImGui::Button("Save")) {
                         script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".name", animationNameArray);
                         script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".description", animationDescriptionArray);
-                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".sprite_path", animationPath);
                         script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".frames", frames);
                         script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.x", srcPos.x);
                         script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.y", srcPos.y);
@@ -1243,9 +1243,11 @@ void l2d::Editor::update(sf::Time t) {
                         script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".offset.x", offset.x);
                         script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".offset.y", offset.y);
                         script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".time_to_update", timeToUpdate);
+                        script.get()->lua_set("animations.sprite_path", animationPath);
                         script.get()->lua_save("animations");
                         if (originalAnimationName != animationNameArray) {
-                            script.get()->updateKeyName(originalAnimationName, animationNameArray);
+                            script.get()->updateKeyName(originalAnimationName, std::string(animationNameArray));
+                            originalAnimationName = std::string(animationNameArray); //Update originalAnimationName in case the name changes again before reloading animation
                         }
                         startStatusTimer("Animation saved successfully!", 200);
                     }
