@@ -953,6 +953,12 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::Begin("Entity list", nullptr, ImVec2(500, 300), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
             if (ImGui::TreeNode("Entities")) {
                 if (ImGui::TreeNode("Layers")) {
+                    for (int i = 0; i < this->_level.getLayerList().size(); ++i) {
+                        std::stringstream ss;
+                        ss << "Layer " << i;
+                        ImGui::TreeNode(ss.str().c_str());
+                        ImGui::TreePop();
+                    }
                     ImGui::TreePop();
                 }
                 if (ImGui::TreeNode("Objects")) {
