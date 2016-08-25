@@ -156,7 +156,7 @@ namespace l2d_internal {
          * The default Sprite constructor.
          * Currently unimplemented
          */
-        Sprite();
+        Sprite() = default;
         /*!
          * The main Sprite constructor
          * @param filePath The path to the spritesheet

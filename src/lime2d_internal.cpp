@@ -210,8 +210,6 @@ void l2d_internal::Graphics::update(float elapsedTime, sf::Vector2f tileSize, bo
  * Sprite
  */
 
-l2d_internal::Sprite::Sprite() { }
-
 l2d_internal::Sprite::Sprite(std::shared_ptr<Graphics> graphics, const std::string &filePath, sf::Vector2i srcPos, sf::Vector2i size,
                              sf::Vector2f destPos) {
     this->_texture = graphics->loadImage(filePath);
@@ -977,10 +975,8 @@ bool l2d_internal::LuaScript::lua_getVariable(const std::string &variable) {
                 this->printError(variable, var + " is not defined.");
                 return false;
             }
-            else {
-                var = "";
-                ++level;
-            }
+            var = "";
+            ++level;
         }
         else {
             var += variable.at(i);

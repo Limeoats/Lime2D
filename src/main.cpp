@@ -19,7 +19,6 @@ int main() {
     window.setIcon(img.getSize().x, img.getSize().y, img.getPixelsPtr());
     window.setVerticalSyncEnabled(true);
     l2d::Editor editor(false, &window);
-
     sf::Clock timer;
     while (window.isOpen()) {
         sf::Event event;

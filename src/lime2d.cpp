@@ -21,13 +21,14 @@
  *******************/
 
 l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
-        _graphics(new l2d_internal::Graphics(window)),
-        _level(this->_graphics, "l2dSTART"),
-        _showGridLines(true),
-        _tilesetEnabled(false),
-        _eraserActive(false),
         _windowHasFocus(true),
-        _currentFeature(l2d_internal::Features::None)
+        _showGridLines(true),
+        _showEntityList(false),
+        _eraserActive(false),
+        _tilesetEnabled(false),
+        _currentFeature(l2d_internal::Features::None),
+        _graphics(new l2d_internal::Graphics(window)),
+        _level(this->_graphics, "l2dSTART")
 {
     this->_enabled = enabled;
     ImGui::SFML::Init(*window);
@@ -53,18 +54,25 @@ void l2d::Editor::processEvent(sf::Event &event) {
         case sf::Event::KeyReleased:
             switch (event.key.code) {
                 case sf::Keyboard::T:
-                    if (this->_level.getName() != "l2dSTART") {
+                    if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map) {
                         this->_tilesetEnabled = !this->_tilesetEnabled;
                     }
                     break;
                 case sf::Keyboard::G:
-                    this->_showGridLines = !this->_showGridLines;
+                    if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map) {
+                        this->_showGridLines = !this->_showGridLines;
+                    }
                     break;
                 case sf::Keyboard::U:
                     this->_level.undo();
                     break;
                 case sf::Keyboard::R:
                     this->_level.redo();
+                    break;
+                case sf::Keyboard::E:
+                    if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map) {
+                        this->_showEntityList = !this->_showEntityList;
+                    }
                     break;
                 default:
                     break;
@@ -147,6 +155,7 @@ void l2d::Editor::update(sf::Time t) {
         static bool newAnimatedSpriteWindowVisible = false;
         static bool newAnimationWindowVisible = false;
         static bool removeAnimationWindowVisible = false;
+        static bool cbShowEntityList = false;
         static bool mainHasFocus = true;
 
         static sf::Vector2f mousePos(0.0f, 0.0f);
@@ -234,13 +243,13 @@ void l2d::Editor::update(sf::Time t) {
             }
         };
 
-
         //Set mainHasFocus (very important)
         //This tells Lime2D that it can draw tiles to the screen. We don't want it drawing if other windows have focus.
         mainHasFocus = !(tilesetWindowVisible || newMapBoxVisible || tilePropertiesWindowVisible || configWindowVisible || mapSelectBoxVisible || aboutBoxVisible || lightEditorWindowVisible || newAnimatedSpriteWindowVisible ||
                          removeAnimationWindowVisible);
 
         cbShowGridLines = this->_showGridLines;
+        cbShowEntityList = this->_showEntityList;
 
 
         //Config window
@@ -646,6 +655,9 @@ void l2d::Editor::update(sf::Time t) {
                     if (ImGui::Checkbox("Show grid lines    G", &cbShowGridLines)) {
                         this->_showGridLines = cbShowGridLines;
                     }
+                    if (ImGui::Checkbox("Show entity list   E", &cbShowEntityList)) {
+                        this->_showEntityList = cbShowEntityList;
+                    }
                     mainHasFocus = false;
                 }
                 ImGui::EndMenu();
@@ -931,6 +943,22 @@ void l2d::Editor::update(sf::Time t) {
                 if (ImGui::Button("Okay")) {
                     lightEditorWindowVisible = false;
                 }
+            }
+            ImGui::End();
+        }
+
+        if (cbShowEntityList) {
+            ImGui::SetNextWindowPosCenter();
+            ImGui::SetNextWindowSize(ImVec2(500, 300));
+            ImGui::Begin("Entity list", nullptr, ImVec2(500, 300), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
+            if (ImGui::TreeNode("Entities")) {
+                if (ImGui::TreeNode("Layers")) {
+                    ImGui::TreePop();
+                }
+                if (ImGui::TreeNode("Objects")) {
+                    ImGui::TreePop();
+                }
+                ImGui::TreePop();
             }
             ImGui::End();
         }

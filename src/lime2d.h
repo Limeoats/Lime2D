@@ -53,6 +53,7 @@ namespace l2d {
         bool _enabled; /*!< Whether or not Lime2D is currently enabled*/
         bool _windowHasFocus; /*!< Whether or not the game window currently has focus*/
         bool _showGridLines; /*!< Whether or not to show grid lines when using the map editor*/
+        bool _showEntityList; /*!< Whether or not to show the entity list in the map editor*/
         bool _eraserActive; /*!< Whether or not the eraser is currently active*/
         bool _tilesetEnabled; /*!< Whether or not the tileset window is currently enabled*/
 
