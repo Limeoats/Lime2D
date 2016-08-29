@@ -957,6 +957,9 @@ void l2d::Editor::update(sf::Time t) {
                         std::stringstream ss;
                         ss << "Layer " << i;
                         if (ImGui::TreeNode(ss.str().c_str())) {
+                            for (int j = 0; j < this->_level.getLayerList()[i].get()->Tiles.size(); ++j) {
+                                ImGui::Text("Tile!");
+                            }
                             ImGui::TreePop();
                         }
                     }
