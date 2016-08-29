@@ -722,7 +722,7 @@ void l2d::Editor::update(sf::Time t) {
                 sf::Vector2f drawingMousePos(
                         sf::Mouse::getPosition(*this->_window).x + this->_graphics->getCamera()->getRect().left,
                         sf::Mouse::getPosition(*this->_window).y + this->_graphics->getCamera()->getRect().top);
-                if (ImGui::IsMouseClicked(0) && mainHasFocus) {
+                if (ImGui::IsMouseDown(0) && mainHasFocus) {
                     sf::Vector2f tilePos(
                             (drawingMousePos.x - ((int) drawingMousePos.x % (int) (this->_level.getTileSize().x * std::stof(
                                     l2d_internal::utils::getConfigValue("tile_scale_x"))))) / this->_level.getTileSize().x /
@@ -947,6 +947,9 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::End();
         }
 
+        /*
+         * Entity list
+         */
         if (cbShowEntityList) {
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(500, 300));
@@ -966,6 +969,15 @@ void l2d::Editor::update(sf::Time t) {
                     ImGui::TreePop();
                 }
                 if (ImGui::TreeNode("Objects")) {
+                    ImGui::TreePop();
+                }
+                if (ImGui::TreeNode("Lights")) {
+                    if (this->_level.getAmbientColor() != sf::Color::White && this->_level.getAmbientIntensity() != 1.0f) {
+                        if (ImGui::Selectable("Ambient light!")) {
+                            selectedLightType = l2d_internal::LightType::Ambient;
+                            lightEditorWindowVisible = true;
+                        }
+                    }
                     ImGui::TreePop();
                 }
                 ImGui::TreePop();

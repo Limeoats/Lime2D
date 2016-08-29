@@ -695,6 +695,38 @@ void l2d_internal::Level::saveMap(std::string name) {
 
 void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i newTilesetSize, sf::Vector2i srcPos,
                                      sf::Vector2f destPos, int tilesetId, int layer) {
+
+    static auto layerExists = [&]()->std::shared_ptr<Layer> {
+        for (int i = 0; i < this->_layerList.size(); ++i) {
+            if (this->_layerList[i]->Id == layer) {
+                return this->_layerList[i];
+            }
+        }
+        return nullptr;
+    };
+
+    sf::Vector2f newDestPos((destPos.x - 1) * this->_tileSize.x * static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))),
+                            (destPos.y - 1) * this->_tileSize.y * static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))));
+    //First do a check to see if the tile is identical on the same layer. If so, don't do any of this
+    std::shared_ptr<Layer> cl = layerExists();
+    if (cl != nullptr) {
+        //Layer exists. Now check if there's anything on the tile
+        std::shared_ptr<Tile> t = nullptr;
+        for (unsigned int i = 0; i < cl.get()->Tiles.size(); ++i) {
+            if (cl.get()->Tiles[i].get()->getSprite().getPosition().x == newDestPos.x && cl.get()->Tiles[i].get()->getSprite().getPosition().y == newDestPos.y) {
+                t = cl.get()->Tiles[i];
+                break;
+            }
+        }
+        if (t != nullptr) {
+            //Something's on the tile. Check if it's the same tile trying to be drawn. If so, quit.
+            if (t.get()->getSprite().getTextureRect().left == srcPos.x && t.get()->getSprite().getTextureRect().top == srcPos.y) {
+                //Same tile. Stop the function.
+                return;
+            }
+        }
+    }
+
     //Set oldLayerList for Undo
     std::vector<std::shared_ptr<l2d_internal::Layer>> tmpList;
     for (unsigned int i = 0; i < this->_layerList.size(); ++i) {
@@ -721,13 +753,7 @@ void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i ne
 
     std::shared_ptr<Tile> t = nullptr;
     //Check if the layer exists. If not, create it
-    std::shared_ptr<Layer> l = nullptr;
-    for (int i = 0; i < this->_layerList.size(); ++i) {
-        if (this->_layerList[i]->Id == layer) {
-            l = this->_layerList[i];
-            break;
-        }
-    }
+    std::shared_ptr<Layer> l = layerExists();
     if (l == nullptr) {
         l = std::make_shared<Layer>();
         l->Id = layer;
@@ -756,8 +782,6 @@ void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i ne
     }
 
     //Place the new one
-    sf::Vector2f newDestPos((destPos.x - 1) * this->_tileSize.x * static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))),
-                            (destPos.y - 1) * this->_tileSize.y * static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))));
     l.get()->Tiles.push_back(std::make_shared<Tile>(this->_graphics, newTilesetPath, srcPos, this->_tileSize, newDestPos, tilesetId, layer));
 }
 
