@@ -27,6 +27,7 @@ namespace l2d_internal {
      * Forward declares
      */
     class Camera;
+    class Shape;
 
     /*!
      * Enumerations
@@ -36,6 +37,12 @@ namespace l2d_internal {
     };
     enum class LightType {
         None, Ambient, Point
+    };
+    enum class DrawShapes {
+        None, Line, Rectangle
+    };
+    enum class ObjectTypes {
+        None, Collision, Other
     };
 
     namespace utils {
@@ -463,6 +470,16 @@ namespace l2d_internal {
          */
         std::vector<std::shared_ptr<Layer>> getLayerList();
         /*!
+         * Add a shape to the level's shape list
+         * @param shape The shape to add
+         */
+        void addShape(std::shared_ptr<l2d_internal::Shape> shape);
+        /*!
+         * Get a list of all of the shapes being used on the currently loaded map
+         * @return A list of all of the shapes being used on the currently loaded map
+         */
+        std::vector<std::shared_ptr<l2d_internal::Shape>> getShapeList();
+        /*!
          * Removes the tile at a given position and layer
          * @param layer The layer containing the tile to remove
          * @param pos The position on the map of the tile to remove (in pixels)
@@ -514,6 +531,7 @@ namespace l2d_internal {
         sf::Vector2i _tileSize; /*!< The size of the tiles on the map*/
         std::vector<Tileset> _tilesetList; /*!< The list of tilesets being used on the map*/
         std::vector<std::shared_ptr<Layer>> _layerList; /*!< The list of layer pointers that exist on the map*/
+        std::vector<std::shared_ptr<l2d_internal::Shape>> _shapeList; /*!< The shapes being drawn on the map*/
         std::shared_ptr<Graphics> _graphics; /*!< A pointer to the internal graphics object*/
         std::stack<std::vector<std::shared_ptr<Layer>>> _oldLayerList; /*!< A stack of all layers/tiles for undo*/
         std::stack<std::vector<std::shared_ptr<Layer>>> _redoList; /*!< A stack of all layers/tiles for redo*/
@@ -546,6 +564,33 @@ namespace l2d_internal {
     private:
         sf::FloatRect _rect; /*!< The rectangle representing the position and size of the camera*/
         std::shared_ptr<Level> _level; /*!< A pointer to the currently loaded level*/
+    };
+
+    /*!
+     * The internal Shape class for Lime2D
+     */
+    class Shape {
+    public:
+        /*!
+         * The shape constructor
+         * @param name The name of object
+         * @param objectType The type of object the shape represents
+         */
+        Shape(std::string name, l2d_internal::ObjectTypes objectType);
+        std::string getName();
+        l2d_internal::ObjectTypes getObjectType();
+        virtual void draw(sf::RenderWindow* window) = 0;
+    private:
+        std::string _name; /*!< The name of the shape*/
+        l2d_internal::ObjectTypes _objectType; /*!<The type of object the shape will be on the map*/
+    };
+
+    class Line : public Shape {
+    public:
+        Line(std::string name, l2d_internal::ObjectTypes objectType, std::vector<sf::Vertex> vertices);
+        virtual void draw(sf::RenderWindow* window) override;
+    private:
+        std::vector<sf::Vertex> _vertices;
     };
 
     /*!

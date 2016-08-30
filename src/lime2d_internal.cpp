@@ -446,6 +446,14 @@ void l2d_internal::Level::setAmbientColor(sf::Color color) {
     this->_ambientColor = color;
 }
 
+void l2d_internal::Level::addShape(std::shared_ptr<l2d_internal::Shape> shape) {
+    this->_shapeList.push_back(shape);
+}
+
+std::vector<std::shared_ptr<l2d_internal::Shape>> l2d_internal::Level::getShapeList() {
+    return this->_shapeList;
+}
+
 void l2d_internal::Level::createMap(std::string name, sf::Vector2i size, sf::Vector2i tileSize) {
     this->_layerList.clear();
     this->_oldLayerList = std::stack<std::vector<std::shared_ptr<Layer>>>();
@@ -958,6 +966,37 @@ void l2d_internal::Camera::update(float elapsedTime, sf::Vector2f tileSize, bool
         }
     }
 }
+
+/*
+ * Shape
+ */
+l2d_internal::Shape::Shape(std::string name, l2d_internal::ObjectTypes objectType) {
+    this->_name = name;
+    this->_objectType = objectType;
+}
+
+std::string l2d_internal::Shape::getName() {
+    return this->_name;
+}
+
+l2d_internal::ObjectTypes l2d_internal::Shape::getObjectType() {
+    return this->_objectType;
+}
+
+/*
+ * Line
+ */
+
+l2d_internal::Line::Line(std::string name, l2d_internal::ObjectTypes objectType, std::vector<sf::Vertex> vertices) :
+    l2d_internal::Shape(name, objectType)
+{
+    this->_vertices = vertices;
+}
+
+void l2d_internal::Line::draw(sf::RenderWindow* window) {
+    window->draw(&this->_vertices[0], 2, sf::Lines);
+}
+
 
 /*
  * LuaScript

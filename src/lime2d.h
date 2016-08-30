@@ -63,6 +63,7 @@ namespace l2d {
         l2d_internal::Level _level; /*!< The instance of the current internal level*/
         sf::Shader _ambientLight; /*!< The ambient light for the level*/
         std::vector<std::array<sf::Vertex, 2>> _gridLines; /*!< The grid lines to be drawn over a map*/
+        l2d_internal::DrawShapes _currentDrawShape; /*!< The current draw shape*/
     };
 }
 
