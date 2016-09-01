@@ -1,9 +1,8 @@
-
 /*!
- * \file lime2d_internal.h
- * \author Mark Guerra
- * \date 6/10/2016
- * \copyright 2016 Limeoats
+ * Lime2d_internal.h
+ * By: Mark Guerra
+ * Created on: 6/10/2016
+ * Copyright (c) 2016 Limeoats
  */
 
 #ifndef LIME2D_LIME2D_INTERNAL_H
@@ -72,10 +71,12 @@ namespace l2d_internal {
         void zoom(float n, sf::Vector2i pixel);
         void update(float elapsedTime, sf::Vector2f tileSize, bool windowHasFocus);
         sf::View getView() const;
+        float getZoomPercentage() const;
     private:
         std::map<std::string, sf::Texture> _spriteSheets;
         sf::RenderWindow* _window;
         sf::View _view;
+        float _zoomPercentage;
     };
 
     /*
@@ -222,10 +223,12 @@ namespace l2d_internal {
         Shape(std::string name, l2d_internal::ObjectTypes objectType);
         std::string getName();
         l2d_internal::ObjectTypes getObjectType();
+        sf::Color getColor() const;
         virtual void draw(sf::RenderWindow* window) = 0;
-    private:
+    protected:
         std::string _name;
         l2d_internal::ObjectTypes _objectType;
+        sf::Color _color = sf::Color::White;
     };
 
     /*
@@ -235,6 +238,7 @@ namespace l2d_internal {
     class Line : public Shape {
     public:
         Line(std::string name, l2d_internal::ObjectTypes objectType, std::vector<sf::Vertex> vertices);
+        std::vector<sf::Vertex> getVertices() const;
         virtual void draw(sf::RenderWindow* window) override;
     private:
         std::vector<sf::Vertex> _vertices;

@@ -1,14 +1,15 @@
 /*!
- * \file lime2d.cpp
- * \author Mark Guerra
- * \date 6/9/2016
- * \copyright 2016 Limeoats
+ * Lime2d.cpp
+ * By: Mark Guerra
+ * Created on: 6/9/2016
+ * Copyright (c) 2016 Limeoats
  */
 
 
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 
 #include "lime2d.h"
 
@@ -1408,9 +1409,17 @@ void l2d::Editor::update(sf::Time t) {
                      ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs |
                      ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus);
         ImGui::GetWindowDrawList()->AddText(ImVec2(6, this->_window->getSize().y  - 20), ImColor(1.0f, 1.0f, 1.0f, 1.0f), currentFeature.c_str());
+        //Map zoom percentage
+        if (this->_currentFeature == l2d_internal::Features::Map && this->_level.getName() != "l2dSTART") {
+            std::stringstream ss;
+            ss << std::fixed << std::setprecision(2) << this->_graphics.get()->getZoomPercentage() << "%";
+            ImGui::GetWindowDrawList()->AddText(ImVec2(this->_window->getSize().x - 80, this->_window->getSize().y - 20),
+                                                ImColor(1.0f, 1.0f, 1.0f, 1.0f), ss.str().c_str());
+        }
         if (showCurrentStatus) {
             ImGui::GetWindowDrawList()->AddText(ImVec2(180, this->_window->getSize().y - 20),
                                                 ImColor(1.0f, 1.0f, 1.0f, 1.0f), currentStatus.c_str());
+
         }
         ImGui::End();
 

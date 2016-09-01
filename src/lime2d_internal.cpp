@@ -1,8 +1,8 @@
 /*!
- * \file lime2d_internal.cpp
- * \author Mark Guerra
- * \date 6/10/2016
- * \copyright 2016 Limeoats
+ * Lime2d_internal.cpp
+ * By: Mark Guerra
+ * Created on: 6/10/2016
+ * Copyright (c) 2016 Limeoats
  */
 
 #include <glob.h>
@@ -169,6 +169,7 @@ void l2d_internal::utils::removeAnimationFromAnimationFile(std::string fileName,
 l2d_internal::Graphics::Graphics(sf::RenderWindow* window) {
     this->_window = window;
     this->_view.reset(sf::FloatRect(-1.0f, -20.0f, this->_window->getSize().x, this->_window->getSize().y));
+    this->_zoomPercentage = 100;
 }
 
 sf::View l2d_internal::Graphics::getView() const {
@@ -193,12 +194,23 @@ void l2d_internal::Graphics::draw(const sf::Vertex *vertices, unsigned int verte
 
 void l2d_internal::Graphics::zoom(float n, sf::Vector2i pixel) {
     const sf::Vector2f before {this->_window->mapPixelToCoords(pixel) };
-    this->_view.zoom(n > 0 ? 1.f / 1.1f : 1.1f);
+    if (n > 0) {
+        this->_view.zoom(1.f / 1.06f);
+        this->_zoomPercentage *= 1.06f;
+    }
+    else if (n < 0) {
+        this->_view.zoom(1.06f);
+        this->_zoomPercentage /= 1.06f;
+    }
     this->_window->setView(this->_view);
     const sf::Vector2f after { this->_window->mapPixelToCoords(pixel) };
     const sf::Vector2f offset { before - after };
     this->_view.move(offset);
     this->_window->setView(this->_view);
+}
+
+float l2d_internal::Graphics::getZoomPercentage() const {
+    return this->_zoomPercentage;
 }
 
 sf::Texture l2d_internal::Graphics::loadImage(const std::string &filePath) {
@@ -480,6 +492,7 @@ std::vector<std::shared_ptr<l2d_internal::Shape>> l2d_internal::Level::getShapeL
 
 void l2d_internal::Level::createMap(std::string name, sf::Vector2i size, sf::Vector2i tileSize) {
     this->_layerList.clear();
+    this->_shapeList.clear();
     this->_oldLayerList = std::stack<std::vector<std::shared_ptr<Layer>>>();
     this->_redoList = std::stack<std::vector<std::shared_ptr<Layer>>>();
     this->_tilesetList.clear();
@@ -718,6 +731,30 @@ void l2d_internal::Level::saveMap(std::string name) {
         pLights->InsertEndChild(pAmbientLight);
     }
     pObjects->InsertEndChild(pLights);
+
+    //Shapes
+    tx2::XMLElement* pShapes = document.NewElement("shapes");
+    tx2::XMLElement* pLines = document.NewElement("lines");
+    for (std::shared_ptr<l2d_internal::Shape> &shape: this->_shapeList) {
+        std::shared_ptr<l2d_internal::Line> l = std::dynamic_pointer_cast<l2d_internal::Line>(shape);
+        if (l != nullptr) {
+            tx2::XMLElement* pLine = document.NewElement("line");
+            pLine->SetAttribute("name", l->getName().c_str());
+            pLine->SetAttribute("color", l->getColor().toInteger());
+            pLine->SetAttribute("type", static_cast<int>(l->getObjectType()));
+            tx2::XMLElement* pVertices = document.NewElement("vertices");
+            for (unsigned int i = 0; i < l->getVertices().size(); ++i) {
+                tx2::XMLElement* pVertex = document.NewElement("vertex");
+                pVertex->SetAttribute("x", l->getVertices()[i].position.x);
+                pVertex->SetAttribute("y", l->getVertices()[i].position.y);
+                pVertices->InsertEndChild(pVertex);
+            }
+            pLine->InsertEndChild(pVertices);
+            pLines->InsertEndChild(pLine);
+        }
+        pShapes->InsertEndChild(pLines);
+    }
+    pObjects->InsertEndChild(pShapes);
     pMap->InsertEndChild(pObjects);
     document.InsertAfterChild(pDeclaration, pMap);
 
@@ -873,7 +910,6 @@ void l2d_internal::Level::removeTile(int layer, sf::Vector2f pos) {
         }
     }
     if (t != nullptr) {
-        std::cout << "actually removing it" << std::endl;
         //Remove the existing tile from the layer
         l.get()->Tiles.erase(
                 std::remove(l.get()->Tiles.begin(),
@@ -980,6 +1016,10 @@ l2d_internal::ObjectTypes l2d_internal::Shape::getObjectType() {
     return this->_objectType;
 }
 
+sf::Color l2d_internal::Shape::getColor() const {
+    return this->_color;
+}
+
 /*
  * Line
  */
@@ -988,6 +1028,10 @@ l2d_internal::Line::Line(std::string name, l2d_internal::ObjectTypes objectType,
     l2d_internal::Shape(name, objectType)
 {
     this->_vertices = vertices;
+}
+
+std::vector<sf::Vertex> l2d_internal::Line::getVertices() const {
+    return this->_vertices;
 }
 
 void l2d_internal::Line::draw(sf::RenderWindow* window) {

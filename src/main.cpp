@@ -1,8 +1,8 @@
 /*!
- * \file main.cpp
- * \author Mark Guerra
- * \date 6/8/2016
- * \copyright 2016 Limeoats
+ * Main.cpp
+ * By: Mark Guerra
+ * Created on: 6/8/2016
+ * Copyright (c) 2016 Limeoats
  */
 
 #include <iostream>
