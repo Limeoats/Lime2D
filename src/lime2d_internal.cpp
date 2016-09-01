@@ -168,12 +168,15 @@ void l2d_internal::utils::removeAnimationFromAnimationFile(std::string fileName,
 
 l2d_internal::Graphics::Graphics(sf::RenderWindow* window) {
     this->_window = window;
-    this->_camera = std::make_shared<Camera>();
+    this->_view.reset(sf::FloatRect(-1.0f, -20.0f, this->_window->getSize().x, this->_window->getSize().y));
+}
+
+sf::View l2d_internal::Graphics::getView() const {
+    return this->_view;
 }
 
 void l2d_internal::Graphics::draw(sf::Drawable &drawable, sf::Shader* ambientLight) {
-    sf::View view(this->_camera->getRect());
-    this->_window->setView(view);
+    this->_window->setView(this->_view);
     if (ambientLight == nullptr) {
         this->_window->draw(drawable);
     }
@@ -184,9 +187,18 @@ void l2d_internal::Graphics::draw(sf::Drawable &drawable, sf::Shader* ambientLig
 
 void l2d_internal::Graphics::draw(const sf::Vertex *vertices, unsigned int vertexCount, sf::PrimitiveType type,
                                   const sf::RenderStates &states) {
-    sf::View view(this->_camera->getRect());
-    this->_window->setView(view);
+    this->_window->setView(this->_view);
     this->_window->draw(vertices, vertexCount, type, states);
+}
+
+void l2d_internal::Graphics::zoom(float n, sf::Vector2i pixel) {
+    const sf::Vector2f before {this->_window->mapPixelToCoords(pixel) };
+    this->_view.zoom(n > 0 ? 1.f / 1.1f : 1.1f);
+    this->_window->setView(this->_view);
+    const sf::Vector2f after { this->_window->mapPixelToCoords(pixel) };
+    const sf::Vector2f offset { before - after };
+    this->_view.move(offset);
+    this->_window->setView(this->_view);
 }
 
 sf::Texture l2d_internal::Graphics::loadImage(const std::string &filePath) {
@@ -198,12 +210,24 @@ sf::Texture l2d_internal::Graphics::loadImage(const std::string &filePath) {
     return this->_spriteSheets[filePath];
 }
 
-std::shared_ptr<l2d_internal::Camera> l2d_internal::Graphics::getCamera() {
-    return this->_camera;
-}
-
 void l2d_internal::Graphics::update(float elapsedTime, sf::Vector2f tileSize, bool windowHasFocus) {
-    this->_camera->update(elapsedTime, tileSize, windowHasFocus);
+    float amountToMoveX = (tileSize.x * std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) / 4.0f;
+    float amountToMoveY = (tileSize.y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))) / 4.0f;
+    if (windowHasFocus) {
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+            this->_view.move(0, amountToMoveY);
+        }
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+            this->_view.move(0, -amountToMoveY);
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+            this->_view.move(-amountToMoveX, 0);
+        }
+        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+            this->_view.move(amountToMoveX, 0);
+        }
+        this->_window->setView(this->_view);
+    }
 }
 
 /*
@@ -849,6 +873,7 @@ void l2d_internal::Level::removeTile(int layer, sf::Vector2f pos) {
         }
     }
     if (t != nullptr) {
+        std::cout << "actually removing it" << std::endl;
         //Remove the existing tile from the layer
         l.get()->Tiles.erase(
                 std::remove(l.get()->Tiles.begin(),
@@ -938,34 +963,6 @@ void l2d_internal::Level::update(float elapsedTime) {
     (void)elapsedTime;
 }
 
-
-l2d_internal::Camera::Camera() {
-    this->_rect = {-1.0f, -20.0f, std::stof(l2d_internal::utils::getConfigValue("screen_size_x")), std::stof(l2d_internal::utils::getConfigValue("screen_size_y")) };
-}
-
-sf::FloatRect l2d_internal::Camera::getRect() {
-    return this->_rect;
-}
-
-void l2d_internal::Camera::update(float elapsedTime, sf::Vector2f tileSize, bool windowHasFocus) {
-    (void)elapsedTime;
-    float amountToMoveX = (tileSize.x * std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) / 4.0f;
-    float amountToMoveY = (tileSize.y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))) / 4.0f;
-    if (windowHasFocus) {
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-            this->_rect.top += amountToMoveY;
-        }
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-            this->_rect.top -= amountToMoveY;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-            this->_rect.left -= amountToMoveX;
-        }
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-            this->_rect.left += amountToMoveX;
-        }
-    }
-}
 
 /*
  * Shape

@@ -79,6 +79,14 @@ void l2d::Editor::processEvent(sf::Event &event) {
                     break;
             }
             break;
+        case sf::Event::MouseWheelScrolled:
+            if (this->_currentFeature == l2d_internal::Features::Map && this->_level.getName() != "l2dSTART") {
+                if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel) {
+                    this->_graphics.get()->zoom(event.mouseWheelScroll.delta,
+                                                {event.mouseWheelScroll.x, event.mouseWheelScroll.y});
+                }
+            }
+            break;
         default:
             break;
     }
@@ -98,9 +106,10 @@ void l2d::Editor::render() {
                 }
                 if (this->_currentDrawShape == l2d_internal::DrawShapes::None) {
                     //Get the mouse position and draw a square around the correct grid tile
-                    sf::Vector2f mousePos(
-                            sf::Mouse::getPosition(*this->_window).x + this->_graphics->getCamera()->getRect().left,
-                            sf::Mouse::getPosition(*this->_window).y + this->_graphics->getCamera()->getRect().top);
+                    sf::Vector2f mousePos = this->_window->mapPixelToCoords(sf::Vector2i(
+                            sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
+                            sf::Mouse::getPosition(*this->_window).y + static_cast<int>(this->_graphics->getView().getViewport().top)));
+
 
                     if (mousePos.x >= 0 && mousePos.x <= (this->_level.getSize().x * this->_level.getTileSize().x *
                                                           std::stof(
@@ -119,14 +128,14 @@ void l2d::Editor::render() {
                                                        1));
                         rectangle.setOutlineColor(this->_eraserActive ? sf::Color::Blue : sf::Color::Magenta);
                         rectangle.setOutlineThickness(2);
-                        rectangle.setPosition((mousePos.x - ((int) mousePos.x % (int) (this->_level.getTileSize().x *
+                        rectangle.setPosition(std::floor(mousePos.x - ((int) mousePos.x % (int) (this->_level.getTileSize().x *
                                                                                        std::stof(
                                                                                                l2d_internal::utils::getConfigValue(
                                                                                                        "tile_scale_x"))))),
-                                              mousePos.y - ((int) mousePos.y % (int) (this->_level.getTileSize().y *
+                                              std::floor(mousePos.y - ((int) mousePos.y % (int) (this->_level.getTileSize().y *
                                                                                       std::stof(
                                                                                               l2d_internal::utils::getConfigValue(
-                                                                                                      "tile_scale_y")))));
+                                                                                                      "tile_scale_y"))))));
                         rectangle.setFillColor(sf::Color::Transparent);
                         this->_window->draw(rectangle);
                     }
@@ -139,7 +148,7 @@ void l2d::Editor::render() {
         sf::RectangleShape rectangle;
         rectangle.setSize(sf::Vector2f(this->_window->getSize().x, 30));
         rectangle.setFillColor(sf::Color::Black);
-        rectangle.setPosition(0 + this->_graphics->getCamera()->getRect().left, this->_window->getSize().y - 30 + this->_graphics->getCamera()->getRect().top);
+        rectangle.setPosition(0 + this->_graphics->getView().getViewport().left, this->_window->getSize().y - 30 + this->_graphics->getView().getViewport().top);
         this->_window->draw(rectangle);
         ImGui::Render();
     }
@@ -530,6 +539,7 @@ void l2d::Editor::update(sf::Time t) {
                     else {
                         this->_level.createMap(std::string(name), sf::Vector2i(mapSizeX, mapSizeY),
                                                sf::Vector2i(mapTileSizeX, mapTileSizeY));
+                        createGridLines();
                         strcpy(name, "");
                         mapSizeX = 0;
                         mapSizeY = 0;
@@ -720,9 +730,9 @@ void l2d::Editor::update(sf::Time t) {
         if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map) {
             //Right clicking on a tile
             if (ImGui::IsMouseClicked(1)) {
-                mousePos = sf::Vector2f(
-                        sf::Mouse::getPosition(*this->_window).x + this->_graphics->getCamera()->getRect().left,
-                        sf::Mouse::getPosition(*this->_window).y + this->_graphics->getCamera()->getRect().top);
+                mousePos = this->_window->mapPixelToCoords(sf::Vector2i(
+                        sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
+                        sf::Mouse::getPosition(*this->_window).y + static_cast<int>(this->_graphics->getView().getViewport().top)));
                 ImGui::OpenPopup("right click on tile");
             }
             if (ImGui::BeginPopup("right click on tile")) {
@@ -736,9 +746,10 @@ void l2d::Editor::update(sf::Time t) {
 
             //Clicking on a tile normally
             if (tileHasBeenSelected) {
-                sf::Vector2f drawingMousePos(
-                        sf::Mouse::getPosition(*this->_window).x + this->_graphics->getCamera()->getRect().left,
-                        sf::Mouse::getPosition(*this->_window).y + this->_graphics->getCamera()->getRect().top);
+                sf::Vector2f drawingMousePos = this->_window->mapPixelToCoords(sf::Vector2i(
+                        sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
+                        sf::Mouse::getPosition(*this->_window).y + static_cast<int>(this->_graphics->getView().getViewport().top)));
+                drawingMousePos = sf::Vector2f(std::floor(drawingMousePos.x), std::floor(drawingMousePos.y));
                 if (ImGui::IsMouseDown(0) && mainHasFocus) {
                     sf::Vector2f tilePos(
                             (drawingMousePos.x - ((int) drawingMousePos.x % (int) (this->_level.getTileSize().x * std::stof(
@@ -1025,9 +1036,9 @@ void l2d::Editor::update(sf::Time t) {
         //Shape creation
         if (this->_currentDrawShape == l2d_internal::DrawShapes::Line) {
             static sf::Vertex firstPoint = sf::Vertex(sf::Vector2f(-1,-1));
-            sf::Vector2f drawingMousePos(
-                    sf::Mouse::getPosition(*this->_window).x + this->_graphics->getCamera()->getRect().left,
-                    sf::Mouse::getPosition(*this->_window).y + this->_graphics->getCamera()->getRect().top);
+            sf::Vector2f drawingMousePos = this->_window->mapPixelToCoords(sf::Vector2i(
+                    sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
+                    sf::Mouse::getPosition(*this->_window).y + static_cast<int>(this->_graphics->getView().getViewport().top)));
             if (ImGui::IsMouseClicked(0) && mainHasFocus && firstPoint.position.x == -1) {
                 //First click
                 firstPoint = drawingMousePos;

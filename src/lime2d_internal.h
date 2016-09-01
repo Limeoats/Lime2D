@@ -69,12 +69,13 @@ namespace l2d_internal {
         void draw(sf::Drawable &drawable, sf::Shader* ambientLight = nullptr);
         void draw(const sf::Vertex* vertices, unsigned int vertexCount, sf::PrimitiveType type, const sf::RenderStates &states = sf::RenderStates::Default);
         sf::Texture loadImage(const std::string &filePath);
+        void zoom(float n, sf::Vector2i pixel);
         void update(float elapsedTime, sf::Vector2f tileSize, bool windowHasFocus);
-        std::shared_ptr<Camera> getCamera();
+        sf::View getView() const;
     private:
         std::map<std::string, sf::Texture> _spriteSheets;
         sf::RenderWindow* _window;
-        std::shared_ptr<Camera> _camera;
+        sf::View _view;
     };
 
     /*
@@ -211,19 +212,6 @@ namespace l2d_internal {
         std::stack<std::vector<std::shared_ptr<Layer>>> _redoList;
         float _ambientIntensity = 1.0f;
         sf::Color _ambientColor = sf::Color::White;
-    };
-
-    /*
-     * The internal camera class for Lime2D
-     */
-    class Camera {
-    public:
-        Camera();
-        sf::FloatRect getRect();
-        void update(float elapsedTime, sf::Vector2f tileSize, bool windowHasFocus);
-    private:
-        sf::FloatRect _rect;
-        std::shared_ptr<Level> _level;
     };
 
     /*
