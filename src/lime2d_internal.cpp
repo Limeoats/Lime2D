@@ -517,6 +517,7 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
 
     this->_layerList.clear();
     this->_tilesetList.clear();
+    this->_shapeList.clear();
     this->_oldLayerList = std::stack<std::vector<std::shared_ptr<Layer>>>();
     this->_redoList = std::stack<std::vector<std::shared_ptr<Layer>>>();
     this->_ambientColor = sf::Color::White;
@@ -626,6 +627,46 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
                         this->_ambientIntensity = pAmbientLight->FloatAttribute("intensity");
                     }
                     pLights = pLights->NextSiblingElement("lights");
+                }
+            }
+            //Shapes
+            tx2::XMLElement* pShapes = pObjects->FirstChildElement("shapes");
+            if (pShapes != nullptr) {
+                while (pShapes) {
+                    //Lines
+                    tx2::XMLElement* pLines = pShapes->FirstChildElement("lines");
+                    if (pLines != nullptr) {
+                        while (pLines) {
+                            tx2::XMLElement* pLine = pLines->FirstChildElement("line");
+                            if (pLine != nullptr) {
+                                while (pLine) {
+                                    std::vector<sf::Vertex> vertices;
+                                    std::string name = pLine->Attribute("name");
+                                    sf::Color color = sf::Color(static_cast<sf::Uint32>(pLine->IntAttribute("color")));
+                                    l2d_internal::ObjectTypes type = static_cast<l2d_internal::ObjectTypes>(pLine->IntAttribute("type"));
+                                    tx2::XMLElement* pVertices = pLine->FirstChildElement("vertices");
+                                    if (pVertices != nullptr) {
+                                        while (pVertices) {
+                                            tx2::XMLElement* pVertex = pVertices->FirstChildElement("vertex");
+                                            if (pVertex != nullptr) {
+                                                while (pVertex) {
+                                                    float x = pVertex->FloatAttribute("x");
+                                                    float y = pVertex->FloatAttribute("y");
+                                                    vertices.push_back(sf::Vertex(sf::Vector2f(x, y)));
+                                                    pVertex = pVertex->NextSiblingElement("vertex");
+                                                }
+                                            }
+                                            pVertices = pVertices->NextSiblingElement("vertices");
+                                        }
+                                    }
+                                    this->_shapeList.push_back(std::make_shared<l2d_internal::Line>(name, color, type, vertices));
+                                    pLine = pLine->NextSiblingElement("line");
+                                }
+                            }
+                            pLines = pLines->NextSiblingElement("lines");
+                        }
+                    }
+                    pShapes = pShapes->NextSiblingElement("shapes");
                 }
             }
             pObjects = pObjects->NextSiblingElement("objects");
@@ -1003,7 +1044,7 @@ void l2d_internal::Level::update(float elapsedTime) {
 /*
  * Shape
  */
-l2d_internal::Shape::Shape(std::string name, l2d_internal::ObjectTypes objectType) {
+l2d_internal::Shape::Shape(std::string name, sf::Color color, l2d_internal::ObjectTypes objectType) {
     this->_name = name;
     this->_objectType = objectType;
 }
@@ -1024,8 +1065,8 @@ sf::Color l2d_internal::Shape::getColor() const {
  * Line
  */
 
-l2d_internal::Line::Line(std::string name, l2d_internal::ObjectTypes objectType, std::vector<sf::Vertex> vertices) :
-    l2d_internal::Shape(name, objectType)
+l2d_internal::Line::Line(std::string name, sf::Color color, l2d_internal::ObjectTypes objectType, std::vector<sf::Vertex> vertices) :
+    l2d_internal::Shape(name, color, objectType)
 {
     this->_vertices = vertices;
 }

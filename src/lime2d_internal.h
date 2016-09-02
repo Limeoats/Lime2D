@@ -220,7 +220,7 @@ namespace l2d_internal {
      */
     class Shape {
     public:
-        Shape(std::string name, l2d_internal::ObjectTypes objectType);
+        Shape(std::string name, sf::Color color, l2d_internal::ObjectTypes objectType);
         std::string getName();
         l2d_internal::ObjectTypes getObjectType();
         sf::Color getColor() const;
@@ -237,7 +237,7 @@ namespace l2d_internal {
      */
     class Line : public Shape {
     public:
-        Line(std::string name, l2d_internal::ObjectTypes objectType, std::vector<sf::Vertex> vertices);
+        Line(std::string name, sf::Color color, l2d_internal::ObjectTypes objectType, std::vector<sf::Vertex> vertices);
         std::vector<sf::Vertex> getVertices() const;
         virtual void draw(sf::RenderWindow* window) override;
     private:

@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
+#include <cmath>
 
 #include "lime2d.h"
 
@@ -1049,7 +1050,7 @@ void l2d::Editor::update(sf::Time t) {
                 std::vector<sf::Vertex> vertices = {
                         firstPoint, sf::Vertex(drawingMousePos)
                 };
-                std::shared_ptr<l2d_internal::Line> line = std::make_shared<l2d_internal::Line>("Line", l2d_internal::ObjectTypes::Other, vertices);
+                std::shared_ptr<l2d_internal::Line> line = std::make_shared<l2d_internal::Line>("Line", sf::Color::White, l2d_internal::ObjectTypes::Other, vertices);
                 this->_level.addShape(line);
                 firstPoint = sf::Vertex(sf::Vector2f(-1,-1));
             }

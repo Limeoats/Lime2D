@@ -229,6 +229,18 @@
                         <vertex x="143" y="12.000006"/>
                     </vertices>
                 </line>
+                <line name="Line" color="4294967295" type="2">
+                    <vertices>
+                        <vertex x="177.03731" y="82.211121"/>
+                        <vertex x="22.231857" y="81.768814"/>
+                    </vertices>
+                </line>
+                <line name="Line" color="4294967295" type="2">
+                    <vertices>
+                        <vertex x="39.039307" y="16.308243"/>
+                        <vertex x="211.9791" y="201.63245"/>
+                    </vertices>
+                </line>
             </lines>
         </shapes>
     </objects>
