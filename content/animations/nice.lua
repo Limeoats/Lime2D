@@ -73,5 +73,5 @@ animations = {
 			time_to_update = "0.17",
 		__},
 	},
-	sprite_path = "content/sprites/flint.png"
+	sprite_path = "../content/sprites/flint.png"
 }
