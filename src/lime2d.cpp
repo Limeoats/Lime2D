@@ -36,7 +36,7 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
     this->_enabled = enabled;
     ImGui::SFML::Init(*window);
     this->_window = window;
-    if (!this->_ambientLight.loadFromFile("../content/shaders/ambient.frag", sf::Shader::Fragment)) {
+    if (!this->_ambientLight.loadFromFile("content/shaders/ambient.frag", sf::Shader::Fragment)) {
         return;
     }
 }
@@ -202,7 +202,7 @@ void l2d::Editor::update(sf::Time t) {
 
         //Drawing tiles variables
         static bool tileHasBeenSelected = false;
-        static std::string selectedTilesetPath = "../content/tilesets/outside.png";
+        static std::string selectedTilesetPath = "content/tilesets/outside.png";
         static sf::Vector2i selectedTileSrcPos(0,0);
         static int selectedTileLayer = 1;
         static sf::Vector2i selectedTilesetSize(0,0);

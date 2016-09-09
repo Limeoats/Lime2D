@@ -15,7 +15,7 @@ using namespace std;
 int main() {
     sf::RenderWindow window(sf::VideoMode(800, 600), "Lime2D", sf::Style::Titlebar | sf::Style::Close);
     sf::Image img;
-    img.loadFromFile("../content/sprites/mstile-310x310.png");
+    img.loadFromFile("content/sprites/mstile-310x310.png");
     window.setIcon(img.getSize().x, img.getSize().y, img.getPixelsPtr());
     window.setVerticalSyncEnabled(true);
     l2d::Editor editor(false, &window);

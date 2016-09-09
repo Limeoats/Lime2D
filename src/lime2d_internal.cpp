@@ -66,7 +66,7 @@ std::vector<const char*> l2d_internal::utils::getFilesInDirectory(std::string di
 }
 
 std::string l2d_internal::utils::getConfigValue(std::string key) {
-    std::ifstream in("../lime2d.config");
+    std::ifstream in("lime2d.config");
     std::map<std::string, std::string> configMap;
     if (!in.fail()) {
         for (std::string line; std::getline(in, line); ) {
