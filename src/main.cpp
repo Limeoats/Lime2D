@@ -20,6 +20,7 @@ int main() {
     window.setVerticalSyncEnabled(true);
     l2d::Editor editor(false, &window);
     sf::Clock timer;
+
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {

@@ -1,5 +1,5 @@
 animations = {
 	list = {
 	},
-    sprite_path = "../content/sprites/flint.png"
+    sprite_path = "content/sprites/flint.png"
 }
