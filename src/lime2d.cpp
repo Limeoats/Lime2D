@@ -1010,8 +1010,12 @@ void l2d::Editor::update(sf::Time t) {
                                 otherShapes.push_back(shape);
                             }
                         }
-                        for (std::shared_ptr<l2d_internal::Shape> shape : otherShapes) {
-                            ImGui::Selectable(shape.get()->getName().c_str());
+                        for (int i = 0; i < otherShapes.size(); ++i) {
+                            ImGui::PushID("Other" + i);
+                            if (ImGui::Selectable(otherShapes[i].get()->getName().c_str())) {
+                                std::cout << otherShapes[i].get()->getName() << " | " << otherShapes[i].get()->getColor().toInteger() << std::endl;
+                            }
+                            ImGui::PopID();
                         }
                         ImGui::TreePop();
                     }
