@@ -162,6 +162,10 @@ void l2d_internal::utils::removeAnimationFromAnimationFile(std::string fileName,
     out.close();
 }
 
+std::vector<const char*> l2d_internal::utils::getObjectTypesForList() {
+    return std::vector<const char*> {"None", "Collision", "Other"};
+}
+
 /*
  * Graphics
  */
@@ -1025,6 +1029,15 @@ bool l2d_internal::Level::isRedoListEmpty() const {
     return this->_redoList.empty();
 }
 
+void l2d_internal::Level::updateShape(std::shared_ptr<l2d_internal::Shape> oldShape, std::shared_ptr<l2d_internal::Shape> newShape) {
+    for (unsigned int i = 0; i < this->_shapeList.size(); ++i) {
+        if (oldShape->equals(this->_shapeList[i])) {
+            this->_shapeList[i] = newShape;
+            return;
+        }
+    }
+}
+
 sf::Vector2i l2d_internal::Level::globalToLocalCoordinates(sf::Vector2f coords) const {
     return sf::Vector2i(static_cast<int>(coords.x) / this->_tileSize.x / static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) + 1,
                         static_cast<int>(coords.y) / this->_tileSize.y / static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))) + 1);
@@ -1061,6 +1074,10 @@ sf::Color l2d_internal::Shape::getColor() const {
     return this->_color;
 }
 
+std::vector<sf::Vertex> l2d_internal::Shape::getVertices() {
+    return this->_vertices;
+}
+
 /*
  * Line
  */
@@ -1077,6 +1094,19 @@ std::vector<sf::Vertex> l2d_internal::Line::getVertices() const {
 
 void l2d_internal::Line::draw(sf::RenderWindow* window) {
     window->draw(&this->_vertices[0], 2, sf::Lines);
+}
+
+bool l2d_internal::Line::equals(std::shared_ptr<Shape> other) {
+    return this->_color == other->getColor() &&
+            this->_name == other->getName() &&
+            this->_objectType == other->getObjectType() &&
+            ([&]()->bool {
+                if (this->_vertices.size() != other->getVertices().size()) return false;
+                for (unsigned int c = 0; c < this->_vertices.size(); ++c) {
+                    if (this->_vertices[c].position != other->getVertices()[c].position) return false;
+                }
+                return true;
+            })();
 }
 
 

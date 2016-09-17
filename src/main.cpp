@@ -1,4 +1,4 @@
-/*!
+/*
  * Main.cpp
  * By: Mark Guerra
  * Created on: 6/8/2016

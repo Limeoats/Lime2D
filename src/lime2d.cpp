@@ -179,6 +179,7 @@ void l2d::Editor::update(sf::Time t) {
         static bool newAnimationWindowVisible = false;
         static bool removeAnimationWindowVisible = false;
         static bool cbShowEntityList = false;
+        static bool showEntityProperties = false;
         static bool mainHasFocus = true;
 
         static sf::Vector2f mousePos(0.0f, 0.0f);
@@ -198,6 +199,14 @@ void l2d::Editor::update(sf::Time t) {
         static bool showSpecificTileProperties = false;
         static std::shared_ptr<l2d_internal::Tile> showSpecificTilePropertiesTile = nullptr;
         static std::shared_ptr<l2d_internal::Layer> showSpecificTilePropertiesLayer = nullptr;
+
+        //Entity list variables
+        static std::string selectedEntityName = "";
+        static std::vector<sf::Vertex> selectedEntityVertices = {};
+        static l2d_internal::ObjectTypes selectedEntityObjectType = l2d_internal::ObjectTypes::None;
+        static sf::Color selectedEntityColor = sf::Color::White;
+        static int selectedEntitySelectedObjectTypeIndex = -1;
+        static std::shared_ptr<l2d_internal::Shape> selectedEntitySelectedShape = nullptr;
 
 
         //Drawing tiles variables
@@ -982,23 +991,10 @@ void l2d::Editor::update(sf::Time t) {
          */
         if (cbShowEntityList) {
             ImGui::SetNextWindowPosCenter();
-            ImGui::SetNextWindowSize(ImVec2(500, 300));
+            ImGui::SetNextWindowSize(ImVec2(500, 450));
             ImGui::Begin("Entity list", nullptr, ImVec2(500, 300), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
-            ImGui::BeginChild("list", ImVec2(460, 170));
+            ImGui::BeginChild("list", ImVec2(460, 180));
             if (ImGui::TreeNode("Entities")) {
-//                if (ImGui::TreeNode("Layers")) {
-//                    for (int i = 0; i < this->_level.getLayerList().size(); ++i) {
-//                        std::stringstream ss;
-//                        ss << "Layer " << i;
-//                        if (ImGui::TreeNode(ss.str().c_str())) {
-//                            for (int j = 0; j < this->_level.getLayerList()[i].get()->Tiles.size(); ++j) {
-//                                ImGui::Text("Tile!");
-//                            }
-//                            ImGui::TreePop();
-//                        }
-//                    }
-//                    ImGui::TreePop();
-//                }
                 if (ImGui::TreeNode("Objects")) {
                     if (ImGui::TreeNode("Collision")) {
                         ImGui::TreePop();
@@ -1013,7 +1009,12 @@ void l2d::Editor::update(sf::Time t) {
                         for (int i = 0; i < otherShapes.size(); ++i) {
                             ImGui::PushID("Other" + i);
                             if (ImGui::Selectable(otherShapes[i].get()->getName().c_str())) {
-                                std::cout << otherShapes[i].get()->getName() << " | " << otherShapes[i].get()->getColor().toInteger() << std::endl;
+                                selectedEntityName = otherShapes[i].get()->getName();
+                                selectedEntityColor = otherShapes[i].get()->getColor();
+                                selectedEntityObjectType = otherShapes[i].get()->getObjectType();
+                                selectedEntityVertices = otherShapes[i].get()->getVertices();
+                                selectedEntitySelectedShape = otherShapes[i];
+                                showEntityProperties = true;
                             }
                             ImGui::PopID();
                         }
@@ -1034,7 +1035,58 @@ void l2d::Editor::update(sf::Time t) {
             }
             ImGui::EndChild();
             ImGui::Separator();
-            ImGui::BeginChild("properties", ImVec2(460, 120));
+            ImGui::BeginChild("properties", ImVec2(460, 220));
+            if (showEntityProperties) {
+                ImGui::PushID("SelectedEntityName");
+                static char name[500] = "";
+                strcpy(name, selectedEntityName.c_str());
+                ImGui::PushItemWidth(200);
+                ImGui::InputText("Name", name, sizeof(name));
+                ImGui::PopItemWidth();
+                ImGui::PopID();
+
+                ImGui::Separator();
+
+                ImGui::PushID("SelectedEntityColor");
+                ImGui::PushItemWidth(200);
+                ImGui::ColorButton(ImVec4(selectedEntityColor.r, selectedEntityColor.g, selectedEntityColor.b, selectedEntityColor.a));
+                ImGui::PopItemWidth();
+                ImGui::SameLine();
+                ImGui::Text("Color");
+                ImGui::PopID();
+
+                ImGui::Separator();
+
+                ImGui::PushID("SelectedEntityObjectType");
+                std::vector<const char*> objectTypeList = l2d_internal::utils::getObjectTypesForList();
+                selectedEntitySelectedObjectTypeIndex = static_cast<int>(selectedEntityObjectType);
+                ImGui::Combo("Object type", &selectedEntitySelectedObjectTypeIndex, &objectTypeList[0], static_cast<int>(objectTypeList.size()));
+                ImGui::PopID();
+
+                ImGui::Separator();
+                ImGui::Text("Vertices:");
+                ImGui::Separator();
+                for (unsigned int i = 0; i < selectedEntityVertices.size(); ++i) {
+                    std::string str = "SelectedEntityVertex" + std::to_string(i) + "X";
+                    ImGui::PushID(str.c_str());
+                    ImGui::PushItemWidth(180);
+                    ImGui::InputFloat("x", &selectedEntityVertices[i].position.x, 0.01f, 1.0f, 2);
+                    ImGui::PopItemWidth();
+                    ImGui::PopID();
+                    str = "SelectedEntityVertex" + std::to_string(i) + "Y";
+                    ImGui::PushID(str.c_str());
+                    ImGui::PushItemWidth(180);
+                    ImGui::InputFloat("y", &selectedEntityVertices[i].position.y, 0.01f, 1.0f, 2);
+                    ImGui::PopItemWidth();
+                    ImGui::PopID();
+                    ImGui::Separator();
+                }
+
+                if (ImGui::Button("Update")) {
+                    //TODO: use _level.updateShape here. selectedEntitySelectedShape is the old shape. build a new one with the values above.
+                }
+
+            }
             ImGui::EndChild();
             ImGui::End();
         }

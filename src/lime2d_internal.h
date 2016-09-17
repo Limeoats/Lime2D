@@ -56,6 +56,7 @@ namespace l2d_internal {
         void createNewAnimationFile(std::string name, std::string spriteSheetPath);
         void addNewAnimationToAnimationFile(std::string fileName, std::string animationName);
         void removeAnimationFromAnimationFile(std::string fileName, std::string animationName);
+        std::vector<const char*> getObjectTypesForList();
     }
 
     /*
@@ -195,6 +196,7 @@ namespace l2d_internal {
         std::vector<std::shared_ptr<l2d_internal::Shape>> getShapeList();
         void removeTile(int layer, sf::Vector2f pos);
         void updateTile(std::string newTilesetPath, sf::Vector2i newTilesetSize, sf::Vector2i srcPos, sf::Vector2f destPos, int tilesetId, int layer);
+        void updateShape(std::shared_ptr<l2d_internal::Shape> oldShape, std::shared_ptr<l2d_internal::Shape> newShape);
         bool tileExists(int layer, sf::Vector2i pos) const;
         void undo();
         bool isUndoListEmpty() const;
@@ -225,10 +227,13 @@ namespace l2d_internal {
         l2d_internal::ObjectTypes getObjectType();
         sf::Color getColor() const;
         virtual void draw(sf::RenderWindow* window) = 0;
+        virtual std::vector<sf::Vertex> getVertices();
+        virtual bool equals(std::shared_ptr<Shape> other) = 0;
     protected:
         std::string _name;
         l2d_internal::ObjectTypes _objectType;
         sf::Color _color = sf::Color::White;
+        std::vector<sf::Vertex> _vertices;
     };
 
     /*
@@ -240,8 +245,7 @@ namespace l2d_internal {
         Line(std::string name, sf::Color color, l2d_internal::ObjectTypes objectType, std::vector<sf::Vertex> vertices);
         std::vector<sf::Vertex> getVertices() const;
         virtual void draw(sf::RenderWindow* window) override;
-    private:
-        std::vector<sf::Vertex> _vertices;
+        virtual bool equals(std::shared_ptr<Shape> other) override;
     };
 
     /*
