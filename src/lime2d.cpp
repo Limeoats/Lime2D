@@ -1007,7 +1007,8 @@ void l2d::Editor::update(sf::Time t) {
                             }
                         }
                         for (int i = 0; i < otherShapes.size(); ++i) {
-                            ImGui::PushID("Other" + i);
+                            std::string strId = "Other" + std::to_string(i);
+                            ImGui::PushID(strId.c_str());
                             if (ImGui::Selectable(otherShapes[i].get()->getName().c_str())) {
                                 selectedEntityName = otherShapes[i].get()->getName();
                                 selectedEntityColor = otherShapes[i].get()->getColor();

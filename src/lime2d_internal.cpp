@@ -1074,7 +1074,7 @@ sf::Color l2d_internal::Shape::getColor() const {
     return this->_color;
 }
 
-std::vector<sf::Vertex> l2d_internal::Shape::getVertices() {
+std::vector<sf::Vertex> l2d_internal::Shape::getVertices() const {
     return this->_vertices;
 }
 

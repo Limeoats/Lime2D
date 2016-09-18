@@ -227,7 +227,7 @@ namespace l2d_internal {
         l2d_internal::ObjectTypes getObjectType();
         sf::Color getColor() const;
         virtual void draw(sf::RenderWindow* window) = 0;
-        virtual std::vector<sf::Vertex> getVertices();
+        virtual std::vector<sf::Vertex> getVertices() const;
         virtual bool equals(std::shared_ptr<Shape> other) = 0;
     protected:
         std::string _name;
@@ -243,7 +243,7 @@ namespace l2d_internal {
     class Line : public Shape {
     public:
         Line(std::string name, sf::Color color, l2d_internal::ObjectTypes objectType, std::vector<sf::Vertex> vertices);
-        std::vector<sf::Vertex> getVertices() const;
+        virtual std::vector<sf::Vertex> getVertices() const override;
         virtual void draw(sf::RenderWindow* window) override;
         virtual bool equals(std::shared_ptr<Shape> other) override;
     };
@@ -298,7 +298,7 @@ namespace l2d_internal {
 
             int level = 0;
             std::string var = "";
-            for (int i = 0; i < key.length(); ++i) {
+            for (unsigned long i = 0; i < key.length(); ++i) {
                 if (key.at(i) == '.') {
                     if (level == 0) {
                         lua_getglobal(this->L, var.c_str());
