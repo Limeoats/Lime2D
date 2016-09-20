@@ -226,6 +226,9 @@ namespace l2d_internal {
         std::string getName();
         l2d_internal::ObjectTypes getObjectType();
         sf::Color getColor() const;
+        void setName(std::string name);
+        void setVertices(std::vector<sf::Vertex> vertices);
+        void setObjectType(l2d_internal::ObjectTypes objectType);
         virtual void draw(sf::RenderWindow* window) = 0;
         virtual std::vector<sf::Vertex> getVertices() const;
         virtual bool equals(std::shared_ptr<Shape> other) = 0;

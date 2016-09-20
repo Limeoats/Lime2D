@@ -1078,6 +1078,18 @@ std::vector<sf::Vertex> l2d_internal::Shape::getVertices() const {
     return this->_vertices;
 }
 
+void l2d_internal::Shape::setName(std::string name) {
+    this->_name = name;
+}
+
+void l2d_internal::Shape::setVertices(std::vector<sf::Vertex> vertices) {
+    this->_vertices = vertices;
+}
+
+void l2d_internal::Shape::setObjectType(l2d_internal::ObjectTypes objectType) {
+    this->_objectType = objectType;
+}
+
 /*
  * Line
  */

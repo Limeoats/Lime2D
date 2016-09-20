@@ -207,6 +207,7 @@ void l2d::Editor::update(sf::Time t) {
         static sf::Color selectedEntityColor = sf::Color::White;
         static int selectedEntitySelectedObjectTypeIndex = -1;
         static std::shared_ptr<l2d_internal::Shape> selectedEntitySelectedShape = nullptr;
+        static std::shared_ptr<l2d_internal::Shape> originalSelectedEntitySelectedShape = nullptr;
 
 
         //Drawing tiles variables
@@ -990,6 +991,37 @@ void l2d::Editor::update(sf::Time t) {
          * Entity list
          */
         if (cbShowEntityList) {
+            auto setOriginalToCurrent = [&]() {
+                std::shared_ptr<l2d_internal::Line> l = std::dynamic_pointer_cast<l2d_internal::Line>(selectedEntitySelectedShape);
+                if (l != nullptr) {
+                    originalSelectedEntitySelectedShape = std::make_shared<l2d_internal::Line>(l->getName(), l->getColor(), l->getObjectType(), l->getVertices());
+                }
+            };
+            auto fillObjectSection = [&](l2d_internal::ObjectTypes objectType, std::string strObjectType) {
+                std::vector<std::shared_ptr<l2d_internal::Shape>> otherShapes;
+                for (std::shared_ptr<l2d_internal::Shape> shape : this->_level.getShapeList()) {
+                    if (shape.get()->getObjectType() == objectType) {
+                        otherShapes.push_back(shape);
+                    }
+                }
+                for (int i = 0; i < otherShapes.size(); ++i) {
+                    std::string strId = strObjectType + std::to_string(i);
+                    ImGui::PushID(strId.c_str());
+                    if (ImGui::Selectable(otherShapes[i].get()->getName().c_str())) {
+                        selectedEntityName = otherShapes[i].get()->getName();
+                        selectedEntityColor = otherShapes[i].get()->getColor();
+                        selectedEntityObjectType = otherShapes[i].get()->getObjectType();
+                        selectedEntityVertices = otherShapes[i].get()->getVertices();
+                        selectedEntitySelectedShape = otherShapes[i];
+
+                        setOriginalToCurrent();
+
+                        showEntityProperties = true;
+                    }
+                    ImGui::PopID();
+                }
+            };
+            static bool loaded = false;
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(500, 450));
             ImGui::Begin("Entity list", nullptr, ImVec2(500, 300), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
@@ -997,28 +1029,11 @@ void l2d::Editor::update(sf::Time t) {
             if (ImGui::TreeNode("Entities")) {
                 if (ImGui::TreeNode("Objects")) {
                     if (ImGui::TreeNode("Collision")) {
+                        fillObjectSection(l2d_internal::ObjectTypes::Collision, "Collision");
                         ImGui::TreePop();
                     }
                     if (ImGui::TreeNode("Other")) {
-                        std::vector<std::shared_ptr<l2d_internal::Shape>> otherShapes;
-                        for (std::shared_ptr<l2d_internal::Shape> shape : this->_level.getShapeList()) {
-                            if (shape.get()->getObjectType() == l2d_internal::ObjectTypes::Other) {
-                                otherShapes.push_back(shape);
-                            }
-                        }
-                        for (int i = 0; i < otherShapes.size(); ++i) {
-                            std::string strId = "Other" + std::to_string(i);
-                            ImGui::PushID(strId.c_str());
-                            if (ImGui::Selectable(otherShapes[i].get()->getName().c_str())) {
-                                selectedEntityName = otherShapes[i].get()->getName();
-                                selectedEntityColor = otherShapes[i].get()->getColor();
-                                selectedEntityObjectType = otherShapes[i].get()->getObjectType();
-                                selectedEntityVertices = otherShapes[i].get()->getVertices();
-                                selectedEntitySelectedShape = otherShapes[i];
-                                showEntityProperties = true;
-                            }
-                            ImGui::PopID();
-                        }
+                        fillObjectSection(l2d_internal::ObjectTypes::Other, "Other");
                         ImGui::TreePop();
                     }
                     ImGui::TreePop();
@@ -1040,7 +1055,9 @@ void l2d::Editor::update(sf::Time t) {
             if (showEntityProperties) {
                 ImGui::PushID("SelectedEntityName");
                 static char name[500] = "";
-                strcpy(name, selectedEntityName.c_str());
+                if (!loaded) {
+                    strcpy(name, selectedEntityName.c_str());
+                }
                 ImGui::PushItemWidth(200);
                 ImGui::InputText("Name", name, sizeof(name));
                 ImGui::PopItemWidth();
@@ -1060,7 +1077,9 @@ void l2d::Editor::update(sf::Time t) {
 
                 ImGui::PushID("SelectedEntityObjectType");
                 std::vector<const char*> objectTypeList = l2d_internal::utils::getObjectTypesForList();
-                selectedEntitySelectedObjectTypeIndex = static_cast<int>(selectedEntityObjectType);
+                if (!loaded) {
+                    selectedEntitySelectedObjectTypeIndex = static_cast<int>(selectedEntityObjectType);
+                }
                 ImGui::Combo("Object type", &selectedEntitySelectedObjectTypeIndex, &objectTypeList[0], static_cast<int>(objectTypeList.size()));
                 ImGui::PopID();
 
@@ -1084,8 +1103,15 @@ void l2d::Editor::update(sf::Time t) {
                 }
 
                 if (ImGui::Button("Update")) {
-                    //TODO: use _level.updateShape here. selectedEntitySelectedShape is the old shape. build a new one with the values above.
+                    //TODO: implement the color button
+                    selectedEntitySelectedShape->setName(std::string(name));
+                    selectedEntitySelectedShape->setVertices(selectedEntityVertices);
+                    selectedEntitySelectedShape->setObjectType(static_cast<l2d_internal::ObjectTypes>(selectedEntitySelectedObjectTypeIndex));
+                    this->_level.updateShape(originalSelectedEntitySelectedShape, selectedEntitySelectedShape);
+                    this->_level.saveMap(this->_level.getName());
+                    setOriginalToCurrent();
                 }
+                loaded = true;
 
             }
             ImGui::EndChild();

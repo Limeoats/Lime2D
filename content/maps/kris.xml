@@ -223,22 +223,22 @@
         <lights/>
         <shapes>
             <lines>
-                <line name="Line" color="4294967295" type="2">
+                <line name="xxxxxxxxcvvvvvv" color="4294967295" type="1">
                     <vertices>
                         <vertex x="82.999992" y="110"/>
                         <vertex x="143" y="12.000006"/>
                     </vertices>
                 </line>
-                <line name="Line" color="4294967295" type="2">
+                <line name="nice" color="4294967295" type="2">
                     <vertices>
-                        <vertex x="177.03731" y="82.211121"/>
-                        <vertex x="22.231857" y="81.768814"/>
+                        <vertex x="134" y="80"/>
+                        <vertex x="40" y="80"/>
                     </vertices>
                 </line>
-                <line name="Line" color="4294967295" type="2">
+                <line name="aaaaaa" color="4294967295" type="2">
                     <vertices>
                         <vertex x="39.039307" y="16.308243"/>
-                        <vertex x="211.9791" y="201.63245"/>
+                        <vertex x="211.9791" y="240"/>
                     </vertices>
                 </line>
             </lines>
