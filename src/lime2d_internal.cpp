@@ -656,7 +656,7 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
                                                 while (pVertex) {
                                                     float x = pVertex->FloatAttribute("x");
                                                     float y = pVertex->FloatAttribute("y");
-                                                    vertices.push_back(sf::Vertex(sf::Vector2f(x, y)));
+                                                    vertices.push_back(sf::Vertex(sf::Vector2f(x, y), color));
                                                     pVertex = pVertex->NextSiblingElement("vertex");
                                                 }
                                             }
@@ -1088,6 +1088,13 @@ void l2d_internal::Shape::setVertices(std::vector<sf::Vertex> vertices) {
 
 void l2d_internal::Shape::setObjectType(l2d_internal::ObjectTypes objectType) {
     this->_objectType = objectType;
+}
+
+void l2d_internal::Shape::setColor(sf::Color color) {
+    this->_color = color;
+    for (auto &v : this->_vertices) {
+        v.color = this->_color;
+    }
 }
 
 /*

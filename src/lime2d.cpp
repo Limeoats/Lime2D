@@ -180,6 +180,7 @@ void l2d::Editor::update(sf::Time t) {
         static bool removeAnimationWindowVisible = false;
         static bool cbShowEntityList = false;
         static bool showEntityProperties = false;
+        static bool shapeColorWindowVisible = false;
         static bool mainHasFocus = true;
 
         static sf::Vector2f mousePos(0.0f, 0.0f);
@@ -204,7 +205,7 @@ void l2d::Editor::update(sf::Time t) {
         static std::string selectedEntityName = "";
         static std::vector<sf::Vertex> selectedEntityVertices = {};
         static l2d_internal::ObjectTypes selectedEntityObjectType = l2d_internal::ObjectTypes::None;
-        static sf::Color selectedEntityColor = sf::Color::White;
+        static ImVec4 selectedEntityColor = sf::Color::White;
         static int selectedEntitySelectedObjectTypeIndex = -1;
         static std::shared_ptr<l2d_internal::Shape> selectedEntitySelectedShape = nullptr;
         static std::shared_ptr<l2d_internal::Shape> originalSelectedEntitySelectedShape = nullptr;
@@ -279,7 +280,7 @@ void l2d::Editor::update(sf::Time t) {
         //Set mainHasFocus (very important)
         //This tells Lime2D that it can draw tiles to the screen. We don't want it drawing if other windows have focus.
         mainHasFocus = !(tilesetWindowVisible || newMapBoxVisible || tilePropertiesWindowVisible || configWindowVisible || mapSelectBoxVisible || aboutBoxVisible || lightEditorWindowVisible || newAnimatedSpriteWindowVisible ||
-                         removeAnimationWindowVisible || cbShowEntityList);
+                         removeAnimationWindowVisible || cbShowEntityList || shapeColorWindowVisible);
 
         cbShowGridLines = this->_showGridLines;
         cbShowEntityList = this->_showEntityList;
@@ -987,6 +988,20 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::End();
         }
 
+        if (shapeColorWindowVisible) {
+            ImGui::SetNextWindowPosCenter();
+            ImGui::SetNextWindowSize(ImVec2(300, 400));
+            ImGui::Begin("Shape color editor", nullptr, ImVec2(300, 400), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
+            ImGui::Text("Shape color editor");
+            ImGui::Separator();
+            ImGui::ColorPicker3("", (float*)&selectedEntityColor);
+            ImGui::Separator();
+            if (ImGui::Button("Close")) {
+                shapeColorWindowVisible = false;
+            }
+            ImGui::End();
+        }
+
         /*
          * Entity list
          */
@@ -1067,7 +1082,9 @@ void l2d::Editor::update(sf::Time t) {
 
                 ImGui::PushID("SelectedEntityColor");
                 ImGui::PushItemWidth(200);
-                ImGui::ColorButton(ImVec4(selectedEntityColor.r, selectedEntityColor.g, selectedEntityColor.b, selectedEntityColor.a));
+                if (ImGui::ColorButton(selectedEntityColor)) {
+                    shapeColorWindowVisible = true;
+                }
                 ImGui::PopItemWidth();
                 ImGui::SameLine();
                 ImGui::Text("Color");
@@ -1103,10 +1120,11 @@ void l2d::Editor::update(sf::Time t) {
                 }
 
                 if (ImGui::Button("Update")) {
-                    //TODO: implement the color button
+                    //TODO: color button always starts out white. not sure why.
                     selectedEntitySelectedShape->setName(std::string(name));
                     selectedEntitySelectedShape->setVertices(selectedEntityVertices);
                     selectedEntitySelectedShape->setObjectType(static_cast<l2d_internal::ObjectTypes>(selectedEntitySelectedObjectTypeIndex));
+                    selectedEntitySelectedShape->setColor(selectedEntityColor);
                     this->_level.updateShape(originalSelectedEntitySelectedShape, selectedEntitySelectedShape);
                     this->_level.saveMap(this->_level.getName());
                     setOriginalToCurrent();

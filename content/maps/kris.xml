@@ -223,7 +223,7 @@
         <lights/>
         <shapes>
             <lines>
-                <line name="xxxxxxxxcvvvvvv" color="4294967295" type="1">
+                <line name="xxxxxxxxcvvvvvv" color="218504959" type="1">
                     <vertices>
                         <vertex x="82.999992" y="110"/>
                         <vertex x="143" y="12.000006"/>
