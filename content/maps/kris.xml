@@ -223,13 +223,13 @@
         <lights/>
         <shapes>
             <lines>
-                <line name="xxxxxxxxcvvvvvv" color="218504959" type="1">
+                <line name="asdfasdf" color="2898660095" type="2">
                     <vertices>
                         <vertex x="82.999992" y="110"/>
                         <vertex x="143" y="12.000006"/>
                     </vertices>
                 </line>
-                <line name="nice" color="4294967295" type="2">
+                <line name="xxxxxxxxcvvvvvv" color="3441105919" type="1">
                     <vertices>
                         <vertex x="134" y="80"/>
                         <vertex x="40" y="80"/>

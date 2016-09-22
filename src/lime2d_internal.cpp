@@ -1059,6 +1059,7 @@ void l2d_internal::Level::update(float elapsedTime) {
  */
 l2d_internal::Shape::Shape(std::string name, sf::Color color, l2d_internal::ObjectTypes objectType) {
     this->_name = name;
+    this->_color = color;
     this->_objectType = objectType;
 }
 

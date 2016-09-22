@@ -1006,6 +1006,7 @@ void l2d::Editor::update(sf::Time t) {
          * Entity list
          */
         if (cbShowEntityList) {
+            static bool loaded = false;
             auto setOriginalToCurrent = [&]() {
                 std::shared_ptr<l2d_internal::Line> l = std::dynamic_pointer_cast<l2d_internal::Line>(selectedEntitySelectedShape);
                 if (l != nullptr) {
@@ -1023,6 +1024,7 @@ void l2d::Editor::update(sf::Time t) {
                     std::string strId = strObjectType + std::to_string(i);
                     ImGui::PushID(strId.c_str());
                     if (ImGui::Selectable(otherShapes[i].get()->getName().c_str())) {
+                        loaded = false;
                         selectedEntityName = otherShapes[i].get()->getName();
                         selectedEntityColor = otherShapes[i].get()->getColor();
                         selectedEntityObjectType = otherShapes[i].get()->getObjectType();
@@ -1036,11 +1038,10 @@ void l2d::Editor::update(sf::Time t) {
                     ImGui::PopID();
                 }
             };
-            static bool loaded = false;
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(500, 450));
             ImGui::Begin("Entity list", nullptr, ImVec2(500, 300), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
-            ImGui::BeginChild("list", ImVec2(460, 180));
+            ImGui::BeginChild("list", ImVec2(482, 170), false, ImGuiWindowFlags_ShowBorders);
             if (ImGui::TreeNode("Entities")) {
                 if (ImGui::TreeNode("Objects")) {
                     if (ImGui::TreeNode("Collision")) {
@@ -1066,7 +1067,7 @@ void l2d::Editor::update(sf::Time t) {
             }
             ImGui::EndChild();
             ImGui::Separator();
-            ImGui::BeginChild("properties", ImVec2(460, 220));
+            ImGui::BeginChild("properties", ImVec2(482, 234), false, ImGuiWindowFlags_ShowBorders);
             if (showEntityProperties) {
                 ImGui::PushID("SelectedEntityName");
                 static char name[500] = "";
@@ -1082,7 +1083,7 @@ void l2d::Editor::update(sf::Time t) {
 
                 ImGui::PushID("SelectedEntityColor");
                 ImGui::PushItemWidth(200);
-                if (ImGui::ColorButton(selectedEntityColor)) {
+                if (ImGui::ColorButton(selectedEntityColor, false, true)) {
                     shapeColorWindowVisible = true;
                 }
                 ImGui::PopItemWidth();
@@ -1120,7 +1121,6 @@ void l2d::Editor::update(sf::Time t) {
                 }
 
                 if (ImGui::Button("Update")) {
-                    //TODO: color button always starts out white. not sure why.
                     selectedEntitySelectedShape->setName(std::string(name));
                     selectedEntitySelectedShape->setVertices(selectedEntityVertices);
                     selectedEntitySelectedShape->setObjectType(static_cast<l2d_internal::ObjectTypes>(selectedEntitySelectedObjectTypeIndex));
@@ -1128,6 +1128,7 @@ void l2d::Editor::update(sf::Time t) {
                     this->_level.updateShape(originalSelectedEntitySelectedShape, selectedEntitySelectedShape);
                     this->_level.saveMap(this->_level.getName());
                     setOriginalToCurrent();
+                    startStatusTimer("Entity saved successfully!", 200);
                 }
                 loaded = true;
 
