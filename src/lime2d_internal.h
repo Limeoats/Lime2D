@@ -1,4 +1,4 @@
-/*!
+/*
  * Lime2d_internal.h
  * By: Mark Guerra
  * Created on: 6/10/2016
