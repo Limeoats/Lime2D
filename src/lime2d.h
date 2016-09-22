@@ -37,6 +37,7 @@ namespace l2d {
         sf::Shader _ambientLight;
         std::vector<std::array<sf::Vertex, 2>> _gridLines;
         l2d_internal::DrawShapes _currentDrawShape;
+        l2d_internal::MapEditorMode _currentMapEditorMode;
     };
 }
 

@@ -34,6 +34,9 @@ namespace l2d_internal {
     enum class Features {
         None, Map, Animation
     };
+    enum class MapEditorMode {
+        None, Tile, Object
+    };
     enum class LightType {
         None, Ambient, Point
     };

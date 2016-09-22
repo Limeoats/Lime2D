@@ -31,7 +31,8 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
         _currentFeature(l2d_internal::Features::None),
         _graphics(new l2d_internal::Graphics(window)),
         _level(this->_graphics, "l2dSTART"),
-        _currentDrawShape(l2d_internal::DrawShapes::None)
+        _currentDrawShape(l2d_internal::DrawShapes::None),
+        _currentMapEditorMode(l2d_internal::MapEditorMode::None)
 {
     this->_enabled = enabled;
     ImGui::SFML::Init(*window);
@@ -57,7 +58,8 @@ void l2d::Editor::processEvent(sf::Event &event) {
         case sf::Event::KeyReleased:
             switch (event.key.code) {
                 case sf::Keyboard::T:
-                    if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map) {
+                    if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map &&
+                            this->_currentMapEditorMode == l2d_internal::MapEditorMode::Tile) {
                         this->_tilesetEnabled = !this->_tilesetEnabled;
                     }
                     break;
@@ -73,10 +75,17 @@ void l2d::Editor::processEvent(sf::Event &event) {
                     this->_level.redo();
                     break;
                 case sf::Keyboard::E:
-                    if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map) {
+                    if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map &&
+                            this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
                         this->_showEntityList = !this->_showEntityList;
                     }
                     break;
+                case sf::Keyboard::M:
+                    if (this->_currentFeature == l2d_internal::Features::Map) {
+                        this->_currentMapEditorMode =
+                                this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object ?
+                                l2d_internal::MapEditorMode::Tile : l2d_internal::MapEditorMode::Object;
+                    }
                 default:
                     break;
             }
@@ -106,7 +115,7 @@ void l2d::Editor::render() {
                 for (auto &t : this->_gridLines) {
                     this->_graphics->draw(t.data(), 2, sf::Lines);
                 }
-                if (this->_currentDrawShape == l2d_internal::DrawShapes::None) {
+                if (this->_currentDrawShape == l2d_internal::DrawShapes::None && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Tile) {
                     //Get the mouse position and draw a square around the correct grid tile
                     sf::Vector2f mousePos = this->_window->mapPixelToCoords(sf::Vector2i(
                             sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
@@ -630,7 +639,7 @@ void l2d::Editor::update(sf::Time t) {
                     cbAnimationEditor = false;
                     if (cbMapEditor) {
                         this->_currentFeature = l2d_internal::Features::Map;
-                        currentFeature = "Map Editor";
+                        this->_currentMapEditorMode = l2d_internal::MapEditorMode::Object;
                     }
                     else {
                         this->_currentFeature = l2d_internal::Features::None;
@@ -671,11 +680,11 @@ void l2d::Editor::update(sf::Time t) {
                     ImGui::Separator();
                     if (ImGui::BeginMenu("Add")) {
                         if (ImGui::BeginMenu("Light")) {
-                            if (ImGui::MenuItem("Ambient light")) {
+                            if (ImGui::MenuItem("Ambient light") && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
                                 lightEditorWindowVisible = true;
                                 selectedLightType = l2d_internal::LightType::Ambient;
                             }
-                            if (ImGui::MenuItem("Point light")) {
+                            if (ImGui::MenuItem("Point light") && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
                                 lightEditorWindowVisible = true;
                                 selectedLightType = l2d_internal::LightType::Point;
                             }
@@ -683,7 +692,7 @@ void l2d::Editor::update(sf::Time t) {
                         }
                         if (ImGui::BeginMenu("Object")) {
                             if (ImGui::BeginMenu("Draw shape")) {
-                                if (ImGui::MenuItem("Line")) {
+                                if (ImGui::MenuItem("Line") && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
                                     this->_currentDrawShape = l2d_internal::DrawShapes::Line;
                                 }
                                 ImGui::EndMenu();
@@ -695,10 +704,16 @@ void l2d::Editor::update(sf::Time t) {
                     if (ImGui::Checkbox("Show grid lines    G", &cbShowGridLines)) {
                         this->_showGridLines = cbShowGridLines;
                     }
-                    if (ImGui::Checkbox("Show entity list   E", &cbShowEntityList)) {
+                    if (ImGui::Checkbox("Show entity list   E", &cbShowEntityList) && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
                         this->_showEntityList = cbShowEntityList;
                     }
                     mainHasFocus = false;
+                }
+                ImGui::Separator();
+                if (ImGui::MenuItem("Toggle mode", "M")) {
+                    this->_currentMapEditorMode = this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object ?
+                                                  l2d_internal::MapEditorMode::Tile : l2d_internal::MapEditorMode::Object;
+
                 }
                 ImGui::EndMenu();
             }
@@ -741,24 +756,8 @@ void l2d::Editor::update(sf::Time t) {
         }
 
         if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map) {
-            //Right clicking on a tile
-            if (ImGui::IsMouseClicked(1)) {
-                mousePos = this->_window->mapPixelToCoords(sf::Vector2i(
-                        sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
-                        sf::Mouse::getPosition(*this->_window).y + static_cast<int>(this->_graphics->getView().getViewport().top)));
-                ImGui::OpenPopup("right click on tile");
-            }
-            if (ImGui::BeginPopup("right click on tile")) {
-                mainHasFocus = false;
-                if (ImGui::MenuItem("Properties")) {
-                    tilePropertiesWindowVisible = true;
-                }
-                ImGui::Separator();
-                ImGui::EndPopup();
-            }
-
             //Clicking on a tile normally
-            if (tileHasBeenSelected) {
+            if (tileHasBeenSelected && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Tile) {
                 sf::Vector2f drawingMousePos = this->_window->mapPixelToCoords(sf::Vector2i(
                         sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
                         sf::Mouse::getPosition(*this->_window).y + static_cast<int>(this->_graphics->getView().getViewport().top)));
@@ -783,56 +782,12 @@ void l2d::Editor::update(sf::Time t) {
                 }
             }
 
-            //Tile info window
-            if (tilePropertiesWindowVisible) {
-                ImGui::SetNextWindowPosCenter();
-                ImGui::SetNextWindowSize(ImVec2(340, 400));
-                ImGui::Begin("Properties", nullptr, ImVec2(340, 400), 100.0f);
-
-                sf::Vector2f tilePos(mousePos.x - ((int) mousePos.x % (int) (this->_level.getTileSize().x * std::stof(
-                        l2d_internal::utils::getConfigValue("tile_scale_x")))),
-                                     (mousePos.y - ((int) mousePos.y % (int) (this->_level.getTileSize().y *
-                                                                              std::stof(
-                                                                                      l2d_internal::utils::getConfigValue(
-                                                                                              "tile_scale_y"))))));
-                ImGui::Text("Select a tile to view specific properties:");
-                for(int i = 0; i < this->_level.getLayerList().size(); ++i) {
-                    std::for_each(this->_level.getLayerList()[i].get()->Tiles.begin(), this->_level.getLayerList()[i].get()->Tiles.end(), [&](const std::shared_ptr<l2d_internal::Tile> &tile) {
-                        if (tile.get()->getSprite().getPosition() == tilePos) {
-                            if (i > 0) {
-                                ImGui::SameLine();
-                            }
-                            if (ImGui::ImageButton(tile->getSprite(), sf::Vector2f(32.0f, 32.0f), 1, sf::Color::Transparent)) {
-                                showSpecificTilePropertiesTile = std::make_shared<l2d_internal::Tile>(*tile.get());
-                                showSpecificTilePropertiesLayer = std::make_shared<l2d_internal::Layer>(*this->_level.getLayerList()[i].get());
-                                showSpecificTileProperties = true;
-                            }
-                        }
-                    });
-                }
-                ImGui::Separator();
-                ImGui::Text("Position: %d, %d", (int)tilePos.x, (int)tilePos.y);
-                ImGui::Separator();
-                if (showSpecificTileProperties) {
-                    ImGui::Image(showSpecificTilePropertiesTile->getSprite(), sf::Vector2f(32.0f, 32.0f));
-                    ImGui::Text("Layer: %d", showSpecificTilePropertiesLayer->Id);
-                    if (ImGui::Button("Erase")) {
-                        this->_level.removeTile(showSpecificTilePropertiesLayer->Id, tilePos);
-                        showSpecificTileProperties = false;
-                    }
-                }
-                ImGui::Separator();
-                if (ImGui::Button("Close")) {
-                    showSpecificTileProperties = false;
-                    tilePropertiesWindowVisible = false;
-                }
-                ImGui::End();
-            }
             //Tileset open/close event
             tilesetWindowVisible = this->_tilesetEnabled;
 
             //Tileset window
-            if (tilesetWindowVisible && this->_currentFeature == l2d_internal::Features::Map) {
+            if (tilesetWindowVisible && this->_currentFeature == l2d_internal::Features::Map &&
+                    this->_currentMapEditorMode == l2d_internal::MapEditorMode::Tile) {
                 static int tilesetComboIndex = -1;
                 static bool showTilesetImage = false;
                 static sf::Texture tilesetTexture;
@@ -957,7 +912,7 @@ void l2d::Editor::update(sf::Time t) {
 
         }
 
-        if (lightEditorWindowVisible) {
+        if (lightEditorWindowVisible && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(300, 400));
             ImGui::Begin("Light editor", nullptr, ImVec2(300, 400), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
@@ -988,7 +943,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::End();
         }
 
-        if (shapeColorWindowVisible) {
+        if (shapeColorWindowVisible && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(300, 400));
             ImGui::Begin("Shape color editor", nullptr, ImVec2(300, 400), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
@@ -1005,7 +960,7 @@ void l2d::Editor::update(sf::Time t) {
         /*
          * Entity list
          */
-        if (cbShowEntityList) {
+        if (cbShowEntityList && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
             static bool loaded = false;
             auto setOriginalToCurrent = [&]() {
                 std::shared_ptr<l2d_internal::Line> l = std::dynamic_pointer_cast<l2d_internal::Line>(selectedEntitySelectedShape);
@@ -1138,7 +1093,7 @@ void l2d::Editor::update(sf::Time t) {
         }
 
         //Shape creation
-        if (this->_currentDrawShape == l2d_internal::DrawShapes::Line) {
+        if (this->_currentDrawShape == l2d_internal::DrawShapes::Line && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
             static sf::Vertex firstPoint = sf::Vertex(sf::Vector2f(-1,-1));
             sf::Vector2f drawingMousePos = this->_window->mapPixelToCoords(sf::Vector2i(
                     sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
@@ -1157,6 +1112,13 @@ void l2d::Editor::update(sf::Time t) {
                 firstPoint = sf::Vertex(sf::Vector2f(-1,-1));
             }
 
+        }
+
+        //Set the current feature to the correct map mode if the selected feature is map
+        if (this->_currentFeature == l2d_internal::Features::Map) {
+            std::stringstream ss;
+            ss << "Map Editor - " << (this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object ? "Object mode" : "Tile mode");
+            currentFeature = ss.str();
         }
 
 
