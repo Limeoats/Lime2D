@@ -126,7 +126,7 @@ namespace l2d_internal {
     private:
         std::map<std::string, std::vector<sf::IntRect>> _animations;
         std::map<std::string, sf::Vector2i> _offsets;
-        int _frameIndex;
+        unsigned int _frameIndex;
         float _timeElapsed;
         bool _visible;
     };
