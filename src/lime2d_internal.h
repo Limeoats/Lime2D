@@ -241,20 +241,13 @@ namespace l2d_internal {
     };
 
     /*
-     * The internal Line class for Lime2D
+     * The internal Rectangle class for Lime2D
      * Extends off of Shape
      */
-    class Line : public Shape {
+    class Rectangle : public Shape {
     public:
-        Line(std::string name, sf::Color color, l2d_internal::ObjectTypes objectType, std::vector<sf::Vertex> vertices);
-        std::vector<sf::Vertex> getVertices();
-        void setVertices(std::vector<sf::Vertex> vertices);
-        void updateVertexColors(sf::Color color);
-        virtual void draw(sf::RenderWindow* window) override;
-        virtual bool equals(std::shared_ptr<Shape> other) override;
-    private:
-        unsigned int _thickness;
-        std::vector<sf::Vertex> _vertices;
+        Rectangle(std::string name, sf::Color color, l2d_internal::ObjectTypes objectType, std::vector<sf::Vertex> vertices);
+        //TODO
     };
 
     /*

@@ -210,10 +210,7 @@ void l2d::Editor::update(sf::Time t) {
         static ImVec4 selectedEntityColor = sf::Color::White;
         static int selectedEntitySelectedObjectTypeIndex = -1;
 
-        //Line
-        static std::shared_ptr<l2d_internal::Line> selectedLine = nullptr;
-        static std::vector<sf::Vertex> selectedLineVertices;
-        static std::shared_ptr<l2d_internal::Line> originalSelectedLine = nullptr;
+        //Rectangle
 
 
         //Drawing tiles variables
@@ -972,13 +969,7 @@ void l2d::Editor::update(sf::Time t) {
                         loaded = false;
                         //Figure out what type of shape and fill the appropriate variable
                         //ALSO, SET THE REST TO NULL.
-                        std::shared_ptr<l2d_internal::Line> l = std::dynamic_pointer_cast<l2d_internal::Line>(otherShapes[i]);
-                        if (l != nullptr) {
-                            selectedLine = l;
-                            selectedLineVertices = l->getVertices();
-                            originalSelectedLine = std::make_shared<l2d_internal::Line>(l->getName(), l->getColor(), l->getObjectType(), l->getVertices());
-                            selectedEntityColor = l->getColor();
-                        }
+
                         showEntityProperties = true;
                     }
                     ImGui::PopID();
@@ -1018,7 +1009,7 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::PushID("SelectedEntityName");
                 static char name[500] = "";
                 if (!loaded) {
-                    strcpy(name, selectedLine != nullptr ? selectedLine->getName().c_str() : "");
+                    strcpy(name, "");
                 }
                 ImGui::PushItemWidth(200);
                 ImGui::InputText("Name", name, sizeof(name));
@@ -1042,44 +1033,14 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::PushID("SelectedEntityObjectType");
                 std::vector<const char*> objectTypeList = l2d_internal::utils::getObjectTypesForList();
                 if (!loaded) {
-                    selectedEntitySelectedObjectTypeIndex = static_cast<int>(selectedLine != nullptr ? selectedLine->getObjectType() : l2d_internal::ObjectTypes::None);
+                    selectedEntitySelectedObjectTypeIndex = static_cast<int>(l2d_internal::ObjectTypes::None);
                 }
                 ImGui::Combo("Object type", &selectedEntitySelectedObjectTypeIndex, &objectTypeList[0], static_cast<int>(objectTypeList.size()));
                 ImGui::PopID();
 
-                if (selectedLine != nullptr) {
-                    ImGui::Separator();
-                    ImGui::Text("Vertices:");
-                    ImGui::Separator();
-                    for (unsigned int i = 0; i < selectedLineVertices.size(); ++i) {
-                        std::string str = "SelectedEntityVertex" + std::to_string(i) + "X";
-                        ImGui::PushID(str.c_str());
-                        ImGui::PushItemWidth(180);
-                        ImGui::InputFloat("x", &selectedLineVertices[i].position.x, 0.01f, 1.0f, 2);
-                        ImGui::PopItemWidth();
-                        ImGui::PopID();
-                        str = "SelectedEntityVertex" + std::to_string(i) + "Y";
-                        ImGui::PushID(str.c_str());
-                        ImGui::PushItemWidth(180);
-                        ImGui::InputFloat("y", &selectedLineVertices[i].position.y, 0.01f, 1.0f, 2);
-                        ImGui::PopItemWidth();
-                        ImGui::PopID();
-                        ImGui::Separator();
-                    }
-                }
 
                 if (ImGui::Button("Update")) {
-                    if (selectedLine != nullptr) {
-                        selectedLine->setName(std::string(name));
-                        selectedLine->setObjectType(static_cast<l2d_internal::ObjectTypes>(selectedEntitySelectedObjectTypeIndex));
-                        selectedLine->setColor(selectedEntityColor);
-                        selectedLine->setVertices(selectedLineVertices);
-                        selectedLine->updateVertexColors(selectedEntityColor);
-                        this->_level.updateShape(originalSelectedLine, selectedLine);
-                        this->_level.saveMap(this->_level.getName());
-                        originalSelectedLine = std::make_shared<l2d_internal::Line>(selectedLine->getName(), selectedLine->getColor(), selectedLine->getObjectType(), selectedLine->getVertices());
-                        startStatusTimer("Entity saved successfully!", 200);
-                    }
+
                 }
                 loaded = true;
 
@@ -1089,24 +1050,7 @@ void l2d::Editor::update(sf::Time t) {
         }
 
         //Shape creation
-        if (this->_currentDrawShape == l2d_internal::DrawShapes::Line && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
-            static sf::Vertex firstPoint = sf::Vertex(sf::Vector2f(-1,-1));
-            sf::Vector2f drawingMousePos = this->_window->mapPixelToCoords(sf::Vector2i(
-                    sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
-                    sf::Mouse::getPosition(*this->_window).y + static_cast<int>(this->_graphics->getView().getViewport().top)));
-            if (ImGui::IsMouseClicked(0) && mainHasFocus && firstPoint.position.x == -1) {
-                //First click
-                firstPoint = drawingMousePos;
-                startStatusTimer("First point drawn. Click to create the second point.", 200);
-            }
-            if (ImGui::IsMouseClicked(0) && mainHasFocus && (firstPoint.position.x != drawingMousePos.x && firstPoint.position.y != drawingMousePos.y)) {
-                std::vector<sf::Vertex> vertices = {
-                        firstPoint, sf::Vertex(drawingMousePos)
-                };
-                std::shared_ptr<l2d_internal::Line> line = std::make_shared<l2d_internal::Line>("Line", sf::Color::White, l2d_internal::ObjectTypes::Other, vertices);
-                this->_level.addShape(line);
-                firstPoint = sf::Vertex(sf::Vector2f(-1,-1));
-            }
+        if (this->_currentDrawShape == l2d_internal::DrawShapes::Rectangle && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
 
         }
 

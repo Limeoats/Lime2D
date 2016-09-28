@@ -639,11 +639,11 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
             tx2::XMLElement* pShapes = pObjects->FirstChildElement("shapes");
             if (pShapes != nullptr) {
                 while (pShapes) {
-                    //Lines
-                    tx2::XMLElement* pLines = pShapes->FirstChildElement("lines");
+                    //Rectangles
+                    tx2::XMLElement* pLines = pShapes->FirstChildElement("rectangles");
                     if (pLines != nullptr) {
                         while (pLines) {
-                            tx2::XMLElement* pLine = pLines->FirstChildElement("line");
+                            tx2::XMLElement* pLine = pLines->FirstChildElement("rectangle");
                             if (pLine != nullptr) {
                                 while (pLine) {
                                     std::vector<sf::Vertex> vertices;
@@ -665,11 +665,11 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
                                             pVertices = pVertices->NextSiblingElement("vertices");
                                         }
                                     }
-                                    this->_shapeList.push_back(std::make_shared<l2d_internal::Line>(name, color, type, vertices));
-                                    pLine = pLine->NextSiblingElement("line");
+                                    this->_shapeList.push_back(std::make_shared<l2d_internal::Rectangle>(name, color, type, vertices));
+                                    pLine = pLine->NextSiblingElement("rectangle");
                                 }
                             }
-                            pLines = pLines->NextSiblingElement("lines");
+                            pLines = pLines->NextSiblingElement("rectangles");
                         }
                     }
                     pShapes = pShapes->NextSiblingElement("shapes");
@@ -781,25 +781,25 @@ void l2d_internal::Level::saveMap(std::string name) {
 
     //Shapes
     tx2::XMLElement* pShapes = document.NewElement("shapes");
-    tx2::XMLElement* pLines = document.NewElement("lines");
+    tx2::XMLElement* pRectangles = document.NewElement("rectangles");
     for (std::shared_ptr<l2d_internal::Shape> &shape: this->_shapeList) {
-        std::shared_ptr<l2d_internal::Line> l = std::dynamic_pointer_cast<l2d_internal::Line>(shape);
-        if (l != nullptr) {
-            tx2::XMLElement* pLine = document.NewElement("line");
-            pLine->SetAttribute("name", l->getName().c_str());
-            pLine->SetAttribute("color", l->getColor().toInteger());
-            pLine->SetAttribute("type", static_cast<int>(l->getObjectType()));
-            tx2::XMLElement* pVertices = document.NewElement("vertices");
-            for (unsigned int i = 0; i < l->getVertices().size(); ++i) {
-                tx2::XMLElement* pVertex = document.NewElement("vertex");
-                pVertex->SetAttribute("x", l->getVertices()[i].position.x);
-                pVertex->SetAttribute("y", l->getVertices()[i].position.y);
-                pVertices->InsertEndChild(pVertex);
-            }
-            pLine->InsertEndChild(pVertices);
-            pLines->InsertEndChild(pLine);
+        std::shared_ptr<l2d_internal::Rectangle> r = std::dynamic_pointer_cast<l2d_internal::Rectangle>(shape);
+        if (r != nullptr) {
+            tx2::XMLElement* pRectangle = document.NewElement("rectangle");
+//            pLine->SetAttribute("name", l->getName().c_str());
+//            pLine->SetAttribute("color", l->getColor().toInteger());
+//            pLine->SetAttribute("type", static_cast<int>(l->getObjectType()));
+//            tx2::XMLElement* pVertices = document.NewElement("vertices");
+//            for (unsigned int i = 0; i < l->getVertices().size(); ++i) {
+//                tx2::XMLElement* pVertex = document.NewElement("vertex");
+//                pVertex->SetAttribute("x", l->getVertices()[i].position.x);
+//                pVertex->SetAttribute("y", l->getVertices()[i].position.y);
+//                pVertices->InsertEndChild(pVertex);
+//            }
+//            pLine->InsertEndChild(pVertices);
+            pRectangles->InsertEndChild(pRectangle);
         }
-        pShapes->InsertEndChild(pLines);
+        pShapes->InsertEndChild(pRectangles);
     }
     pObjects->InsertEndChild(pShapes);
     pMap->InsertEndChild(pObjects);
@@ -1090,64 +1090,9 @@ void l2d_internal::Shape::setColor(sf::Color color) {
 }
 
 /*
- * Line
+ * Rectangle
  */
-
-l2d_internal::Line::Line(std::string name, sf::Color color, l2d_internal::ObjectTypes objectType, std::vector<sf::Vertex> vertices) :
-    l2d_internal::Shape(name, color, objectType)
-{
-    this->_thickness = 3;
-    for (unsigned int i = 0; i < 4; ++i) {
-        this->_vertices.push_back(sf::Vertex());
-    }
-
-    sf::Vector2f direction = vertices[1].position - vertices[0].position;
-    sf::Vector2f unitDirection = direction / std::sqrt(direction.x * direction.x + direction.y * direction.y);
-    sf::Vector2f unitPerpendicular(-unitDirection.y, unitDirection.x);
-
-    sf::Vector2f offset = (this->_thickness / 2.0f) * unitPerpendicular;
-
-    this->_vertices[0].position = vertices[0].position + offset;
-    this->_vertices[1].position = vertices[1].position + offset;
-    this->_vertices[2].position = vertices[1].position - offset;
-    this->_vertices[3].position = vertices[0].position - offset;
-
-    for (unsigned int i = 0; i < 4; ++i) {
-        this->_vertices[i].color =color;
-    }
-}
-
-std::vector<sf::Vertex> l2d_internal::Line::getVertices() {
-    return this->_vertices;
-}
-
-void l2d_internal::Line::setVertices(std::vector<sf::Vertex> vertices) {
-    this->_vertices = vertices;
-}
-
-void l2d_internal::Line::draw(sf::RenderWindow* window) {
-    window->draw(&this->_vertices[0], 4, sf::Quads);
-}
-
-void l2d_internal::Line::updateVertexColors(sf::Color color) {
-    for (auto &v : this->_vertices) {
-        v.color = color;
-    }
-}
-
-bool l2d_internal::Line::equals(std::shared_ptr<Shape> other) {
-    std::shared_ptr<l2d_internal::Line> l = std::dynamic_pointer_cast<l2d_internal::Line>(other);
-    return this->_color == l->getColor() &&
-            this->_name == l->getName() &&
-            this->_objectType == l->getObjectType() &&
-            ([&]()->bool {
-                if (this->_vertices.size() != l->getVertices().size()) return false;
-                for (unsigned int c = 0; c < this->_vertices.size(); ++c) {
-                    if (this->_vertices[c].position != l->getVertices()[c].position) return false;
-                }
-                return true;
-            })();
-}
+//TODO
 
 
 /*
