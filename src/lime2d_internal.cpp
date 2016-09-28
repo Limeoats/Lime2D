@@ -10,6 +10,8 @@
 #include <fstream>
 #include <tuple>
 #include <iostream>
+#include <cmath>
+#include <memory>
 
 #include "../libext/tinyxml2.h"
 #include "lime2d_internal.h"
@@ -1075,16 +1077,8 @@ sf::Color l2d_internal::Shape::getColor() const {
     return this->_color;
 }
 
-std::vector<sf::Vertex> l2d_internal::Shape::getVertices() const {
-    return this->_vertices;
-}
-
 void l2d_internal::Shape::setName(std::string name) {
     this->_name = name;
-}
-
-void l2d_internal::Shape::setVertices(std::vector<sf::Vertex> vertices) {
-    this->_vertices = vertices;
 }
 
 void l2d_internal::Shape::setObjectType(l2d_internal::ObjectTypes objectType) {
@@ -1093,9 +1087,6 @@ void l2d_internal::Shape::setObjectType(l2d_internal::ObjectTypes objectType) {
 
 void l2d_internal::Shape::setColor(sf::Color color) {
     this->_color = color;
-    for (auto &v : this->_vertices) {
-        v.color = this->_color;
-    }
 }
 
 /*
@@ -1105,25 +1096,54 @@ void l2d_internal::Shape::setColor(sf::Color color) {
 l2d_internal::Line::Line(std::string name, sf::Color color, l2d_internal::ObjectTypes objectType, std::vector<sf::Vertex> vertices) :
     l2d_internal::Shape(name, color, objectType)
 {
-    this->_vertices = vertices;
+    this->_thickness = 3;
+    for (unsigned int i = 0; i < 4; ++i) {
+        this->_vertices.push_back(sf::Vertex());
+    }
+
+    sf::Vector2f direction = vertices[1].position - vertices[0].position;
+    sf::Vector2f unitDirection = direction / std::sqrt(direction.x * direction.x + direction.y * direction.y);
+    sf::Vector2f unitPerpendicular(-unitDirection.y, unitDirection.x);
+
+    sf::Vector2f offset = (this->_thickness / 2.0f) * unitPerpendicular;
+
+    this->_vertices[0].position = vertices[0].position + offset;
+    this->_vertices[1].position = vertices[1].position + offset;
+    this->_vertices[2].position = vertices[1].position - offset;
+    this->_vertices[3].position = vertices[0].position - offset;
+
+    for (unsigned int i = 0; i < 4; ++i) {
+        this->_vertices[i].color =color;
+    }
 }
 
-std::vector<sf::Vertex> l2d_internal::Line::getVertices() const {
+std::vector<sf::Vertex> l2d_internal::Line::getVertices() {
     return this->_vertices;
 }
 
+void l2d_internal::Line::setVertices(std::vector<sf::Vertex> vertices) {
+    this->_vertices = vertices;
+}
+
 void l2d_internal::Line::draw(sf::RenderWindow* window) {
-    window->draw(&this->_vertices[0], 2, sf::Lines);
+    window->draw(&this->_vertices[0], 4, sf::Quads);
+}
+
+void l2d_internal::Line::updateVertexColors(sf::Color color) {
+    for (auto &v : this->_vertices) {
+        v.color = color;
+    }
 }
 
 bool l2d_internal::Line::equals(std::shared_ptr<Shape> other) {
-    return this->_color == other->getColor() &&
-            this->_name == other->getName() &&
-            this->_objectType == other->getObjectType() &&
+    std::shared_ptr<l2d_internal::Line> l = std::dynamic_pointer_cast<l2d_internal::Line>(other);
+    return this->_color == l->getColor() &&
+            this->_name == l->getName() &&
+            this->_objectType == l->getObjectType() &&
             ([&]()->bool {
-                if (this->_vertices.size() != other->getVertices().size()) return false;
+                if (this->_vertices.size() != l->getVertices().size()) return false;
                 for (unsigned int c = 0; c < this->_vertices.size(); ++c) {
-                    if (this->_vertices[c].position != other->getVertices()[c].position) return false;
+                    if (this->_vertices[c].position != l->getVertices()[c].position) return false;
                 }
                 return true;
             })();

@@ -206,18 +206,14 @@ void l2d::Editor::update(sf::Time t) {
         static std::string selectedAnimationFileName = "";
         static std::string selectedAnimationName = "";
 
-        static bool showSpecificTileProperties = false;
-        static std::shared_ptr<l2d_internal::Tile> showSpecificTilePropertiesTile = nullptr;
-        static std::shared_ptr<l2d_internal::Layer> showSpecificTilePropertiesLayer = nullptr;
-
         //Entity list variables
-        static std::string selectedEntityName = "";
-        static std::vector<sf::Vertex> selectedEntityVertices = {};
-        static l2d_internal::ObjectTypes selectedEntityObjectType = l2d_internal::ObjectTypes::None;
         static ImVec4 selectedEntityColor = sf::Color::White;
         static int selectedEntitySelectedObjectTypeIndex = -1;
-        static std::shared_ptr<l2d_internal::Shape> selectedEntitySelectedShape = nullptr;
-        static std::shared_ptr<l2d_internal::Shape> originalSelectedEntitySelectedShape = nullptr;
+
+        //Line
+        static std::shared_ptr<l2d_internal::Line> selectedLine = nullptr;
+        static std::vector<sf::Vertex> selectedLineVertices;
+        static std::shared_ptr<l2d_internal::Line> originalSelectedLine = nullptr;
 
 
         //Drawing tiles variables
@@ -962,12 +958,6 @@ void l2d::Editor::update(sf::Time t) {
          */
         if (cbShowEntityList && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
             static bool loaded = false;
-            auto setOriginalToCurrent = [&]() {
-                std::shared_ptr<l2d_internal::Line> l = std::dynamic_pointer_cast<l2d_internal::Line>(selectedEntitySelectedShape);
-                if (l != nullptr) {
-                    originalSelectedEntitySelectedShape = std::make_shared<l2d_internal::Line>(l->getName(), l->getColor(), l->getObjectType(), l->getVertices());
-                }
-            };
             auto fillObjectSection = [&](l2d_internal::ObjectTypes objectType, std::string strObjectType) {
                 std::vector<std::shared_ptr<l2d_internal::Shape>> otherShapes;
                 for (std::shared_ptr<l2d_internal::Shape> shape : this->_level.getShapeList()) {
@@ -980,14 +970,15 @@ void l2d::Editor::update(sf::Time t) {
                     ImGui::PushID(strId.c_str());
                     if (ImGui::Selectable(otherShapes[i].get()->getName().c_str())) {
                         loaded = false;
-                        selectedEntityName = otherShapes[i].get()->getName();
-                        selectedEntityColor = otherShapes[i].get()->getColor();
-                        selectedEntityObjectType = otherShapes[i].get()->getObjectType();
-                        selectedEntityVertices = otherShapes[i].get()->getVertices();
-                        selectedEntitySelectedShape = otherShapes[i];
-
-                        setOriginalToCurrent();
-
+                        //Figure out what type of shape and fill the appropriate variable
+                        //ALSO, SET THE REST TO NULL.
+                        std::shared_ptr<l2d_internal::Line> l = std::dynamic_pointer_cast<l2d_internal::Line>(otherShapes[i]);
+                        if (l != nullptr) {
+                            selectedLine = l;
+                            selectedLineVertices = l->getVertices();
+                            originalSelectedLine = std::make_shared<l2d_internal::Line>(l->getName(), l->getColor(), l->getObjectType(), l->getVertices());
+                            selectedEntityColor = l->getColor();
+                        }
                         showEntityProperties = true;
                     }
                     ImGui::PopID();
@@ -1027,7 +1018,7 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::PushID("SelectedEntityName");
                 static char name[500] = "";
                 if (!loaded) {
-                    strcpy(name, selectedEntityName.c_str());
+                    strcpy(name, selectedLine != nullptr ? selectedLine->getName().c_str() : "");
                 }
                 ImGui::PushItemWidth(200);
                 ImGui::InputText("Name", name, sizeof(name));
@@ -1051,39 +1042,44 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::PushID("SelectedEntityObjectType");
                 std::vector<const char*> objectTypeList = l2d_internal::utils::getObjectTypesForList();
                 if (!loaded) {
-                    selectedEntitySelectedObjectTypeIndex = static_cast<int>(selectedEntityObjectType);
+                    selectedEntitySelectedObjectTypeIndex = static_cast<int>(selectedLine != nullptr ? selectedLine->getObjectType() : l2d_internal::ObjectTypes::None);
                 }
                 ImGui::Combo("Object type", &selectedEntitySelectedObjectTypeIndex, &objectTypeList[0], static_cast<int>(objectTypeList.size()));
                 ImGui::PopID();
 
-                ImGui::Separator();
-                ImGui::Text("Vertices:");
-                ImGui::Separator();
-                for (unsigned int i = 0; i < selectedEntityVertices.size(); ++i) {
-                    std::string str = "SelectedEntityVertex" + std::to_string(i) + "X";
-                    ImGui::PushID(str.c_str());
-                    ImGui::PushItemWidth(180);
-                    ImGui::InputFloat("x", &selectedEntityVertices[i].position.x, 0.01f, 1.0f, 2);
-                    ImGui::PopItemWidth();
-                    ImGui::PopID();
-                    str = "SelectedEntityVertex" + std::to_string(i) + "Y";
-                    ImGui::PushID(str.c_str());
-                    ImGui::PushItemWidth(180);
-                    ImGui::InputFloat("y", &selectedEntityVertices[i].position.y, 0.01f, 1.0f, 2);
-                    ImGui::PopItemWidth();
-                    ImGui::PopID();
+                if (selectedLine != nullptr) {
                     ImGui::Separator();
+                    ImGui::Text("Vertices:");
+                    ImGui::Separator();
+                    for (unsigned int i = 0; i < selectedLineVertices.size(); ++i) {
+                        std::string str = "SelectedEntityVertex" + std::to_string(i) + "X";
+                        ImGui::PushID(str.c_str());
+                        ImGui::PushItemWidth(180);
+                        ImGui::InputFloat("x", &selectedLineVertices[i].position.x, 0.01f, 1.0f, 2);
+                        ImGui::PopItemWidth();
+                        ImGui::PopID();
+                        str = "SelectedEntityVertex" + std::to_string(i) + "Y";
+                        ImGui::PushID(str.c_str());
+                        ImGui::PushItemWidth(180);
+                        ImGui::InputFloat("y", &selectedLineVertices[i].position.y, 0.01f, 1.0f, 2);
+                        ImGui::PopItemWidth();
+                        ImGui::PopID();
+                        ImGui::Separator();
+                    }
                 }
 
                 if (ImGui::Button("Update")) {
-                    selectedEntitySelectedShape->setName(std::string(name));
-                    selectedEntitySelectedShape->setVertices(selectedEntityVertices);
-                    selectedEntitySelectedShape->setObjectType(static_cast<l2d_internal::ObjectTypes>(selectedEntitySelectedObjectTypeIndex));
-                    selectedEntitySelectedShape->setColor(selectedEntityColor);
-                    this->_level.updateShape(originalSelectedEntitySelectedShape, selectedEntitySelectedShape);
-                    this->_level.saveMap(this->_level.getName());
-                    setOriginalToCurrent();
-                    startStatusTimer("Entity saved successfully!", 200);
+                    if (selectedLine != nullptr) {
+                        selectedLine->setName(std::string(name));
+                        selectedLine->setObjectType(static_cast<l2d_internal::ObjectTypes>(selectedEntitySelectedObjectTypeIndex));
+                        selectedLine->setColor(selectedEntityColor);
+                        selectedLine->setVertices(selectedLineVertices);
+                        selectedLine->updateVertexColors(selectedEntityColor);
+                        this->_level.updateShape(originalSelectedLine, selectedLine);
+                        this->_level.saveMap(this->_level.getName());
+                        originalSelectedLine = std::make_shared<l2d_internal::Line>(selectedLine->getName(), selectedLine->getColor(), selectedLine->getObjectType(), selectedLine->getVertices());
+                        startStatusTimer("Entity saved successfully!", 200);
+                    }
                 }
                 loaded = true;
 

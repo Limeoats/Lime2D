@@ -223,22 +223,28 @@
         <lights/>
         <shapes>
             <lines>
-                <line name="asdfasdf" color="2898660095" type="2">
+                <line name="asdfasdf" color="1460144383" type="2">
                     <vertices>
-                        <vertex x="82.999992" y="110"/>
-                        <vertex x="143" y="12.000006"/>
+                        <vertex x="91" y="114.69939"/>
+                        <vertex x="150.67569" y="16.699392"/>
+                        <vertex x="148.11713" y="15.132929"/>
+                        <vertex x="88.117088" y="113.13293"/>
                     </vertices>
                 </line>
-                <line name="xxxxxxxxcvvvvvv" color="3441105919" type="1">
+                <line name="abcd" color="2522635007" type="2">
                     <vertices>
-                        <vertex x="134" y="80"/>
-                        <vertex x="40" y="80"/>
+                        <vertex x="134" y="71"/>
+                        <vertex x="40" y="71"/>
+                        <vertex x="40" y="74"/>
+                        <vertex x="134" y="74"/>
                     </vertices>
                 </line>
-                <line name="aaaaaa" color="4294967295" type="2">
+                <line name="aaaaaa" color="4278189823" type="2">
                     <vertices>
-                        <vertex x="39.039307" y="16.308243"/>
-                        <vertex x="211.9791" y="240"/>
+                        <vertex x="31.919088" y="21.813011"/>
+                        <vertex x="204.85886" y="245.50479"/>
+                        <vertex x="207.23227" y="243.66986"/>
+                        <vertex x="34.292496" y="19.978088"/>
                     </vertices>
                 </line>
             </lines>

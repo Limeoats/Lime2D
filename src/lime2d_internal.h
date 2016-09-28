@@ -230,17 +230,14 @@ namespace l2d_internal {
         l2d_internal::ObjectTypes getObjectType();
         sf::Color getColor() const;
         void setName(std::string name);
-        void setVertices(std::vector<sf::Vertex> vertices);
         void setObjectType(l2d_internal::ObjectTypes objectType);
         void setColor(sf::Color color);
         virtual void draw(sf::RenderWindow* window) = 0;
-        virtual std::vector<sf::Vertex> getVertices() const;
         virtual bool equals(std::shared_ptr<Shape> other) = 0;
     protected:
         std::string _name;
         l2d_internal::ObjectTypes _objectType;
         sf::Color _color = sf::Color::White;
-        std::vector<sf::Vertex> _vertices;
     };
 
     /*
@@ -250,9 +247,14 @@ namespace l2d_internal {
     class Line : public Shape {
     public:
         Line(std::string name, sf::Color color, l2d_internal::ObjectTypes objectType, std::vector<sf::Vertex> vertices);
-        virtual std::vector<sf::Vertex> getVertices() const override;
+        std::vector<sf::Vertex> getVertices();
+        void setVertices(std::vector<sf::Vertex> vertices);
+        void updateVertexColors(sf::Color color);
         virtual void draw(sf::RenderWindow* window) override;
         virtual bool equals(std::shared_ptr<Shape> other) override;
+    private:
+        unsigned int _thickness;
+        std::vector<sf::Vertex> _vertices;
     };
 
     /*
