@@ -221,7 +221,6 @@
     </tiles>
     <objects>
         <lights/>
-        <shapes>
-        </shapes>
+        <shapes/>
     </objects>
 </map>

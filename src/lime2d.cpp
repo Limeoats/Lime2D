@@ -28,11 +28,13 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
         _showEntityList(false),
         _eraserActive(false),
         _tilesetEnabled(false),
+        _mainHasFocus(true),
         _currentFeature(l2d_internal::Features::None),
         _graphics(new l2d_internal::Graphics(window)),
         _level(this->_graphics, "l2dSTART"),
         _currentDrawShape(l2d_internal::DrawShapes::None),
-        _currentMapEditorMode(l2d_internal::MapEditorMode::None)
+        _currentMapEditorMode(l2d_internal::MapEditorMode::None),
+        _currentEvent()
 {
     this->_enabled = enabled;
     ImGui::SFML::Init(*window);
@@ -48,6 +50,7 @@ void l2d::Editor::toggle() {
 
 void l2d::Editor::processEvent(sf::Event &event) {
     ImGui::SFML::ProcessEvent(event);
+    this->_currentEvent = event;
     switch (event.type) {
         case sf::Event::GainedFocus:
             this->_windowHasFocus = true;
@@ -161,6 +164,47 @@ void l2d::Editor::render() {
         rectangle.setFillColor(sf::Color::Black);
         rectangle.setPosition(0 + this->_graphics->getView().getViewport().left, this->_window->getSize().y - 30 + this->_graphics->getView().getViewport().top);
         this->_window->draw(rectangle);
+
+        //Shape creation
+        //Rectangles
+        if (this->_currentDrawShape == l2d_internal::DrawShapes::Rectangle && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_mainHasFocus) {
+            static sf::Vector2f mousePos = this->_window->mapPixelToCoords(sf::Vector2i(
+                    sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
+                    sf::Mouse::getPosition(*this->_window).y + static_cast<int>(this->_graphics->getView().getViewport().top)));
+            static sf::Vector2f startPos = mousePos;
+            static sf::Vector2f currentPosition;
+            static sf::RectangleShape box;
+            static bool started = false;
+            if (this->_currentEvent.type == sf::Event::MouseButtonPressed && this->_currentEvent.mouseButton.button == sf::Mouse::Left) {
+                mousePos = this->_window->mapPixelToCoords(sf::Vector2i(
+                        sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
+                        sf::Mouse::getPosition(*this->_window).y + static_cast<int>(this->_graphics->getView().getViewport().top)));
+                startPos.x = mousePos.x;
+                startPos.y = mousePos.y;
+            }
+            if (this->_currentEvent.type == sf::Event::MouseMoved && sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+                mousePos = this->_window->mapPixelToCoords(sf::Vector2i(
+                        sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
+                        sf::Mouse::getPosition(*this->_window).y + static_cast<int>(this->_graphics->getView().getViewport().top)));
+                currentPosition.x = mousePos.x - startPos.x;
+                currentPosition.y = mousePos.y - startPos.y;
+                box.setSize(currentPosition);
+                box.setPosition(startPos.x, startPos.y);
+                box.setOutlineThickness(3.0f);
+                box.setOutlineColor(sf::Color(105, 105, 105, 160));
+                box.setFillColor(sf::Color(169, 169, 169, 100));
+                started = true;
+                this->_window->draw(box); //Temporarily draw the box while it's being created
+            }
+            if (this->_currentEvent.type == sf::Event::MouseButtonReleased && this->_currentEvent.mouseButton.button == sf::Mouse::Left && started) {
+                std::cout << "added" << std::endl;
+                this->_level.addShape(std::make_shared<l2d_internal::Rectangle>("Rectangle", sf::Color::White, l2d_internal::ObjectTypes::Collision, box));
+                this->_currentEvent = sf::Event();
+                started = false;
+                this->_currentDrawShape = l2d_internal::DrawShapes::None; //Stop drawing rectangles and return to select mode
+            }
+        }
+
         ImGui::Render();
     }
 }
@@ -190,7 +234,6 @@ void l2d::Editor::update(sf::Time t) {
         static bool cbShowEntityList = false;
         static bool showEntityProperties = false;
         static bool shapeColorWindowVisible = false;
-        static bool mainHasFocus = true;
 
         static sf::Vector2f mousePos(0.0f, 0.0f);
 
@@ -281,7 +324,7 @@ void l2d::Editor::update(sf::Time t) {
 
         //Set mainHasFocus (very important)
         //This tells Lime2D that it can draw tiles to the screen. We don't want it drawing if other windows have focus.
-        mainHasFocus = !(tilesetWindowVisible || newMapBoxVisible || tilePropertiesWindowVisible || configWindowVisible || mapSelectBoxVisible || aboutBoxVisible || lightEditorWindowVisible || newAnimatedSpriteWindowVisible ||
+        this->_mainHasFocus = !(tilesetWindowVisible || newMapBoxVisible || tilePropertiesWindowVisible || configWindowVisible || mapSelectBoxVisible || aboutBoxVisible || lightEditorWindowVisible || newAnimatedSpriteWindowVisible ||
                          removeAnimationWindowVisible || cbShowEntityList || shapeColorWindowVisible);
 
         cbShowGridLines = this->_showGridLines;
@@ -605,7 +648,7 @@ void l2d::Editor::update(sf::Time t) {
 
         if (ImGui::BeginMainMenuBar()) {
             if (ImGui::BeginMenu("File")) {
-                mainHasFocus = false;
+                this->_mainHasFocus = false;
                 if (ImGui::MenuItem("Configure")) {
                     configWindowVisible = true;
                 }
@@ -615,19 +658,19 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Edit")) {
-                mainHasFocus = false;
+                this->_mainHasFocus = false;
                 if (ImGui::MenuItem("Undo", "U", false, !this->_level.isUndoListEmpty())) {
-                    mainHasFocus = false;
+                    this->_mainHasFocus = false;
                     this->_level.undo();
                 }
                 if (ImGui::MenuItem("Redo", "R", false, !this->_level.isRedoListEmpty())) {
-                    mainHasFocus = false;
+                    this->_mainHasFocus = false;
                     this->_level.redo();
                 }
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("View")) {
-                mainHasFocus = false;
+                this->_mainHasFocus = false;
                 if (ImGui::Checkbox("Map Editor", &cbMapEditor)) {
                     cbAnimationEditor = false;
                     if (cbMapEditor) {
@@ -653,20 +696,20 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Map", cbMapEditor)) {
-                mainHasFocus = false;
+                this->_mainHasFocus = false;
                 if (ImGui::MenuItem("New map")) {
                     newMapBoxVisible = true;
-                    mainHasFocus = false;
+                    this->_mainHasFocus = false;
                 }
                 if (ImGui::MenuItem("Load map")) {
                     mapSelectBoxVisible = true;
-                    mainHasFocus = false;
+                    this->_mainHasFocus = false;
                 }
                 if (this->_level.getName() != "l2dSTART") {
                     if (ImGui::MenuItem("Save map")) {
                         this->_level.saveMap(this->_level.getName());
                         startStatusTimer("Map saved successfully!", 200);
-                        mainHasFocus = false;
+                        this->_mainHasFocus = false;
                     }
                 }
                 if (this->_level.getName() != "l2dSTART") {
@@ -685,8 +728,8 @@ void l2d::Editor::update(sf::Time t) {
                         }
                         if (ImGui::BeginMenu("Object")) {
                             if (ImGui::BeginMenu("Draw shape")) {
-                                if (ImGui::MenuItem("Line") && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
-                                    this->_currentDrawShape = l2d_internal::DrawShapes::Line;
+                                if (ImGui::MenuItem("Rectangle") && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
+                                    this->_currentDrawShape = l2d_internal::DrawShapes::Rectangle;
                                 }
                                 ImGui::EndMenu();
                             }
@@ -700,7 +743,7 @@ void l2d::Editor::update(sf::Time t) {
                     if (ImGui::Checkbox("Show entity list   E", &cbShowEntityList) && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
                         this->_showEntityList = cbShowEntityList;
                     }
-                    mainHasFocus = false;
+                    this->_mainHasFocus = false;
                 }
                 ImGui::Separator();
                 if (ImGui::MenuItem("Toggle mode", "M")) {
@@ -716,16 +759,16 @@ void l2d::Editor::update(sf::Time t) {
                         newAnimatedSpriteWindowVisible = true;
                         newAnimationWindowVisible = false;
                         removeAnimationWindowVisible = false;
-                        mainHasFocus = false;
+                        this->_mainHasFocus = false;
                     }
                     if (ImGui::MenuItem("Animation", nullptr, false, animationSpriteSelectIndex > -1)) {
                         //Open new animation window
                         newAnimationWindowVisible = true;
                         newAnimatedSpriteWindowVisible = false;
                         removeAnimationWindowVisible = false;
-                        mainHasFocus = false;
+                        this->_mainHasFocus = false;
                     }
-                    mainHasFocus = false;
+                    this->_mainHasFocus = false;
                     ImGui::EndMenu();
                 }
                 if (ImGui::MenuItem("Delete selected animation", nullptr, false, animationSelectIndex > -1)) {
@@ -733,13 +776,13 @@ void l2d::Editor::update(sf::Time t) {
                     removeAnimationWindowVisible = true;
                     newAnimationWindowVisible = false;
                     newAnimatedSpriteWindowVisible = false;
-                    mainHasFocus = false;
+                    this->_mainHasFocus = false;
                 }
-                mainHasFocus = false;
+                this->_mainHasFocus = false;
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Help")) {
-                mainHasFocus = false;
+                this->_mainHasFocus = false;
                 if (ImGui::MenuItem("About Lime2D")) {
                     aboutBoxVisible = true;
                 }
@@ -755,7 +798,7 @@ void l2d::Editor::update(sf::Time t) {
                         sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
                         sf::Mouse::getPosition(*this->_window).y + static_cast<int>(this->_graphics->getView().getViewport().top)));
                 drawingMousePos = sf::Vector2f(std::floor(drawingMousePos.x), std::floor(drawingMousePos.y));
-                if (ImGui::IsMouseDown(0) && mainHasFocus) {
+                if (ImGui::IsMouseDown(0) && this->_mainHasFocus) {
                     sf::Vector2f tilePos(
                             (drawingMousePos.x - ((int) drawingMousePos.x % (int) (this->_level.getTileSize().x * std::stof(
                                     l2d_internal::utils::getConfigValue("tile_scale_x"))))) / this->_level.getTileSize().x /
@@ -1049,15 +1092,15 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::End();
         }
 
-        //Shape creation
-        if (this->_currentDrawShape == l2d_internal::DrawShapes::Rectangle && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
 
-        }
 
         //Set the current feature to the correct map mode if the selected feature is map
         if (this->_currentFeature == l2d_internal::Features::Map) {
             std::stringstream ss;
-            ss << "Map Editor - " << (this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object ? "Object mode" : "Tile mode");
+
+            ss << "Map Editor - " << (this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object ? "Object mode" : "Tile mode")
+               << (this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_currentDrawShape == l2d_internal::DrawShapes::Rectangle ? " - Rectangle" :
+                   this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_currentDrawShape == l2d_internal::DrawShapes::None ? " - Select" : "");
             currentFeature = ss.str();
         }
 

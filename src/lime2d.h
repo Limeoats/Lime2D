@@ -29,6 +29,7 @@ namespace l2d {
         bool _showEntityList;
         bool _eraserActive;
         bool _tilesetEnabled;
+        bool _mainHasFocus;
 
         l2d_internal::Features _currentFeature;
         sf::RenderWindow* _window;
@@ -38,6 +39,7 @@ namespace l2d {
         std::vector<std::array<sf::Vertex, 2>> _gridLines;
         l2d_internal::DrawShapes _currentDrawShape;
         l2d_internal::MapEditorMode _currentMapEditorMode;
+        sf::Event _currentEvent;
     };
 }
 

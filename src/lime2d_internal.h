@@ -246,8 +246,11 @@ namespace l2d_internal {
      */
     class Rectangle : public Shape {
     public:
-        Rectangle(std::string name, sf::Color color, l2d_internal::ObjectTypes objectType, std::vector<sf::Vertex> vertices);
-        //TODO
+        Rectangle(std::string name, sf::Color color, l2d_internal::ObjectTypes objectType, sf::RectangleShape rect);
+        virtual void draw(sf::RenderWindow* window) override;
+        virtual bool equals(std::shared_ptr<Shape> other) override;
+    private:
+        sf::RectangleShape _rect;
     };
 
     /*
