@@ -859,11 +859,11 @@ void l2d::Editor::update(sf::Time t) {
                     //Tileset grid
                     ImGui::SetItemAllowOverlap();
 
-                    for (int i = 0; i < (tilesetTexture.getSize().x / this->_level.getTileSize().x) + 1; ++i) {
+                    for (unsigned int i = 0; i < (tilesetTexture.getSize().x / this->_level.getTileSize().x) + 1; ++i) {
                         ImGui::GetWindowDrawList()->AddLine(ImVec2(pos.x + (i * tw), pos.y),
                                                             ImVec2(pos.x + (i * tw), pos.y + tilesetViewSize.y), ImColor(255,255,255,255));
                     }
-                    for (int i = 0; i < (tilesetTexture.getSize().y / this->_level.getTileSize().y) + 1; ++i) {
+                    for (unsigned int i = 0; i < (tilesetTexture.getSize().y / this->_level.getTileSize().y) + 1; ++i) {
                         ImGui::GetWindowDrawList()->AddLine(ImVec2(pos.x, pos.y + (i * th)),
                                                             ImVec2(pos.x + tilesetViewSize.x, pos.y + (i * th)), ImColor(255,255,255,255));
                     }
@@ -965,7 +965,7 @@ void l2d::Editor::update(sf::Time t) {
                         otherShapes.push_back(shape);
                     }
                 }
-                for (int i = 0; i < otherShapes.size(); ++i) {
+                for (unsigned int i = 0; i < otherShapes.size(); ++i) {
                     std::string strId = strObjectType + std::to_string(i);
                     ImGui::PushID(strId.c_str());
                     if (ImGui::Selectable(otherShapes[i].get()->getName().c_str())) {

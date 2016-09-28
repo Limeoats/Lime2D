@@ -583,7 +583,7 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
                             }
                             //Get the layer or start a new one
                             std::shared_ptr<Layer> l;
-                            for (int i = 0; i < this->_layerList.size(); ++i) {
+                            for (unsigned int i = 0; i < this->_layerList.size(); ++i) {
                                 if (this->_layerList[i]->Id == layer) {
                                     l = this->_layerList[i];
                                     break;
@@ -813,7 +813,7 @@ void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i ne
                                      sf::Vector2f destPos, int tilesetId, int layer) {
 
     static auto layerExists = [&]()->std::shared_ptr<Layer> {
-        for (int i = 0; i < this->_layerList.size(); ++i) {
+        for (unsigned int i = 0; i < this->_layerList.size(); ++i) {
             if (this->_layerList[i]->Id == layer) {
                 return this->_layerList[i];
             }
@@ -876,7 +876,7 @@ void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i ne
         this->_layerList.push_back(l);
     }
 
-    for (int i = 0; i < l.get()->Tiles.size(); ++i) {
+    for (unsigned int i = 0; i < l.get()->Tiles.size(); ++i) {
         auto tile = l.get()->Tiles[i];
         int tileLayer = tile.get()->getLayer();
         sf::Vector2f tilePos(tile.get()->getSprite().getPosition().x / this->_tileSize.x /
@@ -941,7 +941,7 @@ void l2d_internal::Level::removeTile(int layer, sf::Vector2f pos) {
         }
     }
 
-    for (int i = 0; i < l.get()->Tiles.size(); ++i) {
+    for (unsigned int i = 0; i < l.get()->Tiles.size(); ++i) {
         auto tile = l.get()->Tiles[i];
         int tileLayer = tile.get()->getLayer();
         sf::Vector2f tilePos(tile.get()->getSprite().getPosition().x / this->_tileSize.x /
@@ -1279,7 +1279,7 @@ void l2d_internal::LuaScript::lua_save(std::string globalKey) {
     if (os.is_open()) {
         std::function<void(std::vector<std::string>, std::string)> doSubKeys = [&](std::vector<std::string> keys, std::string currentKey) {
             level = std::count(currentKey.begin(), currentKey.end(), '.') + 1;
-            for (int i = 0; i < keys.size(); ++i) {
+            for (unsigned int i = 0; i < keys.size(); ++i) {
                 tab();
                 os << keys[i] << " = ";
                 if (this->getTableKeys(currentKey + "." + keys[i]).size() > 0) {
