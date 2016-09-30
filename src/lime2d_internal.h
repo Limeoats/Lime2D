@@ -228,16 +228,20 @@ namespace l2d_internal {
         Shape(std::string name, sf::Color color, l2d_internal::ObjectTypes objectType);
         std::string getName();
         l2d_internal::ObjectTypes getObjectType();
-        sf::Color getColor() const;
+        virtual sf::Color getColor() const;
         void setName(std::string name);
         void setObjectType(l2d_internal::ObjectTypes objectType);
-        void setColor(sf::Color color);
+        virtual void setColor(sf::Color color);
+        virtual bool isPointInside(sf::Vector2f point) = 0;
+        virtual void select() = 0;
+        virtual void unselect() = 0;
         virtual void draw(sf::RenderWindow* window) = 0;
         virtual bool equals(std::shared_ptr<Shape> other) = 0;
     protected:
         std::string _name;
         l2d_internal::ObjectTypes _objectType;
         sf::Color _color = sf::Color::White;
+        bool _selected;
     };
 
     /*
@@ -247,6 +251,13 @@ namespace l2d_internal {
     class Rectangle : public Shape {
     public:
         Rectangle(std::string name, sf::Color color, l2d_internal::ObjectTypes objectType, sf::RectangleShape rect);
+        sf::RectangleShape getRectangle();
+        virtual sf::Color getColor() const override;
+        virtual void setColor(sf::Color color) override;
+        virtual void setRotation(float rotation);
+        virtual bool isPointInside(sf::Vector2f point) override;
+        virtual void select() override;
+        virtual void unselect() override;
         virtual void draw(sf::RenderWindow* window) override;
         virtual bool equals(std::shared_ptr<Shape> other) override;
     private:

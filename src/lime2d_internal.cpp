@@ -640,36 +640,40 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
             if (pShapes != nullptr) {
                 while (pShapes) {
                     //Rectangles
-                    tx2::XMLElement* pLines = pShapes->FirstChildElement("rectangles");
-                    if (pLines != nullptr) {
-                        while (pLines) {
-//                            tx2::XMLElement* pLine = pLines->FirstChildElement("rectangle");
-//                            if (pLine != nullptr) {
-//                                while (pLine) {
-//                                    std::vector<sf::Vertex> vertices;
-//                                    std::string name = pLine->Attribute("name");
-//                                    sf::Color color = sf::Color(static_cast<sf::Uint32>(pLine->IntAttribute("color")));
-//                                    l2d_internal::ObjectTypes type = static_cast<l2d_internal::ObjectTypes>(pLine->IntAttribute("type"));
-//                                    tx2::XMLElement* pVertices = pLine->FirstChildElement("vertices");
-//                                    if (pVertices != nullptr) {
-//                                        while (pVertices) {
-//                                            tx2::XMLElement* pVertex = pVertices->FirstChildElement("vertex");
-//                                            if (pVertex != nullptr) {
-//                                                while (pVertex) {
-//                                                    float x = pVertex->FloatAttribute("x");
-//                                                    float y = pVertex->FloatAttribute("y");
-//                                                    vertices.push_back(sf::Vertex(sf::Vector2f(x, y), color));
-//                                                    pVertex = pVertex->NextSiblingElement("vertex");
-//                                                }
-//                                            }
-//                                            pVertices = pVertices->NextSiblingElement("vertices");
-//                                        }
-//                                    }
-//                                    //this->_shapeList.push_back(std::make_shared<l2d_internal::Rectangle>(name, color, type, vertices));
-//                                    pLine = pLine->NextSiblingElement("rectangle");
-//                                }
-//                            }
-                            pLines = pLines->NextSiblingElement("rectangles");
+                    tx2::XMLElement* pRectangles = pShapes->FirstChildElement("rectangles");
+                    if (pRectangles != nullptr) {
+                        while (pRectangles) {
+                            tx2::XMLElement* pRectangle = pRectangles->FirstChildElement("rectangle");
+                            if (pRectangle != nullptr) {
+                                while (pRectangle) {
+                                    std::string name = pRectangle->Attribute("name");
+                                    sf::Color color = sf::Color(
+                                            static_cast<sf::Uint32>(pRectangle->IntAttribute("color")));
+                                    l2d_internal::ObjectTypes type = static_cast<l2d_internal::ObjectTypes>(pRectangle->IntAttribute(
+                                            "type"));
+                                    sf::Vector2f position;
+                                    sf::Vector2f size;
+                                    tx2::XMLElement *pRectanglePosition = pRectangle->FirstChildElement("pos");
+                                    if (pRectanglePosition != nullptr) {
+                                        position.x = pRectanglePosition->FloatAttribute("x");
+                                        position.y = pRectanglePosition->FloatAttribute("y");
+                                    }
+                                    tx2::XMLElement *pRectangleSize = pRectangle->FirstChildElement("size");
+                                    if (pRectangleSize != nullptr) {
+                                        size.x = pRectangleSize->FloatAttribute("w");
+                                        size.y = pRectangleSize->FloatAttribute("h");
+                                    }
+                                    sf::RectangleShape rect;
+                                    rect.setPosition(position);
+                                    rect.setSize(size);
+                                    rect.setFillColor(color);
+                                    rect.setOutlineThickness(2.0f);
+                                    rect.setOutlineColor(sf::Color(color.r, color.g, color.b, 160));
+                                    this->_shapeList.push_back(std::make_shared<l2d_internal::Rectangle>(name, color, type, rect));
+                                    pRectangle = pRectangle->NextSiblingElement("rectangle");
+                                }
+                                pRectangles = pRectangles->NextSiblingElement("rectangles");
+                            }
                         }
                     }
                     pShapes = pShapes->NextSiblingElement("shapes");
@@ -786,17 +790,17 @@ void l2d_internal::Level::saveMap(std::string name) {
         std::shared_ptr<l2d_internal::Rectangle> r = std::dynamic_pointer_cast<l2d_internal::Rectangle>(shape);
         if (r != nullptr) {
             tx2::XMLElement* pRectangle = document.NewElement("rectangle");
-//            pLine->SetAttribute("name", l->getName().c_str());
-//            pLine->SetAttribute("color", l->getColor().toInteger());
-//            pLine->SetAttribute("type", static_cast<int>(l->getObjectType()));
-//            tx2::XMLElement* pVertices = document.NewElement("vertices");
-//            for (unsigned int i = 0; i < l->getVertices().size(); ++i) {
-//                tx2::XMLElement* pVertex = document.NewElement("vertex");
-//                pVertex->SetAttribute("x", l->getVertices()[i].position.x);
-//                pVertex->SetAttribute("y", l->getVertices()[i].position.y);
-//                pVertices->InsertEndChild(pVertex);
-//            }
-//            pLine->InsertEndChild(pVertices);
+            pRectangle->SetAttribute("name", r->getName().c_str());
+            pRectangle->SetAttribute("color", r->getColor().toInteger());
+            pRectangle->SetAttribute("type", static_cast<int>(r->getObjectType()));
+            tx2::XMLElement* pRectanglePosition = document.NewElement("pos");
+            pRectanglePosition->SetAttribute("x", r->getRectangle().getPosition().x);
+            pRectanglePosition->SetAttribute("y", r->getRectangle().getPosition().y);
+            pRectangle->InsertEndChild(pRectanglePosition);
+            tx2::XMLElement* pRectangleSize = document.NewElement("size");
+            pRectangleSize->SetAttribute("w", r->getRectangle().getSize().x);
+            pRectangleSize->SetAttribute("h", r->getRectangle().getSize().y);
+            pRectangle->InsertEndChild(pRectangleSize);
             pRectangles->InsertEndChild(pRectangle);
         }
         pShapes->InsertEndChild(pRectangles);
@@ -1063,6 +1067,7 @@ l2d_internal::Shape::Shape(std::string name, sf::Color color, l2d_internal::Obje
     this->_name = name;
     this->_color = color;
     this->_objectType = objectType;
+    this->_selected = false;
 }
 
 std::string l2d_internal::Shape::getName() {
@@ -1098,6 +1103,53 @@ l2d_internal::Rectangle::Rectangle(std::string name, sf::Color color, l2d_intern
     Shape(name, color, objectType)
 {
     this->_rect = rect;
+}
+
+sf::RectangleShape l2d_internal::Rectangle::getRectangle() {
+    return this->_rect;
+}
+
+sf::Color l2d_internal::Rectangle::getColor() const {
+    return this->_rect.getFillColor();
+}
+
+void l2d_internal::Rectangle::setColor(sf::Color color) {
+    this->_rect.setFillColor(color);
+    this->_rect.setOutlineColor(sf::Color(color.r, color.g, color.b, 160));
+}
+
+void l2d_internal::Rectangle::setRotation(float rotation) {
+    this->_rect.setRotation(rotation);
+}
+
+bool l2d_internal::Rectangle::isPointInside(sf::Vector2f point) {
+    sf::Rect<float> r(this->_rect.getPosition().x, this->_rect.getPosition().y, this->_rect.getSize().x, this->_rect.getSize().y);
+    sf::Rect<float> r2(point.x, point.y, 1, 1);
+    return r.intersects(r2);
+}
+
+void l2d_internal::Rectangle::select() {
+    if (!this->_selected) {
+        this->_selected = true;
+        this->_rect.setOutlineThickness(this->_rect.getOutlineThickness() + 1);
+        this->_rect.setFillColor(sf::Color(std::min(255, this->_rect.getFillColor().r + 16),
+                                           std::min(255, this->_rect.getFillColor().g + 16),
+                                           std::min(255, this->_rect.getFillColor().b + 16),
+                                           std::min(255, this->_rect.getFillColor().a + 16)
+        ));
+    }
+}
+
+void l2d_internal::Rectangle::unselect() {
+    if (this->_selected) {
+        this->_selected = false;
+        this->_rect.setOutlineThickness(this->_rect.getOutlineThickness() - 1);
+        this->_rect.setFillColor(sf::Color(std::max(0, this->_rect.getFillColor().r - 16),
+                                           std::max(0, this->_rect.getFillColor().g - 16),
+                                           std::max(0, this->_rect.getFillColor().b - 16),
+                                           std::max(0, this->_rect.getFillColor().a - 16)
+        ));
+    }
 }
 
 void l2d_internal::Rectangle::draw(sf::RenderWindow *window) {
