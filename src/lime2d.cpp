@@ -187,6 +187,18 @@ void l2d::Editor::render() {
                 mousePos = this->_window->mapPixelToCoords(sf::Vector2i(
                         sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
                         sf::Mouse::getPosition(*this->_window).y + static_cast<int>(this->_graphics->getView().getViewport().top)));
+
+                //Check rectangle bounds to make sure it is not drawn outside of the map
+                mousePos.x = std::max(0.0f, mousePos.x);
+                mousePos.x = std::min(this->_level.getSize().x *
+                                              std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")) *
+                                              this->_level.getTileSize().x, mousePos.x);
+                mousePos.y = std::max(0.0f, mousePos.y);
+                mousePos.y = std::min(this->_level.getSize().y *
+                                              std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")) *
+                                              this->_level.getTileSize().y, mousePos.y);
+
+
                 currentPosition.x = mousePos.x - startPos.x;
                 currentPosition.y = mousePos.y - startPos.y;
                 rect.setSize(currentPosition);
@@ -195,6 +207,7 @@ void l2d::Editor::render() {
                 rect.setOutlineThickness(2.0f);
                 rect.setOutlineColor(sf::Color(0, 0, 0, 160));
                 started = true;
+
                 this->_window->draw(rect); //Temporarily draw the box while it's being created
             }
             if (this->_currentEvent.type == sf::Event::MouseButtonReleased && this->_currentEvent.mouseButton.button == sf::Mouse::Left && started) {
