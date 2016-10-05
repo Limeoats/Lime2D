@@ -1059,6 +1059,7 @@ void l2d::Editor::update(sf::Time t) {
                         loaded = false;
                         //Figure out what type of shape and fill the appropriate variable
                         //ALSO, SET THE REST TO NULL.
+                        otherShapes[i]->select();
                         auto s = std::dynamic_pointer_cast<l2d_internal::Rectangle>(otherShapes[i]);
                         if (s != nullptr) {
                             selectedEntityRectangle = s;
