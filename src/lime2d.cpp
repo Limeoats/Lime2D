@@ -308,6 +308,7 @@ void l2d::Editor::update(sf::Time t) {
         static bool cbShowEntityList = false;
         static bool showEntityProperties = false;
         static bool shapeColorWindowVisible = false;
+        static bool entityPropertiesLoaded = false;
 
         static sf::Vector2f mousePos(0.0f, 0.0f);
 
@@ -1073,6 +1074,21 @@ void l2d::Editor::update(sf::Time t) {
             this->_removingShape = false;
         }
         if (ImGui::BeginPopup("right_click_shape")) {
+            if (ImGui::MenuItem("Edit shape")) {
+                auto r = std::dynamic_pointer_cast<l2d_internal::Rectangle>(this->_selectedShape);
+                if (r != nullptr) {
+                    selectedEntityRectangle = r;
+                    originalSelectedEntityRectangle = std::make_shared<l2d_internal::Rectangle>(
+                            r->getName(),
+                            r->getColor(),
+                            r->getObjectType(),
+                            r->getRectangle());
+                    selectedEntityColor = this->_selectedShape->getColor();
+                    selectedEntitySelectedObjectTypeIndex = static_cast<int>(this->_selectedShape->getObjectType());
+                    showEntityProperties = true;
+                }
+            }
+            ImGui::Separator();
             if (ImGui::MenuItem("Delete shape")) {
                 this->_level.removeShape(this->_selectedShape);
                 this->_selectedShape = nullptr;
@@ -1084,7 +1100,6 @@ void l2d::Editor::update(sf::Time t) {
          * Entity list
          */
         if (cbShowEntityList && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
-            static bool loaded = false;
             auto fillObjectSection = [&](l2d_internal::ObjectTypes objectType, std::string strObjectType) {
                 std::vector<std::shared_ptr<l2d_internal::Shape>> otherShapes;
                 for (std::shared_ptr<l2d_internal::Shape> shape : this->_level.getShapeList()) {
@@ -1096,14 +1111,17 @@ void l2d::Editor::update(sf::Time t) {
                     std::string strId = strObjectType + std::to_string(i);
                     ImGui::PushID(strId.c_str());
                     if (ImGui::Selectable(otherShapes[i].get()->getName().c_str())) {
-                        loaded = false;
+                        entityPropertiesLoaded = false;
                         //Figure out what type of shape and fill the appropriate variable
                         //ALSO, SET THE REST TO NULL.
                         otherShapes[i]->select();
                         auto s = std::dynamic_pointer_cast<l2d_internal::Rectangle>(otherShapes[i]);
                         if (s != nullptr) {
                             selectedEntityRectangle = s;
-                            originalSelectedEntityRectangle = std::make_shared<l2d_internal::Rectangle>(s->getName(), s->getColor(), s->getObjectType(), s->getRectangle());
+                            originalSelectedEntityRectangle = std::make_shared<l2d_internal::Rectangle>(s->getName(),
+                                                                                                        s->getColor(),
+                                                                                                        s->getObjectType(),
+                                                                                                        s->getRectangle());
                         }
                         selectedEntityColor = otherShapes[i]->getColor();
                         selectedEntitySelectedObjectTypeIndex = static_cast<int>(otherShapes[i]->getObjectType());
@@ -1114,9 +1132,10 @@ void l2d::Editor::update(sf::Time t) {
                 }
             };
             ImGui::SetNextWindowPosCenter();
-            ImGui::SetNextWindowSize(ImVec2(500, 450));
-            ImGui::Begin("Entity list", nullptr, ImVec2(500, 300), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
-            ImGui::BeginChild("list", ImVec2(482, 170), false, ImGuiWindowFlags_ShowBorders);
+            ImGui::SetNextWindowSize(ImVec2(500, 300));
+            ImGui::Begin("Entity list", nullptr, ImVec2(500, 300), 100.0f,
+                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar |
+                         ImGuiWindowFlags_ShowBorders);
             if (ImGui::TreeNode("Entities")) {
                 if (ImGui::TreeNode("Objects")) {
                     if (ImGui::TreeNode("Collision")) {
@@ -1130,7 +1149,8 @@ void l2d::Editor::update(sf::Time t) {
                     ImGui::TreePop();
                 }
                 if (ImGui::TreeNode("Lights")) {
-                    if (this->_level.getAmbientColor() != sf::Color::White && this->_level.getAmbientIntensity() != 1.0f) {
+                    if (this->_level.getAmbientColor() != sf::Color::White &&
+                        this->_level.getAmbientIntensity() != 1.0f) {
                         if (ImGui::Selectable("Ambient light!")) {
                             selectedLightType = l2d_internal::LightType::Ambient;
                             lightEditorWindowVisible = true;
@@ -1140,66 +1160,66 @@ void l2d::Editor::update(sf::Time t) {
                 }
                 ImGui::TreePop();
             }
-            ImGui::EndChild();
-            ImGui::Separator();
-            ImGui::BeginChild("properties", ImVec2(482, 234), false, ImGuiWindowFlags_ShowBorders);
-            if (showEntityProperties) {
-                ImGui::PushID("SelectedEntityName");
-                static char name[500] = "";
-                if (!loaded) {
-                    strcpy(name, selectedEntityRectangle != nullptr ? selectedEntityRectangle->getName().c_str() : "");
-                }
-                ImGui::PushItemWidth(200);
-                ImGui::InputText("Name", name, sizeof(name));
-                ImGui::PopItemWidth();
-                ImGui::PopID();
-
-                ImGui::Separator();
-
-                ImGui::PushID("SelectedEntityColor");
-                ImGui::PushItemWidth(200);
-                if (ImGui::ColorButton(selectedEntityColor, false, true)) {
-                    shapeColorWindowVisible = true;
-                }
-                ImGui::PopItemWidth();
-                ImGui::SameLine();
-                ImGui::Text("Color");
-                ImGui::PopID();
-
-                ImGui::Separator();
-
-                ImGui::PushID("SelectedEntityObjectType");
-                std::vector<const char*> objectTypeList = l2d_internal::utils::getObjectTypesForList();
-                if (!loaded) {
-                    selectedEntitySelectedObjectTypeIndex = static_cast<int>(selectedEntityRectangle->getObjectType());
-                }
-                ImGui::Combo("Object type", &selectedEntitySelectedObjectTypeIndex, &objectTypeList[0], static_cast<int>(objectTypeList.size()));
-                ImGui::PopID();
-
-                if (selectedEntityRectangle != nullptr) {
-                    ImGui::Separator();
-                    static float rotation = 0.0f;
-                    ImGui::SliderFloat("Rotation", &rotation, 0.0f, 360.0f);
-                    selectedEntityRectangle->setRotation(rotation);
-                }
-
-                if (ImGui::Button("Update")) {
-                    if (selectedEntityRectangle != nullptr) {
-                        selectedEntityRectangle->setName(name);
-                        selectedEntityRectangle->setColor(selectedEntityColor);
-                        selectedEntityRectangle->setObjectType(static_cast<l2d_internal::ObjectTypes>(selectedEntitySelectedObjectTypeIndex));
-                        this->_level.updateShape(originalSelectedEntityRectangle, selectedEntityRectangle);
-                        this->_level.saveMap(this->_level.getName());
-                        startStatusTimer("Rectangle saved successfully!", 200);
-                    }
-                }
-                loaded = true;
-
-            }
-            ImGui::EndChild();
             ImGui::End();
         }
+        if (showEntityProperties) {
+            ImGui::Begin("Properties", nullptr, ImVec2(482, 234), 100.0f, ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
+            ImGui::PushID("SelectedEntityName");
+            static char name[500] = "";
+            if (!entityPropertiesLoaded) {
+                strcpy(name, selectedEntityRectangle != nullptr ? selectedEntityRectangle->getName().c_str() : "");
+            }
+            ImGui::PushItemWidth(200);
+            ImGui::InputText("Name", name, sizeof(name));
+            ImGui::PopItemWidth();
+            ImGui::PopID();
 
+            ImGui::Separator();
+
+            ImGui::PushID("SelectedEntityColor");
+            ImGui::PushItemWidth(200);
+            if (ImGui::ColorButton(selectedEntityColor, false, true)) {
+                shapeColorWindowVisible = true;
+            }
+            ImGui::PopItemWidth();
+            ImGui::SameLine();
+            ImGui::Text("Color");
+            ImGui::PopID();
+
+            ImGui::Separator();
+
+            ImGui::PushID("SelectedEntityObjectType");
+            std::vector<const char*> objectTypeList = l2d_internal::utils::getObjectTypesForList();
+            if (!entityPropertiesLoaded) {
+                selectedEntitySelectedObjectTypeIndex = static_cast<int>(selectedEntityRectangle->getObjectType());
+            }
+            ImGui::Combo("Object type", &selectedEntitySelectedObjectTypeIndex, &objectTypeList[0], static_cast<int>(objectTypeList.size()));
+            ImGui::PopID();
+
+            if (selectedEntityRectangle != nullptr) {
+                ImGui::Separator();
+                static float rotation = 0.0f;
+                ImGui::SliderFloat("Rotation", &rotation, 0.0f, 360.0f);
+                selectedEntityRectangle->setRotation(rotation);
+            }
+
+            if (ImGui::Button("Update")) {
+                if (selectedEntityRectangle != nullptr) {
+                    selectedEntityRectangle->setName(name);
+                    selectedEntityRectangle->setColor(selectedEntityColor);
+                    selectedEntityRectangle->setObjectType(static_cast<l2d_internal::ObjectTypes>(selectedEntitySelectedObjectTypeIndex));
+                    this->_level.updateShape(originalSelectedEntityRectangle, selectedEntityRectangle);
+                    this->_level.saveMap(this->_level.getName());
+                    startStatusTimer("Rectangle saved successfully!", 200);
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Close")) {
+                showEntityProperties = false;
+            }
+            entityPropertiesLoaded = true;
+            ImGui::End();
+        }
 
 
         //Set the current feature to the correct map mode if the selected feature is map

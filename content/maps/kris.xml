@@ -223,11 +223,11 @@
         <lights/>
         <shapes>
             <rectangles>
-                <rectangle name="Green" color="99486052" type="1">
+                <rectangle name="Green!" color="367991156" type="1">
                     <pos x="48" y="43.999992"/>
                     <size w="149" h="52.000008"/>
                 </rectangle>
-                <rectangle name="Black" color="100" type="1">
+                <rectangle name="Black!" color="132" type="1">
                     <pos x="13.999998" y="23.000008"/>
                     <size w="33.999992" h="135"/>
                 </rectangle>
