@@ -227,17 +227,9 @@
                     <pos x="48" y="43.999992"/>
                     <size w="149" h="52.000008"/>
                 </rectangle>
-                <rectangle name="Pink" color="3938507636" type="2">
-                    <pos x="498" y="86.000008"/>
-                    <size w="-430" h="129"/>
-                </rectangle>
                 <rectangle name="Black" color="100" type="1">
                     <pos x="13.999998" y="23.000008"/>
                     <size w="33.999992" h="135"/>
-                </rectangle>
-                <rectangle name="Rectangle" color="4009754724" type="1">
-                    <pos x="213" y="7.9999914"/>
-                    <size w="173" h="423"/>
                 </rectangle>
             </rectangles>
         </shapes>

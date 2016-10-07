@@ -41,7 +41,7 @@ namespace l2d_internal {
         None, Ambient, Point
     };
     enum class DrawShapes {
-        None, Line, Rectangle
+        None, Rectangle
     };
     enum class ObjectTypes {
         None, Collision, Other
@@ -200,6 +200,7 @@ namespace l2d_internal {
         void removeTile(int layer, sf::Vector2f pos);
         void updateTile(std::string newTilesetPath, sf::Vector2i newTilesetSize, sf::Vector2i srcPos, sf::Vector2f destPos, int tilesetId, int layer);
         void updateShape(std::shared_ptr<l2d_internal::Shape> oldShape, std::shared_ptr<l2d_internal::Shape> newShape);
+        void removeShape(std::shared_ptr<l2d_internal::Shape> shape);
         bool tileExists(int layer, sf::Vector2i pos) const;
         void undo();
         bool isUndoListEmpty() const;

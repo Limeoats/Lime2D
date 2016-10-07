@@ -1044,6 +1044,10 @@ void l2d_internal::Level::updateShape(std::shared_ptr<l2d_internal::Shape> oldSh
     }
 }
 
+void l2d_internal::Level::removeShape(std::shared_ptr<l2d_internal::Shape> shape) {
+    this->_shapeList.erase(std::remove(this->_shapeList.begin(), this->_shapeList.end(), shape), this->_shapeList.end());
+}
+
 sf::Vector2i l2d_internal::Level::globalToLocalCoordinates(sf::Vector2f coords) const {
     return sf::Vector2i(static_cast<int>(coords.x) / this->_tileSize.x / static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) + 1,
                         static_cast<int>(coords.y) / this->_tileSize.y / static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))) + 1);

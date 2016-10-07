@@ -30,6 +30,7 @@ namespace l2d {
         bool _eraserActive;
         bool _tilesetEnabled;
         bool _mainHasFocus;
+        bool _removingShape;
 
         l2d_internal::Features _currentFeature;
         sf::RenderWindow* _window;

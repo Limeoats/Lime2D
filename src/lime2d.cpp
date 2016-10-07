@@ -29,6 +29,7 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
         _eraserActive(false),
         _tilesetEnabled(false),
         _mainHasFocus(true),
+        _removingShape(false),
         _currentFeature(l2d_internal::Features::None),
         _graphics(new l2d_internal::Graphics(window)),
         _level(this->_graphics, "l2dSTART"),
@@ -112,18 +113,23 @@ void l2d::Editor::render() {
         //If map editor
         if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map) {
             this->_ambientLight.setUniform("texture", sf::Shader::CurrentTexture);
-            this->_ambientLight.setUniform("color", sf::Glsl::Vec3(this->_level.getAmbientColor().r / 255.0f, this->_level.getAmbientColor().g / 255.0f, this->_level.getAmbientColor().b / 255.0f));
+            this->_ambientLight.setUniform("color", sf::Glsl::Vec3(this->_level.getAmbientColor().r / 255.0f,
+                                                                   this->_level.getAmbientColor().g / 255.0f,
+                                                                   this->_level.getAmbientColor().b / 255.0f));
             this->_ambientLight.setUniform("intensity", this->_level.getAmbientIntensity());
             this->_level.draw(&this->_ambientLight);
             if (this->_showGridLines) {
                 for (auto &t : this->_gridLines) {
                     this->_graphics->draw(t.data(), 2, sf::Lines);
                 }
-                if (this->_currentDrawShape == l2d_internal::DrawShapes::None && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Tile) {
+                if (this->_currentDrawShape == l2d_internal::DrawShapes::None &&
+                    this->_currentMapEditorMode == l2d_internal::MapEditorMode::Tile) {
                     //Get the mouse position and draw a square around the correct grid tile
                     sf::Vector2f mousePos = this->_window->mapPixelToCoords(sf::Vector2i(
-                            sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
-                            sf::Mouse::getPosition(*this->_window).y + static_cast<int>(this->_graphics->getView().getViewport().top)));
+                            sf::Mouse::getPosition(*this->_window).x +
+                            static_cast<int>(this->_graphics->getView().getViewport().left),
+                            sf::Mouse::getPosition(*this->_window).y +
+                            static_cast<int>(this->_graphics->getView().getViewport().top)));
 
 
                     if (mousePos.x >= 0 && mousePos.x <= (this->_level.getSize().x * this->_level.getTileSize().x *
@@ -143,14 +149,15 @@ void l2d::Editor::render() {
                                                        1));
                         rectangle.setOutlineColor(this->_eraserActive ? sf::Color::Blue : sf::Color::Magenta);
                         rectangle.setOutlineThickness(2);
-                        rectangle.setPosition(std::floor(mousePos.x - ((int) mousePos.x % (int) (this->_level.getTileSize().x *
-                                                                                       std::stof(
-                                                                                               l2d_internal::utils::getConfigValue(
-                                                                                                       "tile_scale_x"))))),
-                                              std::floor(mousePos.y - ((int) mousePos.y % (int) (this->_level.getTileSize().y *
-                                                                                      std::stof(
-                                                                                              l2d_internal::utils::getConfigValue(
-                                                                                                      "tile_scale_y"))))));
+                        rectangle.setPosition(
+                                std::floor(mousePos.x - ((int) mousePos.x % (int) (this->_level.getTileSize().x *
+                                                                                   std::stof(
+                                                                                           l2d_internal::utils::getConfigValue(
+                                                                                                   "tile_scale_x"))))),
+                                std::floor(mousePos.y - ((int) mousePos.y % (int) (this->_level.getTileSize().y *
+                                                                                   std::stof(
+                                                                                           l2d_internal::utils::getConfigValue(
+                                                                                                   "tile_scale_y"))))));
                         rectangle.setFillColor(sf::Color::Transparent);
                         this->_window->draw(rectangle);
                     }
@@ -163,40 +170,49 @@ void l2d::Editor::render() {
         sf::RectangleShape rectangle;
         rectangle.setSize(sf::Vector2f(this->_window->getSize().x, 30));
         rectangle.setFillColor(sf::Color::Black);
-        rectangle.setPosition(0 + this->_graphics->getView().getViewport().left, this->_window->getSize().y - 30 + this->_graphics->getView().getViewport().top);
+        rectangle.setPosition(0 + this->_graphics->getView().getViewport().left,
+                              this->_window->getSize().y - 30 + this->_graphics->getView().getViewport().top);
         this->_window->draw(rectangle);
 
         //Shape creation
         //Rectangles
-        if (this->_currentDrawShape == l2d_internal::DrawShapes::Rectangle && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_mainHasFocus) {
+        if (this->_currentDrawShape == l2d_internal::DrawShapes::Rectangle &&
+            this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_mainHasFocus) {
             static sf::Vector2f mousePos = this->_window->mapPixelToCoords(sf::Vector2i(
-                    sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
-                    sf::Mouse::getPosition(*this->_window).y + static_cast<int>(this->_graphics->getView().getViewport().top)));
+                    sf::Mouse::getPosition(*this->_window).x +
+                    static_cast<int>(this->_graphics->getView().getViewport().left),
+                    sf::Mouse::getPosition(*this->_window).y +
+                    static_cast<int>(this->_graphics->getView().getViewport().top)));
             static sf::Vector2f startPos = mousePos;
             static sf::Vector2f currentPosition;
             static sf::RectangleShape rect;
             static bool started = false;
-            if (this->_currentEvent.type == sf::Event::MouseButtonPressed && this->_currentEvent.mouseButton.button == sf::Mouse::Left) {
+            if (this->_currentEvent.type == sf::Event::MouseButtonPressed &&
+                this->_currentEvent.mouseButton.button == sf::Mouse::Left) {
                 mousePos = this->_window->mapPixelToCoords(sf::Vector2i(
-                        sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
-                        sf::Mouse::getPosition(*this->_window).y + static_cast<int>(this->_graphics->getView().getViewport().top)));
+                        sf::Mouse::getPosition(*this->_window).x +
+                        static_cast<int>(this->_graphics->getView().getViewport().left),
+                        sf::Mouse::getPosition(*this->_window).y +
+                        static_cast<int>(this->_graphics->getView().getViewport().top)));
                 startPos.x = mousePos.x;
                 startPos.y = mousePos.y;
             }
             if (this->_currentEvent.type == sf::Event::MouseMoved && sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
                 mousePos = this->_window->mapPixelToCoords(sf::Vector2i(
-                        sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
-                        sf::Mouse::getPosition(*this->_window).y + static_cast<int>(this->_graphics->getView().getViewport().top)));
+                        sf::Mouse::getPosition(*this->_window).x +
+                        static_cast<int>(this->_graphics->getView().getViewport().left),
+                        sf::Mouse::getPosition(*this->_window).y +
+                        static_cast<int>(this->_graphics->getView().getViewport().top)));
 
                 //Check rectangle bounds to make sure it is not drawn outside of the map
                 mousePos.x = std::max(0.0f, mousePos.x);
                 mousePos.x = std::min(this->_level.getSize().x *
-                                              std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")) *
-                                              this->_level.getTileSize().x, mousePos.x);
+                                      std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")) *
+                                      this->_level.getTileSize().x, mousePos.x);
                 mousePos.y = std::max(0.0f, mousePos.y);
                 mousePos.y = std::min(this->_level.getSize().y *
-                                              std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")) *
-                                              this->_level.getTileSize().y, mousePos.y);
+                                      std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")) *
+                                      this->_level.getTileSize().y, mousePos.y);
 
 
                 currentPosition.x = mousePos.x - startPos.x;
@@ -210,9 +226,12 @@ void l2d::Editor::render() {
 
                 this->_window->draw(rect); //Temporarily draw the box while it's being created
             }
-            if (this->_currentEvent.type == sf::Event::MouseButtonReleased && this->_currentEvent.mouseButton.button == sf::Mouse::Left && started) {
+            if (this->_currentEvent.type == sf::Event::MouseButtonReleased &&
+                this->_currentEvent.mouseButton.button == sf::Mouse::Left && started) {
                 std::cout << "added" << std::endl;
-                this->_level.addShape(std::make_shared<l2d_internal::Rectangle>("Rectangle", sf::Color::White, l2d_internal::ObjectTypes::Collision, rect));
+                this->_level.addShape(std::make_shared<l2d_internal::Rectangle>("Rectangle", sf::Color::White,
+                                                                                l2d_internal::ObjectTypes::Collision,
+                                                                                rect));
                 this->_currentEvent = sf::Event();
                 started = false;
                 this->_currentDrawShape = l2d_internal::DrawShapes::None; //Stop drawing rectangles and return to select mode
@@ -220,17 +239,18 @@ void l2d::Editor::render() {
         }
 
         //Shape selection
-        if (this->_currentEvent.type == sf::Event::MouseButtonPressed && this->_currentEvent.mouseButton.button == sf::Mouse::Left &&
-                this->_currentDrawShape == l2d_internal::DrawShapes::None && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
+        if (this->_currentEvent.type == sf::Event::MouseButtonPressed &&
+            this->_currentDrawShape == l2d_internal::DrawShapes::None &&
+            this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
             //Check the mouse pos and determine if it is inside a shape.
             sf::Vector2f mousePos = this->_window->mapPixelToCoords(sf::Vector2i(
-                    sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
-                    sf::Mouse::getPosition(*this->_window).y + static_cast<int>(this->_graphics->getView().getViewport().top)));
+                    sf::Mouse::getPosition(*this->_window).x +
+                    static_cast<int>(this->_graphics->getView().getViewport().left),
+                    sf::Mouse::getPosition(*this->_window).y +
+                    static_cast<int>(this->_graphics->getView().getViewport().top)));
             bool sel = false;
             for (auto &s: this->_level.getShapeList()) {
                 if (s->isPointInside(mousePos)) {
-                    //Highlight the shape and enable shape selected mode
-                    //TODO: worry about which one gets selected if overlapping (top should win)
                     s->select();
                     sel = true;
                     this->_selectedShape = s;
@@ -239,7 +259,16 @@ void l2d::Editor::render() {
                             t->unselect();
                         }
                     }
-                    break;
+                    //Left click on a shape
+                    if (this->_currentEvent.mouseButton.button == sf::Mouse::Left) {
+                        //TODO: worry about which one gets selected if overlapping (top should win)
+                        break;
+                    }
+                    //Right click on a shape
+                    else if (this->_currentEvent.mouseButton.button == sf::Mouse::Right) {
+                        this->_removingShape = true;
+                        break;
+                    }
                 }
             }
             //If user clicked but none were selected, unselect all shapes
@@ -250,7 +279,6 @@ void l2d::Editor::render() {
                 this->_selectedShape = nullptr;
             }
         }
-
         ImGui::Render();
     }
 }
@@ -1040,6 +1068,18 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::End();
         }
 
+        if (this->_removingShape) {
+            ImGui::OpenPopup("right_click_shape");
+            this->_removingShape = false;
+        }
+        if (ImGui::BeginPopup("right_click_shape")) {
+            if (ImGui::MenuItem("Delete shape")) {
+                this->_level.removeShape(this->_selectedShape);
+                this->_selectedShape = nullptr;
+            }
+            ImGui::EndPopup();
+        }
+
         /*
          * Entity list
          */
@@ -1533,7 +1573,7 @@ void l2d::Editor::update(sf::Time t) {
                                                 ImColor(1.0f, 1.0f, 1.0f, 1.0f), ss.str().c_str());
         }
         if (showCurrentStatus) {
-            ImGui::GetWindowDrawList()->AddText(ImVec2(180, this->_window->getSize().y - 20),
+            ImGui::GetWindowDrawList()->AddText(ImVec2(280, this->_window->getSize().y - 20),
                                                 ImColor(1.0f, 1.0f, 1.0f, 1.0f), currentStatus.c_str());
 
         }
