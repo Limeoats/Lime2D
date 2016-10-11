@@ -236,6 +236,7 @@ namespace l2d_internal {
         virtual bool isPointInside(sf::Vector2f point) = 0;
         virtual void select() = 0;
         virtual void unselect() = 0;
+        virtual void setPosition(sf::Vector2f pos) = 0;
         virtual void draw(sf::RenderWindow* window) = 0;
         virtual bool equals(std::shared_ptr<Shape> other) = 0;
     protected:
@@ -259,6 +260,7 @@ namespace l2d_internal {
         virtual bool isPointInside(sf::Vector2f point) override;
         virtual void select() override;
         virtual void unselect() override;
+        virtual void setPosition(sf::Vector2f pos) override;
         virtual void draw(sf::RenderWindow* window) override;
         virtual bool equals(std::shared_ptr<Shape> other) override;
     private:

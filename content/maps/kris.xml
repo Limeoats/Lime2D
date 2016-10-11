@@ -231,6 +231,10 @@
                     <pos x="13.999998" y="23.000008"/>
                     <size w="33.999992" h="135"/>
                 </rectangle>
+                <rectangle name="Rectangle" color="2119796" type="1">
+                    <pos x="81.000008" y="19.999985"/>
+                    <size w="55.999992" h="120"/>
+                </rectangle>
             </rectangles>
         </shapes>
     </objects>

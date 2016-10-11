@@ -1156,6 +1156,10 @@ void l2d_internal::Rectangle::unselect() {
     }
 }
 
+void l2d_internal::Rectangle::setPosition(sf::Vector2f pos) {
+    this->_rect.setPosition(pos);
+}
+
 void l2d_internal::Rectangle::draw(sf::RenderWindow *window) {
     window->draw(this->_rect);
 }

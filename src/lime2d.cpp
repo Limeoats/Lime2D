@@ -110,6 +110,15 @@ void l2d::Editor::processEvent(sf::Event &event) {
 
 void l2d::Editor::render() {
     if (this->_enabled) {
+        //Return the current mouse position
+        static auto getMousePos = [&]() {
+            return this->_window->mapPixelToCoords(sf::Vector2i(
+                    sf::Mouse::getPosition(*this->_window).x +
+                    static_cast<int>(this->_graphics->getView().getViewport().left),
+                    sf::Mouse::getPosition(*this->_window).y +
+                    static_cast<int>(this->_graphics->getView().getViewport().top)));
+        };
+
         //If map editor
         if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map) {
             this->_ambientLight.setUniform("texture", sf::Shader::CurrentTexture);
@@ -125,11 +134,7 @@ void l2d::Editor::render() {
                 if (this->_currentDrawShape == l2d_internal::DrawShapes::None &&
                     this->_currentMapEditorMode == l2d_internal::MapEditorMode::Tile) {
                     //Get the mouse position and draw a square around the correct grid tile
-                    sf::Vector2f mousePos = this->_window->mapPixelToCoords(sf::Vector2i(
-                            sf::Mouse::getPosition(*this->_window).x +
-                            static_cast<int>(this->_graphics->getView().getViewport().left),
-                            sf::Mouse::getPosition(*this->_window).y +
-                            static_cast<int>(this->_graphics->getView().getViewport().top)));
+                    sf::Vector2f mousePos = getMousePos();
 
 
                     if (mousePos.x >= 0 && mousePos.x <= (this->_level.getSize().x * this->_level.getTileSize().x *
@@ -178,11 +183,7 @@ void l2d::Editor::render() {
         //Rectangles
         if (this->_currentDrawShape == l2d_internal::DrawShapes::Rectangle &&
             this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_mainHasFocus) {
-            static sf::Vector2f mousePos = this->_window->mapPixelToCoords(sf::Vector2i(
-                    sf::Mouse::getPosition(*this->_window).x +
-                    static_cast<int>(this->_graphics->getView().getViewport().left),
-                    sf::Mouse::getPosition(*this->_window).y +
-                    static_cast<int>(this->_graphics->getView().getViewport().top)));
+            static sf::Vector2f mousePos = getMousePos();
             static sf::Vector2f startPos = mousePos;
             static sf::Vector2f currentPosition;
             static sf::RectangleShape rect;
@@ -198,11 +199,7 @@ void l2d::Editor::render() {
                 startPos.y = mousePos.y;
             }
             if (this->_currentEvent.type == sf::Event::MouseMoved && sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-                mousePos = this->_window->mapPixelToCoords(sf::Vector2i(
-                        sf::Mouse::getPosition(*this->_window).x +
-                        static_cast<int>(this->_graphics->getView().getViewport().left),
-                        sf::Mouse::getPosition(*this->_window).y +
-                        static_cast<int>(this->_graphics->getView().getViewport().top)));
+                mousePos = getMousePos();
 
                 //Check rectangle bounds to make sure it is not drawn outside of the map
                 mousePos.x = std::max(0.0f, mousePos.x);
@@ -243,15 +240,12 @@ void l2d::Editor::render() {
             this->_currentDrawShape == l2d_internal::DrawShapes::None &&
             this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
             //Check the mouse pos and determine if it is inside a shape.
-            sf::Vector2f mousePos = this->_window->mapPixelToCoords(sf::Vector2i(
-                    sf::Mouse::getPosition(*this->_window).x +
-                    static_cast<int>(this->_graphics->getView().getViewport().left),
-                    sf::Mouse::getPosition(*this->_window).y +
-                    static_cast<int>(this->_graphics->getView().getViewport().top)));
+            sf::Vector2f mousePos = getMousePos();
             bool sel = false;
             for (auto &s: this->_level.getShapeList()) {
                 if (s->isPointInside(mousePos)) {
                     s->select();
+
                     sel = true;
                     this->_selectedShape = s;
                     for (auto &t : this->_level.getShapeList()) {
@@ -396,6 +390,15 @@ void l2d::Editor::update(sf::Time t) {
                     this->_gridLines.push_back(line);
                 }
             }
+        };
+
+        //Return the current mouse position
+        static auto getMousePos = [&]() {
+            return this->_window->mapPixelToCoords(sf::Vector2i(
+                    sf::Mouse::getPosition(*this->_window).x +
+                    static_cast<int>(this->_graphics->getView().getViewport().left),
+                    sf::Mouse::getPosition(*this->_window).y +
+                    static_cast<int>(this->_graphics->getView().getViewport().top)));
         };
 
         //Set mainHasFocus (very important)
@@ -870,9 +873,7 @@ void l2d::Editor::update(sf::Time t) {
         if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map) {
             //Clicking on a tile normally
             if (tileHasBeenSelected && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Tile) {
-                sf::Vector2f drawingMousePos = this->_window->mapPixelToCoords(sf::Vector2i(
-                        sf::Mouse::getPosition(*this->_window).x + static_cast<int>(this->_graphics->getView().getViewport().left),
-                        sf::Mouse::getPosition(*this->_window).y + static_cast<int>(this->_graphics->getView().getViewport().top)));
+                sf::Vector2f drawingMousePos = getMousePos();
                 drawingMousePos = sf::Vector2f(std::floor(drawingMousePos.x), std::floor(drawingMousePos.y));
                 if (ImGui::IsMouseDown(0) && this->_mainHasFocus) {
                     sf::Vector2f tilePos(
@@ -1067,6 +1068,93 @@ void l2d::Editor::update(sf::Time t) {
                 shapeColorWindowVisible = false;
             }
             ImGui::End();
+        }
+
+        //Change cursor for shapes
+        if (this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_selectedShape != nullptr) {
+            sf::Vector2f mp = getMousePos();
+            if (this->_selectedShape != nullptr) {
+                ImGuiMouseCursor mc = ImGuiMouseCursor_Arrow;
+                const unsigned int CURSOR_SPACE = 4;
+                std::shared_ptr<l2d_internal::Rectangle> rect = std::dynamic_pointer_cast<l2d_internal::Rectangle>(this->_selectedShape);
+                if (rect != nullptr) {
+                    sf::Vector2f pos = rect->getRectangle().getPosition();
+                    sf::Vector2f size = rect->getRectangle().getSize();
+                    //Top
+                    if (mp.y > pos.y - CURSOR_SPACE && mp.y < pos.y + CURSOR_SPACE) {
+                        if (mp.x > pos.x + CURSOR_SPACE && mp.x < pos.x + size.x - CURSOR_SPACE) {
+                            mc = ImGuiMouseCursor_ResizeNS;
+                        }
+                        else if (mp.x > pos.x - CURSOR_SPACE && mp.x < pos.x + CURSOR_SPACE) {
+                            mc = ImGuiMouseCursor_ResizeNWSE;
+                        }
+                        else if (mp.x > pos.x + size.x - CURSOR_SPACE && mp.x < pos.x + size.x + CURSOR_SPACE) {
+                            mc = ImGuiMouseCursor_ResizeNESW;
+                        }
+                    }
+                    //Left
+                    else if (mp.x > pos.x - CURSOR_SPACE && mp.x < pos.x + CURSOR_SPACE) {
+                        if (mp.y > pos.y + CURSOR_SPACE && mp.y < pos.y + size.y - CURSOR_SPACE) {
+                            mc = ImGuiMouseCursor_ResizeEW;
+                        }
+                        else if (mp.y > pos.y - CURSOR_SPACE && mp.y < pos.y + CURSOR_SPACE) {
+                            mc = ImGuiMouseCursor_ResizeNWSE;
+                        }
+                        else if (mp.y > pos.y + size.y - CURSOR_SPACE && mp.y < pos.y + size.y + CURSOR_SPACE) {
+                            mc = ImGuiMouseCursor_ResizeNESW;
+                        }
+                    }
+                    //Right
+                    else if (mp.x > pos.x + size.x - CURSOR_SPACE && mp.x < pos.x + size.x + CURSOR_SPACE) {
+                        if (mp.y > pos.y + CURSOR_SPACE && mp.y < pos.y + size.y - CURSOR_SPACE) {
+                            mc = ImGuiMouseCursor_ResizeEW;
+                        }
+                        else if (mp.y > pos.y - CURSOR_SPACE && mp.y < pos.y + CURSOR_SPACE) {
+                            mc = ImGuiMouseCursor_ResizeNESW;
+                        }
+                        else if (mp.y > pos.y + size.y - CURSOR_SPACE && mp.y < pos.y + size.y + CURSOR_SPACE) {
+                            mc = ImGuiMouseCursor_ResizeNWSE;
+                        }
+                    }
+                    //Bottom
+                    else if (mp.y > pos.y + size.y - CURSOR_SPACE && mp.y < pos.y + size.y + CURSOR_SPACE) {
+                        if (mp.x > pos.x + CURSOR_SPACE && mp.x < pos.x + size.x - CURSOR_SPACE) {
+                            mc = ImGuiMouseCursor_ResizeNS;
+                        }
+                        else if (mp.x > pos.x - CURSOR_SPACE && mp.x < pos.x + CURSOR_SPACE) {
+                            mc = ImGuiMouseCursor_ResizeNESW;
+                        }
+                        else if (mp.x > pos.x + size.x - CURSOR_SPACE && mp.x < pos.x + size.x + CURSOR_SPACE) {
+                            mc = ImGuiMouseCursor_ResizeNWSE;
+                        }
+                    }
+                    else {
+                        if (this->_selectedShape->isPointInside(mp)) {
+                            mc = ImGuiMouseCursor_Move;
+                        }
+                    }
+                }
+                ImGui::GetIO().MouseDrawCursor = true;
+                ImGui::SetMouseCursor(mc);
+            }
+
+            //TODO: FIX THIS
+            //Moving / resizing the shape
+            if (this->_currentEvent.type == sf::Event::MouseMoved && sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+                if (ImGui::GetMouseCursor() == ImGuiMouseCursor_Move) {
+                    static auto lastFrame = mousePos;
+                    sf::Vector2f diff = mousePos - lastFrame;
+                    std::shared_ptr<l2d_internal::Rectangle> rect = std::dynamic_pointer_cast<l2d_internal::Rectangle>(this->_selectedShape);
+                    if (rect != nullptr) {
+                        rect->setPosition(rect->getRectangle().getPosition() + diff);
+                    }
+                    lastFrame = mousePos;
+                }
+                else if (ImGui::GetMouseCursor() == ImGuiMouseCursor_ResizeNS) {
+                    std::cout << "RESIZE NORTH/SOUTH" << std::endl;
+                }
+                mousePos = getMousePos();
+            }
         }
 
         if (this->_removingShape) {

@@ -17,6 +17,7 @@ int main() {
     sf::Image img;
     img.loadFromFile("content/sprites/mstile-310x310.png");
     window.setIcon(img.getSize().x, img.getSize().y, img.getPixelsPtr());
+
     window.setVerticalSyncEnabled(true);
     l2d::Editor editor(false, &window);
     sf::Clock timer;
