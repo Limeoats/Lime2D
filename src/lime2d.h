@@ -32,6 +32,8 @@ namespace l2d {
         bool _mainHasFocus;
         bool _removingShape;
 
+        sf::Vector2f _lastFrameMousePos;
+
         l2d_internal::Features _currentFeature;
         sf::RenderWindow* _window;
         std::shared_ptr<l2d_internal::Graphics>  _graphics;

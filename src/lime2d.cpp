@@ -30,6 +30,7 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
         _tilesetEnabled(false),
         _mainHasFocus(true),
         _removingShape(false),
+        _lastFrameMousePos(0.0f, 0.0f),
         _currentFeature(l2d_internal::Features::None),
         _graphics(new l2d_internal::Graphics(window)),
         _level(this->_graphics, "l2dSTART"),
@@ -244,6 +245,11 @@ void l2d::Editor::render() {
             bool sel = false;
             for (auto &s: this->_level.getShapeList()) {
                 if (s->isPointInside(mousePos)) {
+                    if (s == this->_selectedShape) {
+                        this->_lastFrameMousePos = sf::Vector2f(0.0f , 0.0f);
+                        sel = true;
+                        break;
+                    }
                     s->select();
 
                     sel = true;
@@ -1138,17 +1144,18 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::SetMouseCursor(mc);
             }
 
-            //TODO: FIX THIS
             //Moving / resizing the shape
             if (this->_currentEvent.type == sf::Event::MouseMoved && sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
                 if (ImGui::GetMouseCursor() == ImGuiMouseCursor_Move) {
-                    static auto lastFrame = mousePos;
-                    sf::Vector2f diff = mousePos - lastFrame;
-                    std::shared_ptr<l2d_internal::Rectangle> rect = std::dynamic_pointer_cast<l2d_internal::Rectangle>(this->_selectedShape);
-                    if (rect != nullptr) {
-                        rect->setPosition(rect->getRectangle().getPosition() + diff);
+                    if (this->_lastFrameMousePos.x > 0 && this->_lastFrameMousePos.y > 0) {
+                        sf::Vector2f diff = getMousePos() - this->_lastFrameMousePos;
+                        std::shared_ptr<l2d_internal::Rectangle> rect = std::dynamic_pointer_cast<l2d_internal::Rectangle>(this->_selectedShape);
+                        if (rect != nullptr) {
+                            rect->setPosition(sf::Vector2f(rect->getRectangle().getPosition().x + diff.x, rect->getRectangle().getPosition().y + diff.y));
+                        }
                     }
-                    lastFrame = mousePos;
+
+                    this->_lastFrameMousePos = getMousePos();
                 }
                 else if (ImGui::GetMouseCursor() == ImGuiMouseCursor_ResizeNS) {
                     std::cout << "RESIZE NORTH/SOUTH" << std::endl;
