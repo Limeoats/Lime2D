@@ -136,7 +136,7 @@
         </pos>
         <pos x="4" y="6">
             <tile layer="1" tileset="1">6</tile>
-            <tile layer="2" tileset="1">2</tile>
+            <tile layer="2" tileset="1">4</tile>
         </pos>
         <pos x="5" y="6">
             <tile layer="1" tileset="1">6</tile>
@@ -224,15 +224,15 @@
         <shapes>
             <rectangles>
                 <rectangle name="Green!" color="367991156" type="1">
-                    <pos x="33" y="188"/>
+                    <pos x="97.853798" y="161.83052"/>
                     <size w="149" h="52.000008"/>
                 </rectangle>
                 <rectangle name="Black!" color="132" type="1">
                     <pos x="16" y="77"/>
                     <size w="33.999992" h="135"/>
                 </rectangle>
-                <rectangle name="Pink" color="4237950884" type="2">
-                    <pos x="176" y="102.99997"/>
+                <rectangle name="Pink" color="4019842980" type="2">
+                    <pos x="37.971069" y="117.16423"/>
                     <size w="55.999992" h="120"/>
                 </rectangle>
             </rectangles>

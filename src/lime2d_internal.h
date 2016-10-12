@@ -256,7 +256,6 @@ namespace l2d_internal {
         sf::RectangleShape getRectangle();
         virtual sf::Color getColor() const override;
         virtual void setColor(sf::Color color) override;
-        virtual void setRotation(float rotation);
         virtual bool isPointInside(sf::Vector2f point) override;
         virtual void select() override;
         virtual void unselect() override;

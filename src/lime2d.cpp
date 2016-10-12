@@ -1290,13 +1290,6 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::Combo("Object type", &selectedEntitySelectedObjectTypeIndex, &objectTypeList[0], static_cast<int>(objectTypeList.size()));
             ImGui::PopID();
 
-            if (selectedEntityRectangle != nullptr) {
-                ImGui::Separator();
-                static float rotation = 0.0f;
-                ImGui::SliderFloat("Rotation", &rotation, 0.0f, 360.0f);
-                selectedEntityRectangle->setRotation(rotation);
-            }
-
             if (ImGui::Button("Update")) {
                 if (selectedEntityRectangle != nullptr) {
                     selectedEntityRectangle->setName(name);

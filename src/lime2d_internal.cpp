@@ -1122,10 +1122,6 @@ void l2d_internal::Rectangle::setColor(sf::Color color) {
     this->_rect.setOutlineColor(sf::Color(color.r, color.g, color.b, 160));
 }
 
-void l2d_internal::Rectangle::setRotation(float rotation) {
-    this->_rect.setRotation(rotation);
-}
-
 bool l2d_internal::Rectangle::isPointInside(sf::Vector2f point) {
     sf::Rect<float> r(this->_rect.getPosition().x, this->_rect.getPosition().y, this->_rect.getSize().x, this->_rect.getSize().y);
     sf::Rect<float> r2(point.x, point.y, 1, 1);
