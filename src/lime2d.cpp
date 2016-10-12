@@ -228,7 +228,7 @@ void l2d::Editor::render() {
                 this->_currentEvent.mouseButton.button == sf::Mouse::Left && started) {
                 std::cout << "added" << std::endl;
                 this->_level.addShape(std::make_shared<l2d_internal::Rectangle>("Rectangle", sf::Color::White,
-                                                                                l2d_internal::ObjectTypes::Collision,
+                                                                                l2d_internal::ObjectTypes::Other,
                                                                                 rect));
                 this->_currentEvent = sf::Event();
                 started = false;
@@ -247,8 +247,6 @@ void l2d::Editor::render() {
                 if (s->isPointInside(mousePos)) {
                     if (s == this->_selectedShape) {
                         this->_lastFrameMousePos = sf::Vector2f(0.0f , 0.0f);
-                        sel = true;
-                        break;
                     }
                     s->select();
 
@@ -1077,7 +1075,7 @@ void l2d::Editor::update(sf::Time t) {
         }
 
         //Change cursor for shapes
-        if (this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_selectedShape != nullptr) {
+        if (this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_selectedShape != nullptr && this->_mainHasFocus) {
             sf::Vector2f mp = getMousePos();
             if (this->_selectedShape != nullptr) {
                 ImGuiMouseCursor mc = ImGuiMouseCursor_Arrow;
@@ -1158,7 +1156,8 @@ void l2d::Editor::update(sf::Time t) {
                     this->_lastFrameMousePos = getMousePos();
                 }
                 else if (ImGui::GetMouseCursor() == ImGuiMouseCursor_ResizeNS) {
-                    std::cout << "RESIZE NORTH/SOUTH" << std::endl;
+                    //RESIZE NORTH/SOUTH
+
                 }
                 mousePos = getMousePos();
             }
@@ -1179,7 +1178,7 @@ void l2d::Editor::update(sf::Time t) {
                             r->getObjectType(),
                             r->getRectangle());
                     selectedEntityColor = this->_selectedShape->getColor();
-                    selectedEntitySelectedObjectTypeIndex = static_cast<int>(this->_selectedShape->getObjectType());
+                    selectedEntitySelectedObjectTypeIndex = static_cast<int>(this->_selectedShape->getObjectType()) - 1;
                     showEntityProperties = true;
                 }
             }
@@ -1219,7 +1218,7 @@ void l2d::Editor::update(sf::Time t) {
                                                                                                         s->getRectangle());
                         }
                         selectedEntityColor = otherShapes[i]->getColor();
-                        selectedEntitySelectedObjectTypeIndex = static_cast<int>(otherShapes[i]->getObjectType());
+                        selectedEntitySelectedObjectTypeIndex = static_cast<int>(otherShapes[i]->getObjectType()) - 1;
 
                         showEntityProperties = true;
                     }
@@ -1286,7 +1285,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::PushID("SelectedEntityObjectType");
             std::vector<const char*> objectTypeList = l2d_internal::utils::getObjectTypesForList();
             if (!entityPropertiesLoaded) {
-                selectedEntitySelectedObjectTypeIndex = static_cast<int>(selectedEntityRectangle->getObjectType());
+                selectedEntitySelectedObjectTypeIndex = static_cast<int>(selectedEntityRectangle->getObjectType()) - 1;
             }
             ImGui::Combo("Object type", &selectedEntitySelectedObjectTypeIndex, &objectTypeList[0], static_cast<int>(objectTypeList.size()));
             ImGui::PopID();
@@ -1302,7 +1301,7 @@ void l2d::Editor::update(sf::Time t) {
                 if (selectedEntityRectangle != nullptr) {
                     selectedEntityRectangle->setName(name);
                     selectedEntityRectangle->setColor(selectedEntityColor);
-                    selectedEntityRectangle->setObjectType(static_cast<l2d_internal::ObjectTypes>(selectedEntitySelectedObjectTypeIndex));
+                    selectedEntityRectangle->setObjectType(static_cast<l2d_internal::ObjectTypes>(selectedEntitySelectedObjectTypeIndex + 1));
                     this->_level.updateShape(originalSelectedEntityRectangle, selectedEntityRectangle);
                     this->_level.saveMap(this->_level.getName());
                     startStatusTimer("Rectangle saved successfully!", 200);

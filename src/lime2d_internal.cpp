@@ -165,7 +165,7 @@ void l2d_internal::utils::removeAnimationFromAnimationFile(std::string fileName,
 }
 
 std::vector<const char*> l2d_internal::utils::getObjectTypesForList() {
-    return std::vector<const char*> {"None", "Collision", "Other"};
+    return std::vector<const char*> {"Collision", "Other"};
 }
 
 /*

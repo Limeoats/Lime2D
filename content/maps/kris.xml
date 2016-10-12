@@ -231,8 +231,8 @@
                     <pos x="16" y="77"/>
                     <size w="33.999992" h="135"/>
                 </rectangle>
-                <rectangle name="Rectangle" color="2119796" type="1">
-                    <pos x="177" y="102.99997"/>
+                <rectangle name="Pink" color="4237950884" type="2">
+                    <pos x="176" y="102.99997"/>
                     <size w="55.999992" h="120"/>
                 </rectangle>
             </rectangles>
