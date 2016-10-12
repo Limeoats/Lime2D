@@ -1076,64 +1076,23 @@ void l2d::Editor::update(sf::Time t) {
 
         //Change cursor for shapes
         if (this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_selectedShape != nullptr && this->_mainHasFocus) {
+            static bool resizing = false;
+            static bool moving = false;
             sf::Vector2f mp = getMousePos();
             if (this->_selectedShape != nullptr) {
                 ImGuiMouseCursor mc = ImGuiMouseCursor_Arrow;
-                const unsigned int CURSOR_SPACE = 4;
+                const unsigned int CURSOR_SPACE = 8;
                 std::shared_ptr<l2d_internal::Rectangle> rect = std::dynamic_pointer_cast<l2d_internal::Rectangle>(this->_selectedShape);
                 if (rect != nullptr) {
                     sf::Vector2f pos = rect->getRectangle().getPosition();
                     sf::Vector2f size = rect->getRectangle().getSize();
-                    //Top
-                    if (mp.y > pos.y - CURSOR_SPACE && mp.y < pos.y + CURSOR_SPACE) {
-                        if (mp.x > pos.x + CURSOR_SPACE && mp.x < pos.x + size.x - CURSOR_SPACE) {
-                            mc = ImGuiMouseCursor_ResizeNS;
-                        }
-                        else if (mp.x > pos.x - CURSOR_SPACE && mp.x < pos.x + CURSOR_SPACE) {
-                            mc = ImGuiMouseCursor_ResizeNWSE;
-                        }
-                        else if (mp.x > pos.x + size.x - CURSOR_SPACE && mp.x < pos.x + size.x + CURSOR_SPACE) {
-                            mc = ImGuiMouseCursor_ResizeNESW;
-                        }
-                    }
-                    //Left
-                    else if (mp.x > pos.x - CURSOR_SPACE && mp.x < pos.x + CURSOR_SPACE) {
-                        if (mp.y > pos.y + CURSOR_SPACE && mp.y < pos.y + size.y - CURSOR_SPACE) {
-                            mc = ImGuiMouseCursor_ResizeEW;
-                        }
-                        else if (mp.y > pos.y - CURSOR_SPACE && mp.y < pos.y + CURSOR_SPACE) {
-                            mc = ImGuiMouseCursor_ResizeNWSE;
-                        }
-                        else if (mp.y > pos.y + size.y - CURSOR_SPACE && mp.y < pos.y + size.y + CURSOR_SPACE) {
-                            mc = ImGuiMouseCursor_ResizeNESW;
-                        }
-                    }
-                    //Right
-                    else if (mp.x > pos.x + size.x - CURSOR_SPACE && mp.x < pos.x + size.x + CURSOR_SPACE) {
-                        if (mp.y > pos.y + CURSOR_SPACE && mp.y < pos.y + size.y - CURSOR_SPACE) {
-                            mc = ImGuiMouseCursor_ResizeEW;
-                        }
-                        else if (mp.y > pos.y - CURSOR_SPACE && mp.y < pos.y + CURSOR_SPACE) {
-                            mc = ImGuiMouseCursor_ResizeNESW;
-                        }
-                        else if (mp.y > pos.y + size.y - CURSOR_SPACE && mp.y < pos.y + size.y + CURSOR_SPACE) {
-                            mc = ImGuiMouseCursor_ResizeNWSE;
-                        }
-                    }
-                    //Bottom
-                    else if (mp.y > pos.y + size.y - CURSOR_SPACE && mp.y < pos.y + size.y + CURSOR_SPACE) {
-                        if (mp.x > pos.x + CURSOR_SPACE && mp.x < pos.x + size.x - CURSOR_SPACE) {
-                            mc = ImGuiMouseCursor_ResizeNS;
-                        }
-                        else if (mp.x > pos.x - CURSOR_SPACE && mp.x < pos.x + CURSOR_SPACE) {
-                            mc = ImGuiMouseCursor_ResizeNESW;
-                        }
-                        else if (mp.x > pos.x + size.x - CURSOR_SPACE && mp.x < pos.x + size.x + CURSOR_SPACE) {
+                    if (((mp.y > pos.y + size.y - CURSOR_SPACE && mp.y < pos.y + size.y + CURSOR_SPACE && mp.x > pos.x + size.x - CURSOR_SPACE && mp.y < pos.x + size.x + CURSOR_SPACE) || resizing) && !moving) {
+                        if ((mc == ImGuiMouseCursor_ResizeNWSE || mc == ImGuiMouseCursor_Arrow)) {
                             mc = ImGuiMouseCursor_ResizeNWSE;
                         }
                     }
                     else {
-                        if (this->_selectedShape->isPointInside(mp)) {
+                        if (!resizing || moving) {
                             mc = ImGuiMouseCursor_Move;
                         }
                     }
@@ -1144,23 +1103,33 @@ void l2d::Editor::update(sf::Time t) {
 
             //Moving / resizing the shape
             if (this->_currentEvent.type == sf::Event::MouseMoved && sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-                if (ImGui::GetMouseCursor() == ImGuiMouseCursor_Move) {
+                std::shared_ptr<l2d_internal::Rectangle> rect = std::dynamic_pointer_cast<l2d_internal::Rectangle>(this->_selectedShape);
+                if (ImGui::GetMouseCursor() == ImGuiMouseCursor_Move && !resizing) {
                     if (this->_lastFrameMousePos.x > 0 && this->_lastFrameMousePos.y > 0) {
                         sf::Vector2f diff = getMousePos() - this->_lastFrameMousePos;
-                        std::shared_ptr<l2d_internal::Rectangle> rect = std::dynamic_pointer_cast<l2d_internal::Rectangle>(this->_selectedShape);
                         if (rect != nullptr) {
                             rect->setPosition(sf::Vector2f(rect->getRectangle().getPosition().x + diff.x, rect->getRectangle().getPosition().y + diff.y));
                         }
                     }
-
                     this->_lastFrameMousePos = getMousePos();
                 }
-                else if (ImGui::GetMouseCursor() == ImGuiMouseCursor_ResizeNS) {
-                    //RESIZE NORTH/SOUTH
-
+                else if (ImGui::GetMouseCursor() == ImGuiMouseCursor_ResizeNWSE && !moving) {
+                    resizing = true;
+                    if (rect != nullptr) {
+                        if (this->_lastFrameMousePos.x > 0 && this->_lastFrameMousePos.y > 0) {
+                            sf::Vector2f diff = getMousePos() - this->_lastFrameMousePos;
+                            rect->setSize(sf::Vector2f(std::max(1.0f, rect->getRectangle().getSize().x + diff.x), std::max(1.0f, rect->getRectangle().getSize().y + diff.y)));
+                        }
+                    }
+                    this->_lastFrameMousePos = getMousePos();
                 }
                 mousePos = getMousePos();
             }
+            else {
+                resizing = false;
+                moving = false;
+            }
+
         }
 
         if (this->_removingShape) {

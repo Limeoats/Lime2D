@@ -1156,6 +1156,10 @@ void l2d_internal::Rectangle::setPosition(sf::Vector2f pos) {
     this->_rect.setPosition(pos);
 }
 
+void l2d_internal::Rectangle::setSize(sf::Vector2f size) {
+    this->_rect.setSize(size);
+}
+
 void l2d_internal::Rectangle::draw(sf::RenderWindow *window) {
     window->draw(this->_rect);
 }

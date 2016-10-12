@@ -444,9 +444,9 @@
         <lights/>
         <shapes>
             <rectangles>
-                <rectangle name="Rectangle" color="4013965492" type="1">
-                    <pos x="92.000015" y="23.000015"/>
-                    <size w="281" h="70"/>
+                <rectangle name="Rectangle" color="1341124548" type="1">
+                    <pos x="121.4715" y="18.786674"/>
+                    <size w="115.80956" h="109.57956"/>
                 </rectangle>
                 <rectangle name="Red" color="4012912804" type="2">
                     <pos x="497.53311" y="52.356506"/>
