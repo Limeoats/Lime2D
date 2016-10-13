@@ -45,6 +45,7 @@ namespace l2d {
         l2d_internal::MapEditorMode _currentMapEditorMode;
         sf::Event _currentEvent;
         std::shared_ptr<l2d_internal::Shape> _selectedShape;
+        l2d_internal::WindowTypes _currentWindowType;
     };
 }
 

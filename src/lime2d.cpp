@@ -38,7 +38,8 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
         _currentDrawShape(l2d_internal::DrawShapes::None),
         _currentMapEditorMode(l2d_internal::MapEditorMode::None),
         _currentEvent(),
-        _selectedShape(nullptr)
+        _selectedShape(nullptr),
+        _currentWindowType(l2d_internal::WindowTypes::None)
 {
     this->_enabled = enabled;
     ImGui::SFML::Init(*window);
@@ -66,29 +67,37 @@ void l2d::Editor::processEvent(sf::Event &event) {
             switch (event.key.code) {
                 case sf::Keyboard::T:
                     if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map &&
-                            this->_currentMapEditorMode == l2d_internal::MapEditorMode::Tile) {
+                            this->_currentMapEditorMode == l2d_internal::MapEditorMode::Tile &&
+                            (this->_currentWindowType == l2d_internal::WindowTypes::None || this->_currentWindowType == l2d_internal::WindowTypes::TilesetWindow)) {
                         this->_tilesetEnabled = !this->_tilesetEnabled;
+                        this->_currentWindowType = this->_tilesetEnabled ? l2d_internal::WindowTypes::TilesetWindow : l2d_internal::WindowTypes::None;
                     }
                     break;
                 case sf::Keyboard::G:
-                    if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map) {
+                    if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map && this->_currentWindowType == l2d_internal::WindowTypes::None) {
                         this->_showGridLines = !this->_showGridLines;
                     }
                     break;
                 case sf::Keyboard::U:
-                    this->_level.undo();
+                    if (this->_currentWindowType == l2d_internal::WindowTypes::None) {
+                        this->_level.undo();
+                    }
                     break;
                 case sf::Keyboard::R:
-                    this->_level.redo();
+                    if (this->_currentWindowType == l2d_internal::WindowTypes::None) {
+                        this->_level.redo();
+                    }
                     break;
                 case sf::Keyboard::E:
                     if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map &&
-                            this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
+                            this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object &&
+                            (this->_currentWindowType == l2d_internal::WindowTypes::None || this->_currentWindowType == l2d_internal::WindowTypes::EntityListWindow)) {
                         this->_showEntityList = !this->_showEntityList;
+                        this->_currentWindowType = this->_showEntityList ? l2d_internal::WindowTypes::EntityListWindow : l2d_internal::WindowTypes::None;
                     }
                     break;
                 case sf::Keyboard::M:
-                    if (this->_currentFeature == l2d_internal::Features::Map) {
+                    if (this->_currentFeature == l2d_internal::Features::Map && this->_currentWindowType == l2d_internal::WindowTypes::None) {
                         this->_currentMapEditorMode =
                                 this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object ?
                                 l2d_internal::MapEditorMode::Tile : l2d_internal::MapEditorMode::Object;
@@ -302,7 +311,6 @@ void l2d::Editor::update(sf::Time t) {
         static bool aboutBoxVisible = false;
         static bool mapSelectBoxVisible = false;
         static bool configWindowVisible = false;
-        static bool tilePropertiesWindowVisible = false;
         static bool newMapBoxVisible = false;
         static bool newMapExistsOverwriteVisible = false;
         static bool tilesetWindowVisible = false;
@@ -416,8 +424,7 @@ void l2d::Editor::update(sf::Time t) {
 
         //Set mainHasFocus (very important)
         //This tells Lime2D that it can draw tiles to the screen. We don't want it drawing if other windows have focus.
-        this->_mainHasFocus = !(tilesetWindowVisible || newMapBoxVisible || tilePropertiesWindowVisible || configWindowVisible || mapSelectBoxVisible || aboutBoxVisible || lightEditorWindowVisible || newAnimatedSpriteWindowVisible ||
-                         removeAnimationWindowVisible || cbShowEntityList || shapeColorWindowVisible);
+        this->_mainHasFocus = this->_currentWindowType == l2d_internal::WindowTypes::None;
 
         cbShowGridLines = this->_showGridLines;
         cbShowEntityList = this->_showEntityList;
@@ -425,6 +432,7 @@ void l2d::Editor::update(sf::Time t) {
 
         //Config window
         if (configWindowVisible) {
+            this->_currentWindowType = l2d_internal::WindowTypes::ConfigWindow;
             static bool loaded = false;
 
             ImGui::SetNextWindowPosCenter();
@@ -555,11 +563,13 @@ void l2d::Editor::update(sf::Time t) {
                             configureMapErrorText = this->_level.loadMap(name);
                             if (configureMapErrorText.length() <= 0) {
                                 createGridLines();
+                                this->_currentWindowType = l2d_internal::WindowTypes::None;
                                 configWindowVisible = false;
                                 startStatusTimer("Configurations saved successfully!", 200);
                             }
                         }
                         else {
+                            this->_currentWindowType = l2d_internal::WindowTypes::None;
                             configWindowVisible = false;
                             startStatusTimer("Configurations saved successfully!", 200);
                         }
@@ -571,6 +581,7 @@ void l2d::Editor::update(sf::Time t) {
             }
             ImGui::SameLine();
             if (ImGui::Button("Cancel")) {
+                this->_currentWindowType = l2d_internal::WindowTypes::None;
                 configWindowVisible = false;
                 configureMapErrorText = "";
             }
@@ -590,11 +601,13 @@ void l2d::Editor::update(sf::Time t) {
 
         //About box
         if (aboutBoxVisible) {
+            this->_currentWindowType = l2d_internal::WindowTypes::AboutWindow;
             ImGui::SetNextWindowSize(ImVec2(300, 130));
             ImGui::Begin("About Lime2D", nullptr, ImVec2(300, 130), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
             ImGui::Text("Lime2D Editor\nVersion: 1.0\n\nBy: Limeoats\nCopyright \u00a9 2016");
             ImGui::Separator();
             if (ImGui::Button("Close")) {
+                this->_currentWindowType = l2d_internal::WindowTypes::None;
                 aboutBoxVisible = false;
             }
             ImGui::End();
@@ -602,6 +615,7 @@ void l2d::Editor::update(sf::Time t) {
 
         //Map select box
         if (mapSelectBoxVisible) {
+            this->_currentWindowType = l2d_internal::WindowTypes::MapSelectWindow;
             std::string mapSelectErrorMessage = "";
             std::stringstream ss;
             ss << l2d_internal::utils::getConfigValue("map_path") << "*";
@@ -621,11 +635,13 @@ void l2d::Editor::update(sf::Time t) {
                 mapSelectErrorMessage = this->_level.loadMap(fileNameSplit.front());
                 if (mapSelectErrorMessage.length() <= 0) {
                     createGridLines();
+                    this->_currentWindowType = l2d_internal::WindowTypes::None;
                     mapSelectBoxVisible = false;
                 }
             }
             ImGui::SameLine();
             if (ImGui::Button("Cancel")) {
+                this->_currentWindowType = l2d_internal::WindowTypes::None;
                 mapSelectBoxVisible = false;
             }
             ImGui::Text("%s", mapSelectErrorMessage.c_str());
@@ -634,6 +650,7 @@ void l2d::Editor::update(sf::Time t) {
 
         //New map box
         if (newMapBoxVisible) {
+            this->_currentWindowType = l2d_internal::WindowTypes::NewMapWindow;
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(500, 240));
             static std::string newMapErrorText = "";
@@ -696,6 +713,7 @@ void l2d::Editor::update(sf::Time t) {
                         mapTileSizeX = 8;
                         mapTileSizeY = 8;
                         newMapErrorText = "";
+                        this->_currentWindowType = l2d_internal::WindowTypes::None;
                         newMapBoxVisible = false;
                         newMapExistsOverwriteVisible = false;
                     }
@@ -709,6 +727,7 @@ void l2d::Editor::update(sf::Time t) {
                 mapTileSizeX = 8;
                 mapTileSizeY = 8;
                 newMapErrorText = "";
+                this->_currentWindowType = l2d_internal::WindowTypes::None;
                 newMapBoxVisible = false;
                 newMapExistsOverwriteVisible = false;
             }
@@ -727,6 +746,7 @@ void l2d::Editor::update(sf::Time t) {
                     mapTileSizeX = 8;
                     mapTileSizeY = 8;
                     newMapErrorText = "";
+                    this->_currentWindowType = l2d_internal::WindowTypes::None;
                     newMapBoxVisible = false;
                     newMapExistsOverwriteVisible = false;
                 }
@@ -914,10 +934,17 @@ void l2d::Editor::update(sf::Time t) {
 
             //Tileset open/close event
             tilesetWindowVisible = this->_tilesetEnabled;
+            if (tilesetWindowVisible) {
+                this->_currentWindowType = l2d_internal::WindowTypes::TilesetWindow;
+            }
+            else if (!tilesetWindowVisible && this->_currentWindowType == l2d_internal::WindowTypes::TilesetWindow) {
+                this->_currentWindowType = l2d_internal::WindowTypes::None;
+            }
 
             //Tileset window
             if (tilesetWindowVisible && this->_currentFeature == l2d_internal::Features::Map &&
                     this->_currentMapEditorMode == l2d_internal::MapEditorMode::Tile) {
+                this->_currentWindowType = l2d_internal::WindowTypes::TilesetWindow;
                 static int tilesetComboIndex = -1;
                 static bool showTilesetImage = false;
                 static sf::Texture tilesetTexture;
@@ -1043,6 +1070,7 @@ void l2d::Editor::update(sf::Time t) {
         }
 
         if (lightEditorWindowVisible && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
+            this->_currentWindowType = l2d_internal::WindowTypes::LightEditorWindow;
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(300, 400));
             ImGui::Begin("Light editor", nullptr, ImVec2(300, 400), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
@@ -1060,6 +1088,7 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::Separator();
                 ImGui::Spacing();
                 if (ImGui::Button("All done")) {
+                    this->_currentWindowType = l2d_internal::WindowTypes::None;
                     lightEditorWindowVisible = false;
                 }
             }
@@ -1074,6 +1103,7 @@ void l2d::Editor::update(sf::Time t) {
         }
 
         if (shapeColorWindowVisible && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
+            this->_currentWindowType = l2d_internal::WindowTypes::ShapeColorWindow;
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(300, 400));
             ImGui::Begin("Shape color editor", nullptr, ImVec2(300, 400), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
@@ -1082,6 +1112,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::ColorPicker3("", (float*)&selectedEntityColor);
             ImGui::Separator();
             if (ImGui::Button("Close")) {
+                this->_currentWindowType = l2d_internal::WindowTypes::None;
                 shapeColorWindowVisible = false;
             }
             ImGui::End();
@@ -1180,7 +1211,11 @@ void l2d::Editor::update(sf::Time t) {
         /*
          * Entity list
          */
+        if (!cbShowEntityList && this->_currentWindowType == l2d_internal::WindowTypes::EntityListWindow) {
+            this->_currentWindowType = l2d_internal::WindowTypes::None;
+        }
         if (cbShowEntityList && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
+            this->_currentWindowType = l2d_internal::WindowTypes::EntityListWindow;
             auto fillObjectSection = [&](l2d_internal::ObjectTypes objectType, std::string strObjectType) {
                 std::vector<std::shared_ptr<l2d_internal::Shape>> otherShapes;
                 for (std::shared_ptr<l2d_internal::Shape> shape : this->_level.getShapeList()) {
@@ -1244,6 +1279,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::End();
         }
         if (showEntityProperties) {
+            this->_currentWindowType = l2d_internal::WindowTypes::EntityPropertiesWindow;
             ImGui::Begin("Properties", nullptr, ImVec2(482, 234), 100.0f, ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
             ImGui::PushID("SelectedEntityName");
             static char name[500] = "";
@@ -1289,6 +1325,7 @@ void l2d::Editor::update(sf::Time t) {
             }
             ImGui::SameLine();
             if (ImGui::Button("Close")) {
+                this->_currentWindowType = l2d_internal::WindowTypes::None;
                 showEntityProperties = false;
             }
             entityPropertiesLoaded = true;
@@ -1313,6 +1350,7 @@ void l2d::Editor::update(sf::Time t) {
 
         //Add a new animated sprite
         if (cbAnimationEditor && newAnimatedSpriteWindowVisible) {
+            this->_currentWindowType = l2d_internal::WindowTypes::NewAnimatedSpriteWindow;
             static std::string newSpriteErrorMessage = "";
 
             std::stringstream ss;
@@ -1350,6 +1388,7 @@ void l2d::Editor::update(sf::Time t) {
                 else {
                     newSpriteErrorMessage = "";
                     l2d_internal::utils::createNewAnimationFile(newSpriteName, spriteList[spritesheetSelectIndex]);
+                    this->_currentWindowType = l2d_internal::WindowTypes::None;
                     newAnimatedSpriteWindowVisible = false;
                 }
             }
@@ -1357,6 +1396,7 @@ void l2d::Editor::update(sf::Time t) {
             if (ImGui::Button("Cancel")) {
                 strcpy(newSpriteName, "");
                 newSpriteErrorMessage = "";
+                this->_currentWindowType = l2d_internal::WindowTypes::None;
                 newAnimatedSpriteWindowVisible = false;
             }
             ImGui::Text("%s", newSpriteErrorMessage.c_str());
@@ -1365,6 +1405,7 @@ void l2d::Editor::update(sf::Time t) {
 
         //Add a new animation to the currently loaded animated sprite
         if (cbAnimationEditor && newAnimationWindowVisible) {
+            this->_currentWindowType = l2d_internal::WindowTypes::NewAnimationWindow;
             static std::string newAnimationErrorMessage = "";
 
             ImGui::SetNextWindowPosCenter();
@@ -1404,6 +1445,7 @@ void l2d::Editor::update(sf::Time t) {
                     animationSpriteSelectIndex = -1;
                     animationSelectIndex = -1;
                     strcpy(newAnimationNameArray, "");
+                    this->_currentWindowType = l2d_internal::WindowTypes::None;
                     newAnimationWindowVisible = false;
                 }
             }
@@ -1411,6 +1453,7 @@ void l2d::Editor::update(sf::Time t) {
             if (ImGui::Button("Cancel")) {
                 strcpy(newAnimationNameArray, "");
                 newAnimationErrorMessage = "";
+                this->_currentWindowType = l2d_internal::WindowTypes::None;
                 newAnimationWindowVisible = false;
             }
             ImGui::Text("%s", newAnimationErrorMessage.c_str());
@@ -1422,6 +1465,7 @@ void l2d::Editor::update(sf::Time t) {
 
         //Remove the selected animation
         if (cbAnimationEditor && removeAnimationWindowVisible) {
+            this->_currentWindowType = l2d_internal::WindowTypes::RemoveAnimationWindow;
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(280, 100));
             ImGui::Begin("Remove selected animation", nullptr, ImVec2(280, 100), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
@@ -1431,6 +1475,7 @@ void l2d::Editor::update(sf::Time t) {
             if (ImGui::Button("Yes")) {
                 l2d_internal::utils::removeAnimationFromAnimationFile(selectedAnimationFileName, selectedAnimationName);
                 selectedAnimationName = "";
+                this->_currentWindowType = l2d_internal::WindowTypes::None;
                 removeAnimationWindowVisible = false;
                 animationSelectIndex = -1;
                 animationSpriteSelectIndex = -1; //Reset the whole sprite so the animation names will be updated from the Lua file
@@ -1438,6 +1483,7 @@ void l2d::Editor::update(sf::Time t) {
             }
             ImGui::SameLine();
             if (ImGui::Button("No ")) {
+                this->_currentWindowType = l2d_internal::WindowTypes::None;
                 removeAnimationWindowVisible = false;
             }
             ImGui::End();
@@ -1683,7 +1729,7 @@ void l2d::Editor::update(sf::Time t) {
 
         //Updating internal classes
         this->_level.update(t.asSeconds());
-        this->_graphics->update(t.asSeconds(), sf::Vector2f(this->_level.getTileSize()), this->_windowHasFocus);
+        this->_graphics->update(t.asSeconds(), sf::Vector2f(this->_level.getTileSize()), (this->_windowHasFocus && this->_mainHasFocus));
     }
 }
 

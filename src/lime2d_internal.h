@@ -46,6 +46,10 @@ namespace l2d_internal {
     enum class ObjectTypes {
         None, Collision, Other
     };
+    enum class WindowTypes {
+        None, TilesetWindow, NewMapWindow, ConfigWindow, MapSelectWindow, AboutWindow, LightEditorWindow,
+        NewAnimatedSpriteWindow, NewAnimationWindow, RemoveAnimationWindow, EntityListWindow, EntityPropertiesWindow, ShapeColorWindow
+    };
 
     namespace utils {
         template<class C, class T>
