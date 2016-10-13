@@ -841,8 +841,11 @@ void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i ne
         if (t != nullptr) {
             //Something's on the tile. Check if it's the same tile trying to be drawn. If so, quit.
             if (t.get()->getSprite().getTextureRect().left == srcPos.x && t.get()->getSprite().getTextureRect().top == srcPos.y) {
-                //Same tile. Stop the function.
-                return;
+                //Check if the tileset is the same. If not, continue through function
+                if (t->getTilesetId() == tilesetId) {
+                    //Same tile. Stop the function.
+                    return;
+                }
             }
         }
     }
