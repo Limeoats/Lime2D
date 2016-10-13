@@ -1120,7 +1120,12 @@ void l2d::Editor::update(sf::Time t) {
                     if (this->_lastFrameMousePos.x > 0 && this->_lastFrameMousePos.y > 0) {
                         sf::Vector2f diff = getMousePos() - this->_lastFrameMousePos;
                         if (rect != nullptr) {
-                            rect->setPosition(sf::Vector2f(rect->getRectangle().getPosition().x + diff.x, rect->getRectangle().getPosition().y + diff.y));
+                            sf::Vector2f newPos = sf::Vector2f(rect->getRectangle().getPosition().x + diff.x, rect->getRectangle().getPosition().y + diff.y);
+                            newPos.x = std::max(0.0f, newPos.x);
+                            newPos.x = std::min(newPos.x, this->_level.getSize().x * this->_level.getTileSize().x * std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")) - rect->getRectangle().getSize().x);
+                            newPos.y = std::max(0.0f, newPos.y);
+                            newPos.y = std::min(newPos.y, this->_level.getSize().y * this->_level.getTileSize().y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")) - rect->getRectangle().getSize().y);
+                            rect->setPosition(newPos);
                         }
                     }
                     this->_lastFrameMousePos = getMousePos();
