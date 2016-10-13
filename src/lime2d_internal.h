@@ -202,6 +202,7 @@ namespace l2d_internal {
         void updateShape(std::shared_ptr<l2d_internal::Shape> oldShape, std::shared_ptr<l2d_internal::Shape> newShape);
         void removeShape(std::shared_ptr<l2d_internal::Shape> shape);
         bool tileExists(int layer, sf::Vector2i pos) const;
+        int getTilesetID(const std::string &path) const;
         void undo();
         bool isUndoListEmpty() const;
         void redo();

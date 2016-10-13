@@ -867,8 +867,15 @@ void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i ne
             break;
         }
     }
+    int newId = -1;
     if (tls == nullptr) {
-        this->_tilesetList.push_back(Tileset(tilesetId, newTilesetPath, sf::Vector2i(newTilesetSize.x / this->_tileSize.x, newTilesetSize.y / this->_tileSize.y)));
+        //Create a new tilesetId (max existing tilesetid + 1)
+        for (const l2d_internal::Tileset &t : this->_tilesetList) {
+            if (t.Id >= newId) {
+                newId = t.Id + 1;
+            }
+        }
+        this->_tilesetList.push_back(Tileset(newId, newTilesetPath, sf::Vector2i(newTilesetSize.x / this->_tileSize.x, newTilesetSize.y / this->_tileSize.y)));
     }
 
     std::shared_ptr<Tile> t = nullptr;
@@ -902,7 +909,7 @@ void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i ne
     }
 
     //Place the new one
-    l.get()->Tiles.push_back(std::make_shared<Tile>(this->_graphics, newTilesetPath, srcPos, this->_tileSize, newDestPos, tilesetId, layer));
+    l.get()->Tiles.push_back(std::make_shared<Tile>(this->_graphics, newTilesetPath, srcPos, this->_tileSize, newDestPos, newId == -1 ? tilesetId : newId, layer));
 }
 
 bool l2d_internal::Level::tileExists(int layer, sf::Vector2i pos) const {
@@ -967,6 +974,15 @@ void l2d_internal::Level::removeTile(int layer, sf::Vector2f pos) {
                             l.get()->Tiles.end(), t),
                 l.get()->Tiles.end());
     }
+}
+
+int l2d_internal::Level::getTilesetID(const std::string &path) const {
+    for (const l2d_internal::Tileset &t : this->_tilesetList) {
+        if (t.Path == path) {
+            return t.Id;
+        }
+    }
+    return -1;
 }
 
 void l2d_internal::Level::undo() {

@@ -905,7 +905,7 @@ void l2d::Editor::update(sf::Time t) {
                                                                                     (tilePos.y - 1) * this->_level.getTileSize().y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))));
                         }
                         else {
-                            this->_level.updateTile(selectedTilesetPath, selectedTilesetSize, selectedTileSrcPos, tilePos, 1, selectedTileLayer);
+                            this->_level.updateTile(selectedTilesetPath, selectedTilesetSize, selectedTileSrcPos, tilePos, this->_level.getTilesetID(selectedTilesetPath), selectedTileLayer);
                         }
                     }
                 }
