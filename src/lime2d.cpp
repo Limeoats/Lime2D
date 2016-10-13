@@ -375,6 +375,7 @@ void l2d::Editor::update(sf::Time t) {
         //the render function is called.
         static auto createGridLines = [&]() {
             if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map) {
+                this->_gridLines.clear();
                 std::array<sf::Vertex, 2> line;
                 //Horizontal lines
                 for (int i = 0; i < this->_level.getSize().y + 1; ++i) {
