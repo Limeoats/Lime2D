@@ -31,6 +31,7 @@ namespace l2d {
         bool _tilesetEnabled;
         bool _mainHasFocus;
         bool _removingShape;
+        bool _hideShapes;
 
         sf::Vector2f _lastFrameMousePos;
 
