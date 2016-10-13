@@ -1092,7 +1092,15 @@
     </tiles>
     <objects>
         <lights>
-            <ambient color="1822066687" intensity="1.8"/>
+            <ambient color="244538623" intensity="1.8"/>
         </lights>
+        <shapes>
+            <rectangles>
+                <rectangle name="Rectangle" color="153194612" type="2">
+                    <pos x="0" y="354.53235"/>
+                    <size w="312.12759" h="95.940872"/>
+                </rectangle>
+            </rectangles>
+        </shapes>
     </objects>
 </map>

@@ -186,18 +186,20 @@ void l2d::Editor::render() {
                 }
             }
         }
+
+        //Draw the status bar
         sf::RectangleShape rectangle;
-        rectangle.setSize(sf::Vector2f(this->_window->getSize().x, 30));
+        rectangle.setSize(sf::Vector2f(this->_window->getSize().x  , 30) / (this->_graphics->getZoomPercentage() / 100.0f));
         rectangle.setFillColor(sf::Color::Black);
-        rectangle.setPosition(0 + this->_graphics->getView().getViewport().left,
-                              this->_window->getSize().y - 30 + this->_graphics->getView().getViewport().top);
+        sf::Vector2f cameraOffset = (this->_graphics->getView().getCenter() - (this->_graphics->getView().getSize() / 2.0f));
+        rectangle.setPosition(0 + cameraOffset.x, (this->_window->getSize().y / (this->_graphics->getZoomPercentage() / 100.0f)) - (30 / (this->_graphics->getZoomPercentage() / 100.0f)) + cameraOffset.y);
         this->_window->draw(rectangle);
 
         //Shape creation
         //Rectangles
         if (!this->_hideShapes) {
             if (this->_currentDrawShape == l2d_internal::DrawShapes::Rectangle &&
-                this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_mainHasFocus) {
+                this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
                 static sf::Vector2f mousePos = getMousePos();
                 static sf::Vector2f startPos = mousePos;
                 static sf::Vector2f currentPosition;
