@@ -450,16 +450,16 @@
         <shapes>
             <rectangles>
                 <rectangle name="Rectangle" color="1341124548" type="1">
-                    <pos x="121.4715" y="18.786674"/>
+                    <pos x="163.47147" y="41.420464"/>
                     <size w="115.80956" h="109.57956"/>
                 </rectangle>
                 <rectangle name="Red" color="4012912804" type="2">
-                    <pos x="497.53311" y="52.356506"/>
+                    <pos x="110.53304" y="5.9999924"/>
                     <size w="-90" h="194"/>
                 </rectangle>
                 <rectangle name="Black" color="1077952676" type="1">
-                    <pos x="26.999996" y="24.999992"/>
-                    <size w="26" h="78.000015"/>
+                    <pos x="342" y="48.000008"/>
+                    <size w="41.000015" h="87.000015"/>
                 </rectangle>
             </rectangles>
         </shapes>

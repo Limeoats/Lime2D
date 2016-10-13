@@ -248,17 +248,18 @@ void l2d::Editor::render() {
                 //Check the mouse pos and determine if it is inside a shape.
                 sf::Vector2f mousePos = getMousePos();
                 bool sel = false;
-                for (auto &s: this->_level.getShapeList()) {
-                    if (s->isPointInside(mousePos)) {
-                        if (s == this->_selectedShape) {
+                auto shapes = this->_level.getShapeList();
+                for (int i = this->_level.getShapeList().size() - 1; i >= 0; --i) {
+                    if (shapes[i]->isPointInside(mousePos)) {
+                        if (shapes[i] == this->_selectedShape) {
                             this->_lastFrameMousePos = sf::Vector2f(0.0f, 0.0f);
                         }
-                        s->select();
+                        shapes[i]->select();
 
                         sel = true;
-                        this->_selectedShape = s;
+                        this->_selectedShape = shapes[i];
                         for (auto &t : this->_level.getShapeList()) {
-                            if (s != t) {
+                            if (shapes[i] != t) {
                                 t->unselect();
                             }
                         }
