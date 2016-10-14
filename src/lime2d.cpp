@@ -288,9 +288,40 @@ void l2d::Editor::render() {
             }
             //Lines
             if (this->_currentDrawShape == l2d_internal::DrawShapes::Line && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
-                if (this->_currentEvent.type == sf::Event::MouseButtonReleased && this->_currentEvent.mouseButton.button == sf::Mouse::Left) {
-                    if (++this->_menuClicks > 1) {
+                static sf::Vector2f mousePos = getMousePos();
+                static std::vector<l2d_internal::Point> points;
 
+                //Draw temporary points / line
+                for (auto &p : points) {
+                    p.draw(this->_window);
+                }
+
+                std::cout << points.size() << std::endl;
+                if (this->_currentEvent.type == sf::Event::MouseButtonReleased) {
+                    if (this->_currentEvent.mouseButton.button == sf::Mouse::Left) {
+                        if (++this->_menuClicks > 1) {
+                            mousePos = getMousePos();
+                            sf::CircleShape c;
+                            c.setRadius(6.0f);
+                            c.setPosition(sf::Vector2f(mousePos.x - 6.0f, mousePos.y - 6.0f));
+                            c.setFillColor(sf::Color(0, 180, 0, 80));
+                            c.setOutlineColor(sf::Color(0, 180, 0, 160));
+                            c.setOutlineThickness(2.0f);
+                            points.push_back(l2d_internal::Point("p" + std::to_string((points.size() + 1)), sf::Color(0, 255, 0), c));
+                            this->_currentEvent = sf::Event();
+                        }
+                        else {
+                            this->_currentEvent = sf::Event();
+                        }
+                    }
+                    if (this->_currentEvent.mouseButton.button == sf::Mouse::Right) {
+                        if (points.size() >= 2) {
+                            //Save the line!
+                        }
+                        points.clear();
+                        this->_currentEvent = sf::Event();
+                        this->_currentDrawShape = l2d_internal::DrawShapes::None;
+                        this->_menuClicks = 0;
                     }
                 }
             }
@@ -1511,6 +1542,7 @@ void l2d::Editor::update(sf::Time t) {
             ss << "Map Editor - " << (this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object ? "Object mode" : "Tile mode")
                << (this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_currentDrawShape == l2d_internal::DrawShapes::Rectangle ? " - Rectangle" :
                    this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_currentDrawShape == l2d_internal::DrawShapes::Point ? " - Point" :
+                   this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_currentDrawShape == l2d_internal::DrawShapes::Line ? " - Line" :
                    this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_currentDrawShape == l2d_internal::DrawShapes::None ? " - Select" : "");
             currentFeature = ss.str();
         }

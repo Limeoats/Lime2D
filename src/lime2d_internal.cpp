@@ -1278,7 +1278,9 @@ void l2d_internal::Line::setSize(sf::Vector2f size) {
 
 void l2d_internal::Line::draw(sf::RenderWindow* window) {
     //TODO
-    throw utils::NotImplementedException();
+    for (auto &p : this->_points) {
+        p.draw(window);
+    }
 }
 
 bool l2d_internal::Line::equals(std::shared_ptr<Shape> other) {
