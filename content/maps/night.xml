@@ -453,15 +453,16 @@
                     <pos x="234" y="25.000027"/>
                     <size w="41.000015" h="87.000015"/>
                 </rectangle>
-                <rectangle name="I really think that the color blue is great!!!!" color="1620094356" type="1">
-                    <pos x="27.000008" y="38.000031"/>
-                    <size w="160" h="68.999985"/>
-                </rectangle>
                 <rectangle name="Darker black" color="269488244" type="2">
-                    <pos x="308.99997" y="24"/>
+                    <pos x="378.99997" y="12.999996"/>
                     <size w="86" h="109.99999"/>
                 </rectangle>
             </rectangles>
+            <points>
+                <point name="Point" color="65535">
+                    <pos x="146.99997" y="38.999992"/>
+                </point>
+            </points>
         </shapes>
     </objects>
 </map>

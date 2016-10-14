@@ -224,24 +224,24 @@
         <shapes>
             <rectangles>
                 <rectangle name="Green!" color="367991156" type="1">
-                    <pos x="97.853798" y="161.83052"/>
+                    <pos x="105.8538" y="130.83051"/>
                     <size w="149" h="52.000008"/>
                 </rectangle>
                 <rectangle name="Black!" color="132" type="1">
                     <pos x="16" y="77"/>
-                    <size w="33.999992" h="135"/>
+                    <size w="34" h="135"/>
                 </rectangle>
-                <rectangle name="Pink" color="4019842980" type="2">
-                    <pos x="37.971069" y="117.16423"/>
-                    <size w="55.999992" h="120"/>
+                <rectangle name="Pink" color="4020891472" type="2">
+                    <pos x="49.000004" y="117.00003"/>
+                    <size w="40.000008" h="115"/>
                 </rectangle>
             </rectangles>
             <points>
-                <point name="Blue" color="65535">
+                <point name="Blue!" color="11250687">
                     <pos x="164.99997" y="38.999992"/>
                 </point>
-                <point name="Green" color="59654143">
-                    <pos x="113.99997" y="83.999985"/>
+                <point name="Green!!!" color="59654143">
+                    <pos x="81.999969" y="49.999992"/>
                 </point>
                 <point name="Red" color="4127213311">
                     <pos x="200.99997" y="54.999989"/>

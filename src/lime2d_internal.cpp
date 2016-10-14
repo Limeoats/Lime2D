@@ -1226,6 +1226,68 @@ bool l2d_internal::Point::equals(std::shared_ptr<Shape> other) {
 }
 
 /*
+ * Line
+ */
+
+l2d_internal::Line::Line(std::string name, sf::Color color, std::vector<l2d_internal::Point> points) :
+    Shape(name, color)
+{
+    this->_points = points;
+}
+
+std::vector<l2d_internal::Point> l2d_internal::Line::getPoints() {
+    return this->_points;
+}
+
+sf::Color l2d_internal::Line::getColor() const {
+    return this->_color;
+}
+
+void l2d_internal::Line::setColor(sf::Color color) {
+    this->_color = color;
+    for (l2d_internal::Point &p : this->_points) {
+        p.setColor(color);
+    }
+}
+
+bool l2d_internal::Line::isPointInside(sf::Vector2f point) {
+    //TODO
+    throw utils::NotImplementedException();
+    return false;
+}
+
+void l2d_internal::Line::select() {
+    //TODO
+    throw utils::NotImplementedException();
+}
+
+void l2d_internal::Line::unselect() {
+    //TODO
+    throw utils::NotImplementedException();
+}
+
+void l2d_internal::Line::setPosition(sf::Vector2f pos) {
+    //TODO
+    throw utils::NotImplementedException();
+}
+
+void l2d_internal::Line::setSize(sf::Vector2f size) {
+    //TODO
+    throw utils::NotImplementedException();
+}
+
+void l2d_internal::Line::draw(sf::RenderWindow* window) {
+    //TODO
+    throw utils::NotImplementedException();
+}
+
+bool l2d_internal::Line::equals(std::shared_ptr<Shape> other) {
+    return false;
+}
+
+
+
+/*
  * Rectangle
  */
 

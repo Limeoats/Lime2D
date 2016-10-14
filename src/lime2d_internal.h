@@ -41,7 +41,7 @@ namespace l2d_internal {
         None, Ambient, Point
     };
     enum class DrawShapes {
-        None, Rectangle, Point
+        None, Rectangle, Point, Line
     };
     enum class ObjectTypes {
         None, Collision, Other
@@ -64,6 +64,11 @@ namespace l2d_internal {
         void addNewAnimationToAnimationFile(std::string fileName, std::string animationName);
         void removeAnimationFromAnimationFile(std::string fileName, std::string animationName);
         std::vector<const char*> getObjectTypesForList();
+
+        class NotImplementedException : public std::logic_error {
+        public:
+            NotImplementedException() : std::logic_error("Function not yet implemented.") {};
+        };
     }
 
     /*
@@ -250,6 +255,7 @@ namespace l2d_internal {
         bool _selected;
     };
 
+
     /*
      * The internal Point class for Lime2D
      * Extends off of Shape
@@ -269,6 +275,27 @@ namespace l2d_internal {
         virtual bool equals(std::shared_ptr<Shape> other) override;
     private:
         sf::CircleShape _dot;
+    };
+
+    /*
+     * The internal Line class for Lime2D
+     * Extends off of shape
+     */
+    class Line : public Shape {
+    public:
+        Line(std::string name, sf::Color color, std::vector<l2d_internal::Point> points);
+        std::vector<l2d_internal::Point> getPoints();
+        virtual sf::Color getColor() const override;
+        virtual void setColor(sf::Color color) override;
+        virtual bool isPointInside(sf::Vector2f point) override;
+        virtual void select() override;
+        virtual void unselect() override;
+        virtual void setPosition(sf::Vector2f pos) override;
+        virtual void setSize(sf::Vector2f size) override;
+        virtual void draw(sf::RenderWindow* window) override;
+        virtual bool equals(std::shared_ptr<Shape> other) override;
+    private:
+        std::vector<l2d_internal::Point> _points;
     };
 
     /*

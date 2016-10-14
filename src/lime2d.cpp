@@ -269,8 +269,7 @@ void l2d::Editor::render() {
                 static sf::CircleShape dot;
                 static const float DOT_RADIUS = 6.0f;
                 if (this->_currentEvent.type == sf::Event::MouseButtonReleased && this->_currentEvent.mouseButton.button == sf::Mouse::Left) {
-                    ++this->_menuClicks;
-                    if (this->_menuClicks > 1) {
+                    if (++this->_menuClicks > 1) {
                         mousePos = getMousePos();
                         dot.setRadius(DOT_RADIUS);
                         dot.setPosition(sf::Vector2f(mousePos.x - DOT_RADIUS, mousePos.y - DOT_RADIUS));
@@ -284,6 +283,14 @@ void l2d::Editor::render() {
                     }
                     else {
                         this->_currentEvent = sf::Event();
+                    }
+                }
+            }
+            //Lines
+            if (this->_currentDrawShape == l2d_internal::DrawShapes::Line && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
+                if (this->_currentEvent.type == sf::Event::MouseButtonReleased && this->_currentEvent.mouseButton.button == sf::Mouse::Left) {
+                    if (++this->_menuClicks > 1) {
+
                     }
                 }
             }
@@ -881,6 +888,9 @@ void l2d::Editor::update(sf::Time t) {
                         }
                         if (ImGui::BeginMenu("Object")) {
                             if (ImGui::BeginMenu("Draw shape")) {
+                                if (ImGui::MenuItem("Line") && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
+                                    this->_currentDrawShape = l2d_internal::DrawShapes::Line;
+                                }
                                 if (ImGui::MenuItem("Point") && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
                                     this->_currentDrawShape = l2d_internal::DrawShapes::Point;
                                 }
@@ -1166,21 +1176,22 @@ void l2d::Editor::update(sf::Time t) {
         if (this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_selectedShape != nullptr && this->_mainHasFocus) {
             static bool resizing = false;
             static bool moving = false;
+            static ImGuiMouseCursor mc;
             sf::Vector2f mp = getMousePos();
             if (this->_selectedShape != nullptr) {
-                ImGuiMouseCursor mc = ImGuiMouseCursor_Arrow;
+                mc = ImGuiMouseCursor_Arrow;
                 const unsigned int CURSOR_SPACE = 8;
                 std::shared_ptr<l2d_internal::Rectangle> rect = std::dynamic_pointer_cast<l2d_internal::Rectangle>(this->_selectedShape);
                 if (rect != nullptr) {
                     sf::Vector2f pos = rect->getRectangle().getPosition();
-                    sf::Vector2f size = rect->getRectangle().getSize();
-                    if (((mp.y > pos.y + size.y - CURSOR_SPACE && mp.y < pos.y + size.y + CURSOR_SPACE && mp.x > pos.x + size.x - CURSOR_SPACE && mp.y < pos.x + size.x + CURSOR_SPACE) || resizing) && !moving) {
+                    sf::Vector2f size = sf::Vector2f(std::roundf(rect->getRectangle().getSize().x), rect->getRectangle().getSize().y);
+                    if (((mp.y > pos.y + size.y - CURSOR_SPACE && mp.x > pos.x + size.x - CURSOR_SPACE) || resizing) && !moving) {
                         if ((mc == ImGuiMouseCursor_ResizeNWSE || mc == ImGuiMouseCursor_Arrow)) {
                             mc = ImGuiMouseCursor_ResizeNWSE;
                         }
                     }
                     else {
-                        if (!resizing || moving) {
+                        if (!resizing && moving) {
                             mc = ImGuiMouseCursor_Move;
                         }
                     }
@@ -1201,9 +1212,9 @@ void l2d::Editor::update(sf::Time t) {
             if (this->_currentEvent.type == sf::Event::MouseMoved && sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
                 std::shared_ptr<l2d_internal::Rectangle> rect = std::dynamic_pointer_cast<l2d_internal::Rectangle>(this->_selectedShape);
                 if (rect != nullptr) {
+                    moving = true;
                     if (ImGui::GetMouseCursor() == ImGuiMouseCursor_Move && !resizing) {
                         if (this->_lastFrameMousePos.x > 0 && this->_lastFrameMousePos.y > 0) {
-                            moving = true;
                             sf::Vector2f diff = getMousePos() - this->_lastFrameMousePos;
 
                             sf::Vector2f newPos = sf::Vector2f(rect->getRectangle().getPosition().x + diff.x,
@@ -1221,7 +1232,9 @@ void l2d::Editor::update(sf::Time t) {
                             rect->setPosition(newPos);
                         }
                         this->_lastFrameMousePos = getMousePos();
-                    } else if (ImGui::GetMouseCursor() == ImGuiMouseCursor_ResizeNWSE && !moving) {
+                    }
+                    else if (ImGui::GetMouseCursor() == ImGuiMouseCursor_ResizeNWSE) {
+                        moving = false;
                         resizing = true;
                         if (rect != nullptr) {
                             if (this->_lastFrameMousePos.x > 0 && this->_lastFrameMousePos.y > 0) {
@@ -1269,6 +1282,14 @@ void l2d::Editor::update(sf::Time t) {
         }
         if (ImGui::BeginPopup("right_click_shape")) {
             if (ImGui::MenuItem("Edit shape")) {
+                entityPropertiesLoaded = false;
+
+                //Unset all selected shapes
+                selectedEntityRectangle = nullptr;
+                originalSelectedEntityRectangle = nullptr;
+                selectedEntityPoint = nullptr;
+                originalSelectedEntityPoint = nullptr;
+
                 auto r = std::dynamic_pointer_cast<l2d_internal::Rectangle>(this->_selectedShape);
                 if (r != nullptr) {
                     selectedEntityRectangle = r;
@@ -1279,6 +1300,7 @@ void l2d::Editor::update(sf::Time t) {
                             r->getRectangle());
                     selectedEntityColor = this->_selectedShape->getColor();
                     selectedEntitySelectedObjectTypeIndex = static_cast<int>(r->getObjectType()) - 1;
+
                     showEntityProperties = true;
                 }
                 else {
@@ -1291,6 +1313,7 @@ void l2d::Editor::update(sf::Time t) {
                           p->getCircle()
                         );
                         selectedEntityColor = p->getColor();
+
                         showEntityProperties = true;
                     }
                 }
