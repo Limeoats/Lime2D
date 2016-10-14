@@ -449,17 +449,17 @@
         <lights/>
         <shapes>
             <rectangles>
-                <rectangle name="Red" color="4012912804" type="2">
-                    <pos x="110.53304" y="5.9999924"/>
-                    <size w="-90" h="194"/>
-                </rectangle>
                 <rectangle name="Black" color="1077952676" type="1">
-                    <pos x="351" y="43.000023"/>
+                    <pos x="234" y="25.000027"/>
                     <size w="41.000015" h="87.000015"/>
                 </rectangle>
-                <rectangle name="I really think that the color blue is great!!!!" color="1350606212" type="2">
-                    <pos x="139" y="55.000023"/>
+                <rectangle name="I really think that the color blue is great!!!!" color="1620094356" type="1">
+                    <pos x="27.000008" y="38.000031"/>
                     <size w="160" h="68.999985"/>
+                </rectangle>
+                <rectangle name="Darker black" color="269488244" type="2">
+                    <pos x="308.99997" y="24"/>
+                    <size w="86" h="109.99999"/>
                 </rectangle>
             </rectangles>
         </shapes>

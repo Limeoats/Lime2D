@@ -236,6 +236,17 @@
                     <size w="55.999992" h="120"/>
                 </rectangle>
             </rectangles>
+            <points>
+                <point name="Blue" color="65535">
+                    <pos x="164.99997" y="38.999992"/>
+                </point>
+                <point name="Green" color="59654143">
+                    <pos x="113.99997" y="83.999985"/>
+                </point>
+                <point name="Red" color="4127213311">
+                    <pos x="200.99997" y="54.999989"/>
+                </point>
+            </points>
         </shapes>
     </objects>
 </map>

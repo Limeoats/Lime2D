@@ -33,6 +33,8 @@ namespace l2d {
         bool _removingShape;
         bool _hideShapes;
 
+        int _menuClicks;
+
         sf::Vector2f _lastFrameMousePos;
 
         l2d_internal::Features _currentFeature;
