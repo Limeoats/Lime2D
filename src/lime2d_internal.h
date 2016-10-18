@@ -67,7 +67,7 @@ namespace l2d_internal {
 
         class NotImplementedException : public std::logic_error {
         public:
-            NotImplementedException() : std::logic_error("Function not yet implemented.") {};
+            NotImplementedException(std::string method = "") : std::logic_error("Function not yet implemented." + method.length() > 0 ? " Method: " + method : "") {};
         };
     }
 
@@ -283,8 +283,10 @@ namespace l2d_internal {
      */
     class Line : public Shape {
     public:
-        Line(std::string name, sf::Color color, std::vector<l2d_internal::Point> points);
-        std::vector<l2d_internal::Point> getPoints();
+        Line(std::string name, sf::Color color, std::vector<std::shared_ptr<l2d_internal::Point>> points);
+        std::vector<std::shared_ptr<l2d_internal::Point>> getPoints();
+        std::shared_ptr<Point> getSelectedPoint(sf::Vector2f mousePos);
+        void deletePoint(std::shared_ptr<l2d_internal::Point> p);
         virtual sf::Color getColor() const override;
         virtual void setColor(sf::Color color) override;
         virtual bool isPointInside(sf::Vector2f point) override;
@@ -295,7 +297,7 @@ namespace l2d_internal {
         virtual void draw(sf::RenderWindow* window) override;
         virtual bool equals(std::shared_ptr<Shape> other) override;
     private:
-        std::vector<l2d_internal::Point> _points;
+        std::vector<std::shared_ptr<l2d_internal::Point>> _points;
     };
 
     /*

@@ -243,10 +243,34 @@
                 <point name="Green!!!" color="59654143">
                     <pos x="81.999969" y="49.999992"/>
                 </point>
-                <point name="Red" color="4127213311">
-                    <pos x="200.99997" y="54.999989"/>
-                </point>
             </points>
+            <lines>
+                <line name="A long platform path" color="4127195391">
+                    <points>
+                        <point name="p1" color="16711935">
+                            <pos x="15.000004" y="7.0000038"/>
+                        </point>
+                        <point name="p2" color="16711935">
+                            <pos x="106.00002" y="7.0000038"/>
+                        </point>
+                        <point name="p3" color="16711935">
+                            <pos x="133.00002" y="57.999992"/>
+                        </point>
+                        <point name="p4" color="16711935">
+                            <pos x="220" y="52.999996"/>
+                        </point>
+                        <point name="p5" color="16711935">
+                            <pos x="163" y="97.000008"/>
+                        </point>
+                        <point name="p6" color="16711935">
+                            <pos x="220" y="212"/>
+                        </point>
+                        <point name="p7" color="16711935">
+                            <pos x="144" y="228"/>
+                        </point>
+                    </points>
+                </line>
+            </lines>
         </shapes>
     </objects>
 </map>

@@ -1092,15 +1092,44 @@
     </tiles>
     <objects>
         <lights>
-            <ambient color="244538623" intensity="1.8"/>
+            <ambient color="2108069375" intensity="1.8"/>
         </lights>
         <shapes>
             <rectangles>
-                <rectangle name="Rectangle" color="153194612" type="2">
-                    <pos x="0" y="354.53235"/>
-                    <size w="312.12759" h="95.940872"/>
+                <rectangle name="Rectangle" color="422682756" type="2">
+                    <pos x="0" y="353.53235"/>
+                    <size w="551.12756" h="168.94087"/>
                 </rectangle>
             </rectangles>
+            <points>
+                <point name="Point" color="3254831871">
+                    <pos x="135.00002" y="187"/>
+                </point>
+            </points>
+            <lines>
+                <line name="A long platform path" color="4278190335">
+                    <points>
+                        <point name="p1" color="16711935">
+                            <pos x="153" y="121.99999"/>
+                        </point>
+                        <point name="p2" color="16711935">
+                            <pos x="241" y="134"/>
+                        </point>
+                        <point name="p3" color="16711935">
+                            <pos x="295" y="204"/>
+                        </point>
+                        <point name="p4" color="16711935">
+                            <pos x="411" y="265"/>
+                        </point>
+                        <point name="p5" color="16711935">
+                            <pos x="509" y="268"/>
+                        </point>
+                        <point name="p6" color="16711935">
+                            <pos x="591" y="266"/>
+                        </point>
+                    </points>
+                </line>
+            </lines>
         </shapes>
     </objects>
 </map>

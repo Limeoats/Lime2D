@@ -704,6 +704,50 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
                             }
                         }
                     }
+                    //Lines
+                    tx2::XMLElement* pLines = pShapes->FirstChildElement("lines");
+                    if (pLines != nullptr) {
+                        while (pLines) {
+                            tx2::XMLElement* pLine = pLines->FirstChildElement("line");
+                            if (pLine != nullptr) {
+                                while (pLine) {
+                                    std::string name = pLine->Attribute("name");
+                                    sf::Color color = sf::Color(static_cast<sf::Uint32>(pLine->IntAttribute("color")));
+                                    std::vector<std::shared_ptr<l2d_internal::Point>> points;
+                                    tx2::XMLElement* pLinePoints = pLine->FirstChildElement("points");
+                                    if (pLinePoints != nullptr) {
+                                        while (pLinePoints) {
+                                            tx2::XMLElement* pPoint = pLinePoints->FirstChildElement("point");
+                                            if (pPoint != nullptr) {
+                                                while (pPoint) {
+                                                    std::string pointName = pPoint->Attribute("name");
+                                                    sf::Color pointColor = sf::Color(static_cast<sf::Uint32>(pPoint->IntAttribute("color")));
+                                                    sf::Vector2f position;
+                                                    tx2::XMLElement* pLinePointPosition = pPoint->FirstChildElement("pos");
+                                                    if (pLinePointPosition != nullptr) {
+                                                        position.x = pLinePointPosition->FloatAttribute("x");
+                                                        position.y = pLinePointPosition->FloatAttribute("y");
+                                                    }
+                                                    sf::CircleShape dot;
+                                                    dot.setPosition(position);
+                                                    dot.setFillColor(sf::Color(pointColor.r, pointColor.g, pointColor.b, 80));
+                                                    dot.setOutlineColor(sf::Color(pointColor.r, pointColor.g, pointColor.b, 160));
+                                                    dot.setOutlineThickness(2.0f);
+                                                    dot.setRadius(6.0f);
+                                                    points.push_back(std::make_shared<l2d_internal::Point>(pointName, pointColor, dot));
+                                                    pPoint = pPoint->NextSiblingElement("point");
+                                                }
+                                            }
+                                            pLinePoints = pLinePoints->NextSiblingElement("points");
+                                        }
+                                    }
+                                    this->_shapeList.push_back(std::make_shared<l2d_internal::Line>(name, color, points));
+                                    pLine = pLine->NextSiblingElement("lines");
+                                }
+                            }
+                            pLines = pLines->NextSiblingElement("lines");
+                        }
+                    }
                     pShapes = pShapes->NextSiblingElement("shapes");
                 }
             }
@@ -815,6 +859,7 @@ void l2d_internal::Level::saveMap(std::string name) {
     tx2::XMLElement* pShapes = document.NewElement("shapes");
     tx2::XMLElement* pRectangles = document.NewElement("rectangles");
     tx2::XMLElement* pPoints = document.NewElement("points");
+    tx2::XMLElement* pLines = document.NewElement("lines");
     for (std::shared_ptr<l2d_internal::Shape> &shape: this->_shapeList) {
         std::shared_ptr<l2d_internal::Rectangle> r = std::dynamic_pointer_cast<l2d_internal::Rectangle>(shape);
         if (r != nullptr) {
@@ -845,9 +890,29 @@ void l2d_internal::Level::saveMap(std::string name) {
             pPoints->InsertEndChild(pPoint);
             continue;
         }
+        std::shared_ptr<l2d_internal::Line> l = std::dynamic_pointer_cast<l2d_internal::Line>(shape);
+        if (l != nullptr) {
+            tx2::XMLElement* pLine = document.NewElement("line");
+            pLine->SetAttribute("name", l->getName().c_str());
+            pLine->SetAttribute("color", l->getColor().toInteger());
+            tx2::XMLElement* pLinePoints = document.NewElement("points");
+            for (auto &p : l->getPoints()) {
+                tx2::XMLElement* pLinePoint = document.NewElement("point");
+                pLinePoint->SetAttribute("name", p->getName().c_str());
+                pLinePoint->SetAttribute("color", p->getColor().toInteger());
+                tx2::XMLElement* pLinePointPosition = document.NewElement("pos");
+                pLinePointPosition->SetAttribute("x", p->getCircle().getPosition().x);
+                pLinePointPosition->SetAttribute("y", p->getCircle().getPosition().y);
+                pLinePoint->InsertEndChild(pLinePointPosition);
+                pLinePoints->InsertEndChild(pLinePoint);
+            }
+            pLine->InsertEndChild(pLinePoints);
+            pLines->InsertEndChild(pLine);
+        }
     }
     pShapes->InsertEndChild(pRectangles);
     pShapes->InsertEndChild(pPoints);
+    pShapes->InsertEndChild(pLines);
     pObjects->InsertEndChild(pShapes);
     pMap->InsertEndChild(pObjects);
     document.InsertAfterChild(pDeclaration, pMap);
@@ -1147,8 +1212,6 @@ void l2d_internal::Shape::setName(std::string name) {
     this->_name = name;
 }
 
-
-
 void l2d_internal::Shape::setColor(sf::Color color) {
     this->_color = color;
 }
@@ -1222,20 +1285,25 @@ void l2d_internal::Point::draw(sf::RenderWindow *window) {
 }
 
 bool l2d_internal::Point::equals(std::shared_ptr<Shape> other) {
-    return false;
+    std::shared_ptr<l2d_internal::Point> p = std::dynamic_pointer_cast<l2d_internal::Point>(other);
+    if (p == nullptr) return false;
+    return this->_name == p->getName() &&
+           this->_color == p->getColor() &&
+           this->_dot.getPosition() == p->getCircle().getPosition();
+
 }
 
 /*
  * Line
  */
 
-l2d_internal::Line::Line(std::string name, sf::Color color, std::vector<l2d_internal::Point> points) :
+l2d_internal::Line::Line(std::string name, sf::Color color, std::vector<std::shared_ptr<l2d_internal::Point>> points) :
     Shape(name, color)
 {
     this->_points = points;
 }
 
-std::vector<l2d_internal::Point> l2d_internal::Line::getPoints() {
+std::vector<std::shared_ptr<l2d_internal::Point>> l2d_internal::Line::getPoints() {
     return this->_points;
 }
 
@@ -1245,46 +1313,98 @@ sf::Color l2d_internal::Line::getColor() const {
 
 void l2d_internal::Line::setColor(sf::Color color) {
     this->_color = color;
-    for (l2d_internal::Point &p : this->_points) {
-        p.setColor(color);
+}
+
+std::shared_ptr<l2d_internal::Point> l2d_internal::Line::getSelectedPoint(sf::Vector2f mousePos) {
+    for (auto &p : this->_points) {
+        if (p->isPointInside(mousePos)) {
+            return p;
+        }
     }
+    return nullptr;
+}
+
+void l2d_internal::Line::deletePoint(std::shared_ptr<l2d_internal::Point> p) {
+    this->_points.erase(std::remove(this->_points.begin(), this->_points.end(), p), this->_points.end());
 }
 
 bool l2d_internal::Line::isPointInside(sf::Vector2f point) {
-    //TODO
-    throw utils::NotImplementedException();
+    //Points
+    for (auto &p : this->_points) {
+        if (p->isPointInside(point)) {
+            return true;
+        }
+    }
     return false;
 }
 
 void l2d_internal::Line::select() {
-    //TODO
-    throw utils::NotImplementedException();
+    for (auto &p : this->_points) {
+        p->select();
+    }
 }
 
 void l2d_internal::Line::unselect() {
-    //TODO
-    throw utils::NotImplementedException();
+    for (auto &p : this->_points) {
+        p->unselect();
+    }
 }
 
 void l2d_internal::Line::setPosition(sf::Vector2f pos) {
     //TODO
-    throw utils::NotImplementedException();
+    throw utils::NotImplementedException("setPosition");
 }
 
 void l2d_internal::Line::setSize(sf::Vector2f size) {
     //TODO
-    throw utils::NotImplementedException();
+    throw utils::NotImplementedException("setSize");
 }
 
 void l2d_internal::Line::draw(sf::RenderWindow* window) {
-    //TODO
     for (auto &p : this->_points) {
-        p.draw(window);
+        p->draw(window);
+    }
+    if (this->_points.size() >= 2) {
+        for (unsigned int i = 0; i < this->_points.size() - 1; ++i) {
+            sf::Vertex v[4];
+            sf::Vector2f point1 = sf::Vector2f(this->_points[i]->getCircle().getPosition().x + this->_points[i]->getCircle().getRadius(),
+                                               this->_points[i]->getCircle().getPosition().y + this->_points[i]->getCircle().getRadius());
+            sf::Vector2f point2 = sf::Vector2f(this->_points[i + 1]->getCircle().getPosition().x + this->_points[i + 1]->getCircle().getRadius(),
+                                               this->_points[i + 1]->getCircle().getPosition().y + this->_points[i + 1]->getCircle().getRadius());
+
+            sf::Vector2f direction = point2 - point1;
+
+            sf::Vector2f unitDirection = direction/std::sqrt(direction.x*direction.x+direction.y*direction.y);
+            sf::Vector2f unitPerpendicular(-unitDirection.y,unitDirection.x);
+
+            sf::Vector2f offset = (3.0f / 2.0f) * unitPerpendicular;
+
+            v[0].position = point1 + offset;
+            v[1].position = point2 + offset;
+            v[2].position = point2 - offset;
+            v[3].position = point1 - offset;
+            for (int i = 0; i < 4; ++i) {
+                v[i].color = this->_color;
+            }
+            window->draw(v, 4, sf::Quads);
+        }
     }
 }
 
 bool l2d_internal::Line::equals(std::shared_ptr<Shape> other) {
-    return false;
+    std::shared_ptr<l2d_internal::Line> l = std::dynamic_pointer_cast<l2d_internal::Line>(other);
+    if (l == nullptr) return false;
+    return this->_name == l->getName() &&
+           this->_color == l->getColor() &&
+            [&]()->bool {
+                if (this->_points.size() != l->getPoints().size()) return false;
+                for (unsigned int i = 0; i < this->_points.size(); ++i) {
+                    if (!this->_points[i]->equals(l->getPoints()[i])) {
+                        return false;
+                    }
+                }
+                return true;
+            }();
 }
 
 
@@ -1366,7 +1486,13 @@ void l2d_internal::Rectangle::draw(sf::RenderWindow *window) {
 }
 
 bool l2d_internal::Rectangle::equals(std::shared_ptr<Shape> other) {
-    return false;
+    std::shared_ptr<l2d_internal::Rectangle> r = std::dynamic_pointer_cast<l2d_internal::Rectangle>(other);
+    if (r == nullptr) return false;
+    return this->_name == r->getName() &&
+           this->_color == r->getColor() &&
+           this->_objectType == r->getObjectType() &&
+           this->_rect.getPosition() == r->getRectangle().getPosition() &&
+           this->_rect.getSize() == r->getRectangle().getSize();
 }
 
 
