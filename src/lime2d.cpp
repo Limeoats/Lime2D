@@ -884,6 +884,7 @@ void l2d::Editor::update(sf::Time t) {
                 if (ImGui::Button("Sure!")) {
                     this->_level.createMap(std::string(name), sf::Vector2i(mapSizeX, mapSizeY),
                                            sf::Vector2i(mapTileSizeX, mapTileSizeY));
+                    createGridLines();
                     strcpy(name, "");
                     mapSizeX = 0;
                     mapSizeY = 0;
@@ -1331,8 +1332,19 @@ void l2d::Editor::update(sf::Time t) {
                         if (rect != nullptr) {
                             if (this->_lastFrameMousePos.x > 0 && this->_lastFrameMousePos.y > 0) {
                                 sf::Vector2f diff = getMousePos() - this->_lastFrameMousePos;
-                                rect->setSize(sf::Vector2f(std::max(1.0f, rect->getRectangle().getSize().x + diff.x),
-                                                           std::max(1.0f, rect->getRectangle().getSize().y + diff.y)));
+
+                                sf::Vector2f newSize = sf::Vector2f(rect->getRectangle().getSize().x + diff.x,
+                                                                   rect->getRectangle().getSize().y + diff.y);
+                                newSize.x = std::min(newSize.x, this->_level.getSize().x * this->_level.getTileSize().x *
+                                                              std::stof(
+                                                                      l2d_internal::utils::getConfigValue("tile_scale_x")) -
+                                        (rect->getRectangle().getPosition().x));
+                                newSize.y = std::min(newSize.y, this->_level.getSize().y * this->_level.getTileSize().y *
+                                                              std::stof(
+                                                                      l2d_internal::utils::getConfigValue("tile_scale_y")) -
+                                        (rect->getRectangle().getPosition().y));
+                                rect->setSize(sf::Vector2f(std::max(1.0f, newSize.x),
+                                                           std::max(1.0f, newSize.y)));
                             }
                         }
                         this->_lastFrameMousePos = getMousePos();
@@ -1619,7 +1631,6 @@ void l2d::Editor::update(sf::Time t) {
                         ImGui::SameLine();
                         ImGui::PushID(("btn_" + p->getName()).c_str());
                         if (ImGui::Button("x", ImVec2(26, 20))) {
-                            std::cout << p->getName() << std::endl;
                             selectedEntityLine->deletePoint(p);
                         }
                         ImGui::PopID();
