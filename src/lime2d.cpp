@@ -662,9 +662,9 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::PopID();
 
             ImGui::PushID("ConfigureCameraPanAmount");
-            ImGui::Text("Camera pan amount");
-            static float cameraPanAmount = l2d_internal::utils::getConfigValue("camera_pan_amount") == "" ? 4.0f : std::stof(l2d_internal::utils::getConfigValue("camera_pan_amount"));
-            ImGui::InputFloat("", &cameraPanAmount, 0.25f, 0.0f, 2);
+            ImGui::Text("Camera pan factor");
+            static float cameraPanFactor = l2d_internal::utils::getConfigValue("camera_pan_factor") == "" ? 4.0f : std::stof(l2d_internal::utils::getConfigValue("camera_pan_factor"));
+            ImGui::InputFloat("", &cameraPanFactor, 0.25f, 0.0f, 2);
             ImGui::Separator();
             ImGui::PopID();
 
@@ -700,7 +700,7 @@ void l2d::Editor::update(sf::Time t) {
                         os << "screen_size_y=" << screenSizeY << "\n";
                         os << "sprite_path=" << spritePath << "\n";
                         os << "animation_path=" << animationPath << "\n";
-                        os << "camera_pan_amount=" << cameraPanAmount << "\n";
+                        os << "camera_pan_factor=" << cameraPanFactor << "\n";
                         os.close();
                         if (this->_level.getName() != "l2dSTART") {
                             std::string name = this->_level.getName();
@@ -737,7 +737,7 @@ void l2d::Editor::update(sf::Time t) {
             tileScaleY = std::max(0.0f, tileScaleY);
             screenSizeX = std::max(0, screenSizeX);
             screenSizeY = std::max(0, screenSizeY);
-            cameraPanAmount = std::max(0.0f, cameraPanAmount);
+            cameraPanFactor = std::max(0.0f, cameraPanFactor);
 
             ImGui::End();
             loaded = true;
@@ -796,9 +796,9 @@ void l2d::Editor::update(sf::Time t) {
         if (newMapBoxVisible) {
             this->_currentWindowType = l2d_internal::WindowTypes::NewMapWindow;
             ImGui::SetNextWindowPosCenter();
-            ImGui::SetNextWindowSize(ImVec2(500, 240));
+            ImGui::SetNextWindowSize(ImVec2(500, 350));
             static std::string newMapErrorText = "";
-            ImGui::Begin("New map properties", nullptr, ImVec2(500, 240), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
+            ImGui::Begin("New map properties", nullptr, ImVec2(500, 350), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
             ImGui::Text("Name");
             static char name[500] = "";
             ImGui::PushItemWidth(300);
@@ -831,11 +831,11 @@ void l2d::Editor::update(sf::Time t) {
                 if (strlen(name) <= 0) {
                     newMapErrorText = "You must enter a name for the new map!";
                 }
-                else if (mapSizeX < 0 || mapSizeY < 0) {
-                    newMapErrorText = "You cannot have a negative map size!";
+                else if (mapSizeX < 1 || mapSizeY < 1) {
+                    newMapErrorText = "The map's height and width must be at least 1!";
                 }
-                else if (mapTileSizeX < 0 || mapTileSizeY < 0) {
-                    newMapErrorText = "You cannot have a negative tile size!";
+                else if (mapTileSizeX < 1 || mapTileSizeY < 1) {
+                    newMapErrorText = "The map's tile height and tile width must be at least 1!";
                 }
                 else {
                     //Check if map with that name already exists. If so, give a box asking to overwrite
@@ -978,7 +978,7 @@ void l2d::Editor::update(sf::Time t) {
                             }
                             ImGui::EndMenu();
                         }
-                        if (ImGui::BeginMenu("Object")) {
+                        if (ImGui::BeginMenu("Object", this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object)) {
                             if (ImGui::BeginMenu("Draw shape")) {
                                 if (ImGui::MenuItem("Line") && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
                                     this->_currentDrawShape = l2d_internal::DrawShapes::Line;

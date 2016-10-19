@@ -39,10 +39,10 @@ endif()
 
 if (WIN32)
     install(TARGETS Lime2D DESTINATION C:/Libs/Lime2D/lib)
-    install(FILES src/lime2d.h DESTINATION C:/Libs/Lime2D/include)
+    install(FILES src/lime2d.h src/lime2d_internal.h DESTINATION C:/Libs/Lime2D/include)
 else()
     install(TARGETS Lime2D DESTINATION ~/Library/Frameworks/Lime2D/lib)
-    install(FILES src/lime2d.h DESTINATION ~/Library/Frameworks/Lime2D/include)
+    install(FILES src/lime2d.h src/lime2d_internal.h DESTINATION ~/Library/Frameworks/Lime2D/include)
 endif()
 
 add_custom_command(

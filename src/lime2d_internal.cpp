@@ -229,8 +229,8 @@ sf::Texture l2d_internal::Graphics::loadImage(const std::string &filePath) {
 }
 
 void l2d_internal::Graphics::update(float elapsedTime, sf::Vector2f tileSize, bool windowHasFocus) {
-    float amountToMoveX = (tileSize.x * std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) / 4.0f;
-    float amountToMoveY = (tileSize.y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))) / 4.0f;
+    float amountToMoveX = (tileSize.x * std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) / std::stof(l2d_internal::utils::getConfigValue("camera_pan_factor"));
+    float amountToMoveY = (tileSize.y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))) / std::stof(l2d_internal::utils::getConfigValue("camera_pan_factor"));
     if (windowHasFocus) {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
             this->_view.move(0, amountToMoveY);
@@ -672,8 +672,8 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
                                     this->_shapeList.push_back(std::make_shared<l2d_internal::Rectangle>(name, color, type, rect));
                                     pRectangle = pRectangle->NextSiblingElement("rectangle");
                                 }
-                                pRectangles = pRectangles->NextSiblingElement("rectangles");
                             }
+                            pRectangles = pRectangles->NextSiblingElement("rectangles");
                         }
                     }
                     //Points
@@ -700,8 +700,8 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
                                     this->_shapeList.push_back(std::make_shared<l2d_internal::Point>(name, color, dot));
                                     pPoint = pPoint->NextSiblingElement("point");
                                 }
-                                pPoints = pPoints->NextSiblingElement("points");
                             }
+                            pPoints = pPoints->NextSiblingElement("points");
                         }
                     }
                     //Lines
