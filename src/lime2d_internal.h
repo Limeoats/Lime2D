@@ -67,7 +67,7 @@ namespace l2d_internal {
 
         class NotImplementedException : public std::logic_error {
         public:
-            NotImplementedException(std::string method = "") : std::logic_error("Function not yet implemented." + method.length() > 0 ? " Method: " + method : "") {};
+            NotImplementedException(std::string method = "") : std::logic_error("Function not yet implemented." + (method.length() > 0 ? " Method: " + method : "")) {};
         };
     }
 
