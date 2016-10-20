@@ -460,6 +460,37 @@ sf::Vector2i l2d_internal::Level::getSize() const {
     return this->_size;
 }
 
+void l2d_internal::Level::setSize(sf::Vector2i size) {
+    this->_size = size;
+}
+
+void l2d_internal::Level::updateTileList() {
+    std::vector<std::shared_ptr<Tile>> allTiles;
+    for (std::shared_ptr<Layer> &layer : this->_layerList) {
+        allTiles.insert(allTiles.end(), layer.get()->Tiles.begin(), layer.get()->Tiles.end());
+    }
+    //Sort allTiles by y, then by x, then by layer
+    std::sort(allTiles.begin(), allTiles.end(), [&](const std::shared_ptr<Tile> &a, const std::shared_ptr<Tile> &b) {
+        return ((a.get()->getSprite().getPosition().y < b.get()->getSprite().getPosition().y) ||
+                ((a.get()->getSprite().getPosition().y == b.get()->getSprite().getPosition().y) &&
+                 a.get()->getSprite().getPosition().x < b.get()->getSprite().getPosition().x) ||
+                (((a.get()->getSprite().getPosition().y == b.get()->getSprite().getPosition().y) &&
+                  a.get()->getSprite().getPosition().x == b.get()->getSprite().getPosition().x) &&
+                 a.get()->getLayer() < b.get()->getLayer()));
+    });
+    for (std::shared_ptr<Tile> &tile : allTiles) {
+        float x = tile.get()->getSprite().getPosition().x / this->_tileSize.x /
+                  std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")) + 1;
+        float y = tile.get()->getSprite().getPosition().y / this->_tileSize.y /
+                  std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")) + 1;
+
+        if (x > this->_size.x || y > this->_size.y) {
+            this->removeTile(tile->getLayer(), sf::Vector2f((x - 1) * this->_tileSize.x * std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")),
+                                                            (y - 1) * this->_tileSize.y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))), true);
+        }
+    }
+}
+
 sf::Vector2i l2d_internal::Level::getTileSize() const {
     return this->_tileSize;
 }
@@ -978,7 +1009,7 @@ void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i ne
             break;
         }
     }
-    int newId = -1;
+    int newId = 0;
     if (tls == nullptr) {
         //Create a new tilesetId (max existing tilesetid + 1)
         for (const l2d_internal::Tileset &t : this->_tilesetList) {
@@ -1020,7 +1051,7 @@ void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i ne
     }
 
     //Place the new one
-    l.get()->Tiles.push_back(std::make_shared<Tile>(this->_graphics, newTilesetPath, srcPos, this->_tileSize, newDestPos, newId == -1 ? tilesetId : newId, layer));
+    l.get()->Tiles.push_back(std::make_shared<Tile>(this->_graphics, newTilesetPath, srcPos, this->_tileSize, newDestPos, newId == 0 ? tilesetId : newId, layer));
 }
 
 bool l2d_internal::Level::tileExists(int layer, sf::Vector2i pos) const {
@@ -1037,21 +1068,23 @@ bool l2d_internal::Level::tileExists(int layer, sf::Vector2i pos) const {
     return !(tile == l->get()->Tiles.end());
 }
 
-void l2d_internal::Level::removeTile(int layer, sf::Vector2f pos) {
+void l2d_internal::Level::removeTile(int layer, sf::Vector2f pos, bool fromResize) {
     if (!this->tileExists(layer, this->globalToLocalCoordinates(pos))) {
         return;
     }
-    //Set oldLayerList for Undo
-    std::vector<std::shared_ptr<l2d_internal::Layer>> tmpList;
-    for (unsigned int i = 0; i < this->_layerList.size(); ++i) {
-        l2d_internal::Layer l;
-        l.Id = this->_layerList.at(i).get()->Id;
-        for (unsigned int j = 0; j < this->_layerList[i].get()->Tiles.size(); ++j) {
-            l.Tiles.push_back(this->_layerList[i].get()->Tiles.at(j));
+    if (!fromResize) {
+        //Set oldLayerList for Undo
+        std::vector<std::shared_ptr<l2d_internal::Layer>> tmpList;
+        for (unsigned int i = 0; i < this->_layerList.size(); ++i) {
+            l2d_internal::Layer l;
+            l.Id = this->_layerList.at(i).get()->Id;
+            for (unsigned int j = 0; j < this->_layerList[i].get()->Tiles.size(); ++j) {
+                l.Tiles.push_back(this->_layerList[i].get()->Tiles.at(j));
+            }
+            tmpList.push_back(std::make_shared<l2d_internal::Layer>(l));
         }
-        tmpList.push_back(std::make_shared<l2d_internal::Layer>(l));
+        this->_oldLayerList.push(tmpList);
     }
-    this->_oldLayerList.push(tmpList);
 
     std::shared_ptr<Tile> t = nullptr;
     //Check if the layer exists. If not, create it
@@ -1240,6 +1273,13 @@ void l2d_internal::Point::setColor(sf::Color color) {
     this->_dot.setOutlineColor(sf::Color(color.r, color.g, color.b, 160));
 }
 
+void l2d_internal::Point::fixPosition(sf::Vector2i levelSize, sf::Vector2i tileSize, sf::Vector2f tileScale) {
+    this->setPosition(sf::Vector2f(
+            std::min(this->getCircle().getPosition().x, levelSize.x * tileSize.x * tileScale.x -
+                                  (this->getCircle().getRadius() * 2)),
+            std::min(this->getCircle().getPosition().y, levelSize.y * tileSize.y * tileScale.y - (this->getCircle().getRadius() * 2))));
+}
+
 void l2d_internal::Point::select() {
     if (!this->_selected) {
         this->_selected = true;
@@ -1313,6 +1353,12 @@ sf::Color l2d_internal::Line::getColor() const {
 
 void l2d_internal::Line::setColor(sf::Color color) {
     this->_color = color;
+}
+
+void l2d_internal::Line::fixPosition(sf::Vector2i levelSize, sf::Vector2i tileSize, sf::Vector2f tileScale) {
+    for (auto &p : this->_points) {
+        p->fixPosition(levelSize, tileSize, tileScale);
+    }
 }
 
 std::shared_ptr<l2d_internal::Point> l2d_internal::Line::getSelectedPoint(sf::Vector2f mousePos) {
@@ -1441,6 +1487,13 @@ void l2d_internal::Rectangle::setColor(sf::Color color) {
     this->_color = color;
     this->_rect.setFillColor(sf::Color(color.r, color.g, color.b, 80));
     this->_rect.setOutlineColor(sf::Color(color.r, color.g, color.b, 160));
+}
+
+void l2d_internal::Rectangle::fixPosition(sf::Vector2i levelSize, sf::Vector2i tileSize, sf::Vector2f tileScale) {
+    this->setPosition(sf::Vector2f(
+            std::min(this->getRectangle().getPosition().x, levelSize.x * tileSize.x * tileScale.x -
+                                                        (this->getRectangle().getSize().x)),
+            std::min(this->getRectangle().getPosition().y, levelSize.y * tileSize.y * tileScale.y - (this->getRectangle().getSize().y))));
 }
 
 bool l2d_internal::Rectangle::isPointInside(sf::Vector2f point) {

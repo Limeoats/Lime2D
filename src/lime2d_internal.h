@@ -198,6 +198,8 @@ namespace l2d_internal {
         void update(float elapsedTime);
         std::string getName() const;
         sf::Vector2i getSize() const;
+        void setSize(sf::Vector2i size);
+        void updateTileList();
         sf::Vector2i getTileSize() const;
         float getAmbientIntensity() const;
         sf::Color getAmbientColor() const;
@@ -207,7 +209,7 @@ namespace l2d_internal {
         std::vector<std::shared_ptr<Layer>> getLayerList();
         void addShape(std::shared_ptr<l2d_internal::Shape> shape);
         std::vector<std::shared_ptr<l2d_internal::Shape>> getShapeList();
-        void removeTile(int layer, sf::Vector2f pos);
+        void removeTile(int layer, sf::Vector2f pos, bool fromResize = false);
         void updateTile(std::string newTilesetPath, sf::Vector2i newTilesetSize, sf::Vector2i srcPos, sf::Vector2f destPos, int tilesetId, int layer);
         void updateShape(std::shared_ptr<l2d_internal::Shape> oldShape, std::shared_ptr<l2d_internal::Shape> newShape);
         void removeShape(std::shared_ptr<l2d_internal::Shape> shape);
@@ -243,6 +245,7 @@ namespace l2d_internal {
         virtual sf::Color getColor() const;
         void setName(std::string name);
         virtual void setColor(sf::Color color);
+        virtual void fixPosition(sf::Vector2i levelSize, sf::Vector2i tileSize, sf::Vector2f tileScale) = 0;
         virtual bool isPointInside(sf::Vector2f point) = 0;
         virtual void select() = 0;
         virtual void unselect() = 0;
@@ -267,6 +270,7 @@ namespace l2d_internal {
         sf::CircleShape getCircle();
         virtual sf::Color getColor() const override;
         virtual void setColor(sf::Color color) override;
+        virtual void fixPosition(sf::Vector2i levelSize, sf::Vector2i tileSize, sf::Vector2f tileScale) override;
         virtual bool isPointInside(sf::Vector2f point) override;
         virtual void select() override;
         virtual void unselect() override;
@@ -290,6 +294,7 @@ namespace l2d_internal {
         void deletePoint(std::shared_ptr<l2d_internal::Point> p);
         virtual sf::Color getColor() const override;
         virtual void setColor(sf::Color color) override;
+        virtual void fixPosition(sf::Vector2i levelSize, sf::Vector2i tileSize, sf::Vector2f tileScale) override;
         virtual bool isPointInside(sf::Vector2f point) override;
         virtual void select() override;
         virtual void unselect() override;
@@ -311,6 +316,7 @@ namespace l2d_internal {
         sf::RectangleShape getRectangle();
         virtual sf::Color getColor() const override;
         virtual void setColor(sf::Color color) override;
+        virtual void fixPosition(sf::Vector2i levelSize, sf::Vector2i tileSize, sf::Vector2f tileScale) override;
         l2d_internal::ObjectTypes getObjectType();
         void setObjectType(l2d_internal::ObjectTypes objectType);
         virtual bool isPointInside(sf::Vector2f point) override;

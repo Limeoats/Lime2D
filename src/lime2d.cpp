@@ -1715,7 +1715,13 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::Separator();
             ImGui::PopID();
             if (ImGui::Button("Save")) {
-
+                this->_level.setSize(sf::Vector2i(width, height));
+                this->_level.updateTileList();
+                for (auto &s : this->_level.getShapeList()) {
+                    s->fixPosition(this->_level.getSize(), this->_level.getTileSize(), sf::Vector2f(std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")),
+                                                                                                    std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))));
+                }
+                this->_level.saveMap(this->_level.getName());
                 createGridLines();
             }
             ImGui::SameLine();
