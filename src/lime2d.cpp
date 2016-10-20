@@ -449,6 +449,7 @@ void l2d::Editor::update(sf::Time t) {
         static bool shapeColorWindowVisible = false;
         static bool entityPropertiesLoaded = false;
         static bool cbHideShapes = false;
+        static bool configureMapWindowVisible = false;
 
         static sf::Vector2f mousePos(0.0f, 0.0f);
 
@@ -1004,6 +1005,10 @@ void l2d::Editor::update(sf::Time t) {
                     }
                     if (ImGui::Checkbox("Hide shapes", &cbHideShapes)) {
                         this->_hideShapes = cbHideShapes;
+                    }
+                    ImGui::Separator();
+                    if (ImGui::MenuItem("Configure")) {
+                        configureMapWindowVisible = true;
                     }
                 }
                 ImGui::Separator();
@@ -1690,6 +1695,36 @@ void l2d::Editor::update(sf::Time t) {
                 showEntityProperties = false;
             }
             entityPropertiesLoaded = true;
+            ImGui::End();
+        }
+
+        if (configureMapWindowVisible) {
+            this->_currentWindowType = l2d_internal::WindowTypes::ConfigureMapWindow;
+            ImGui::SetNextWindowPosCenter();
+            ImGui::SetNextWindowSize(ImVec2(400, 250));
+            ImGui::Begin("Configure map", nullptr, ImVec2(400, 250), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
+            ImGui::PushItemWidth(100);
+            ImGui::PushID("ConfigureMapSize");
+            ImGui::Text("Map size (in tiles)");
+            static int width = this->_level.getSize().x;
+            static int height = this->_level.getSize().y;
+            ImGui::InputInt("Width", &width, 1, 1, 0);
+            ImGui::InputInt("Height", &height, 1, 1, 0);
+            width = std::max(1, width);
+            height = std::max(1, height);
+            ImGui::Separator();
+            ImGui::PopID();
+            if (ImGui::Button("Save")) {
+
+                createGridLines();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                width = this->_level.getSize().x;
+                height = this->_level.getSize().y;
+                this->_currentWindowType = l2d_internal::WindowTypes::None;
+                configureMapWindowVisible = false;
+            }
             ImGui::End();
         }
 
