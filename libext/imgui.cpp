@@ -762,10 +762,10 @@ ImGuiStyle::ImGuiStyle()
     Colors[ImGuiCol_TitleBgCollapsed]       = ImVec4(0.10f, 0.50f, 0.10f, 0.20f); //Green
     Colors[ImGuiCol_TitleBgActive]          = ImVec4(0.15f, 0.55f, 0.15f, 0.84f); //Green
     Colors[ImGuiCol_MenuBarBg]              = ImVec4(0.10f, 0.50f, 0.10f, 0.80f); //Green
-    Colors[ImGuiCol_ScrollbarBg]            = ImVec4(0.30f, 0.60, 0.30f, 0.60f);
-    Colors[ImGuiCol_ScrollbarGrab]          = ImVec4(0.30f, 0.60, 0.30f, 1.00f);
-    Colors[ImGuiCol_ScrollbarGrabHovered]   = ImVec4(0.30f, 0.60, 0.30f, 0.60f);
-    Colors[ImGuiCol_ScrollbarGrabActive]    = ImVec4(0.10f, 0.90f, 0.10f, 0.40f);
+    Colors[ImGuiCol_ScrollbarBg]            = ImVec4(0.30f, 0.60, 0.30f, 0.60f);  //Green
+    Colors[ImGuiCol_ScrollbarGrab]          = ImVec4(0.30f, 0.60, 0.30f, 1.00f);  //Green
+    Colors[ImGuiCol_ScrollbarGrabHovered]   = ImVec4(0.30f, 0.60, 0.30f, 0.60f);  //Green
+    Colors[ImGuiCol_ScrollbarGrabActive]    = ImVec4(0.10f, 0.90f, 0.10f, 0.40f); //Green
     Colors[ImGuiCol_ComboBg]                = ImVec4(0.20f, 0.20f, 0.20f, 0.99f);
     Colors[ImGuiCol_CheckMark]              = ImVec4(0.90f, 0.90f, 0.90f, 0.50f);
     Colors[ImGuiCol_SliderGrab]             = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
