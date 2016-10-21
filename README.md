@@ -22,7 +22,7 @@ I've created a video tutorial showing the process of getting Lime2D integrated w
 If you have any trouble getting Lime2D working or have any questions, please go to [http://www.limeoats.com/lime2d](http://www.limeoats.com/lime2d) and post at the bottom of the page.
 
 ### Issues
-If you find any bugs or you think of a feature that should be added to Lime2D, please create an Issue in this repository. Label it appropriately and I will begin working on it as soon as possible.
+If you find any bugs or you think of a feature that should be added to Lime2D, please [Create an Issue](https://github.com/Limeoats/Lime2D/issues) in this repository. Label it appropriately and I will begin working on it as soon as possible.
 
 ### License
 
