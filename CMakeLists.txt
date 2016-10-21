@@ -44,6 +44,8 @@ else()
     install(TARGETS Lime2D DESTINATION ~/Library/Frameworks/Lime2D/lib)
     install(FILES src/lime2d.h src/lime2d_internal.h DESTINATION ~/Library/Frameworks/Lime2D/include)
 endif()
+install(TARGETS Lime2D DESTINATION ${CMAKE_CURRENT_LIST_DIR}/bin/Lime2D/lib)
+install(FILES src/lime2d.h src/lime2d_internal.h DESTINATION ${CMAKE_CURRENT_LIST_DIR}/bin/Lime2D/include)
 
 add_custom_command(
         TARGET Lime2D
