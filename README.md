@@ -24,8 +24,10 @@ If you have any trouble getting Lime2D working or have any questions, please go 
 ### Issues
 If you find any bugs or you think of a feature that should be added to Lime2D, please [Create an Issue](https://github.com/Limeoats/Lime2D/issues) in this repository. Label it appropriately and I will begin working on it as soon as possible.
 
-### License
+### Support
+If you'd like to support Lime2D, please go to the [Limeoats Patreon page](http://www.patreon.com/Limeoats) and become a patron. All support is greatly appreciated.
 
+### License
 This project is under the [Apache License](https://github.com/Limeoats/Lime2D/blob/master/LICENSE.md).
  
 ### Links
