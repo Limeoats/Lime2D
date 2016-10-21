@@ -4,7 +4,7 @@
 Since it is an in-game editor, you can edit maps in real-time with your player, collisions, and everything else being rendered. 
 You can then switch out of the editor and automatically see your updated map / animations. This will make for extremely efficient 2D level creation.
 
-The editor can be used in any C++ project using SFML on Windows, Mac OS X, and Linux.
+The editor can be used in any C++ project using SFML on Windows and Mac OS X.
 
 ### External libraries used
 * [SFML 2.4.0](http://www.sfml-dev.org/)
