@@ -12,9 +12,17 @@ The editor can be used in any C++ project using SFML on Windows and Mac OS X.
 * [TinyXML2](http://www.grinninglizard.com/tinyxml2/index.html)
 
 ### Installation
-Lime2D will be released on **Friday, October 21, 2016!**
+You can download the most recent version of the library and header files by going to the [bin/Lime2D](https://github.com/Limeoats/Lime2D/tree/master/bin/Lime2D) folder in this repository.
 
-The library file and installation instructions will be available right here on October 21.
+I've created a video tutorial showing the process of getting Lime2D integrated with your game. There is also a text version for those of you who don't want to follow an entire video.
+
+- [Video](https://www.youtube.com/watch?v=iHNyOIGB0PE)
+- [Text version of the guide](http://www.limeoats.com/lime2d-setup-guide.html)
+
+If you have any trouble getting Lime2D working or have any questions, please go to [http://www.limeoats.com/lime2d](http://www.limeoats.com/lime2d) and post at the bottom of the page.
+
+### Issues
+If you find any bugs or you think of a feature that should be added to Lime2D, please create an Issue in this repository. Label it appropriately and I will begin working on it as soon as possible.
 
 ### License
 
