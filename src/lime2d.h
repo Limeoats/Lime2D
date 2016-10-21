@@ -17,7 +17,8 @@ namespace l2d {
     class Editor {
     public:
         explicit Editor(bool enabled, sf::RenderWindow* window);
-        void toggle();
+        void toggle(std::string mapName = "l2dSTART");
+        bool isEnabled();
         void processEvent(sf::Event &event);
         void render();
         void update(sf::Time elapsedTime);
@@ -48,6 +49,8 @@ namespace l2d {
         sf::Event _currentEvent;
         std::shared_ptr<l2d_internal::Shape> _selectedShape;
         l2d_internal::WindowTypes _currentWindowType;
+
+        void createGridLines(bool always = false);
     };
 }
 
