@@ -9,7 +9,7 @@ if (WIN32)
 elseif(APPLE)
     set(CPP_VERSION -std=c++14)
 elseif(LINUX)
-    set(CPP_VERSION -std=gnu++0x)
+    set(CPP_VERSION -std=c++14)
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall ${CPP_VERSION}")
