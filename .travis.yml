@@ -1,69 +1,16 @@
-language: c++
-sudo: false
-matrix:
-  include:
-    - os: linux
-      compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise
-            - llvm-toolchain-precise-3.7
-          packages:
-            - clang-3.8
-            - g++-5
-    - os: linux
-      compiler: gcc
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-5
-cache:
-  apt: true
-  directories:
-  - "$HOME/.travis/cmake/build/install"
-  - "deps/SFML/build/install"
-  - "deps/SFML/build-static/install"
-  - "deps/boost-install"
-
-before_install:
-  - if [ "$CC"  == "gcc"     ]; then export CC=gcc-5; fi
-  - if [ "$CXX" == "g++"     ]; then export CXX=g++-5; fi
-  - if [ "$CC"  == "clang"   ]; then export CC=clang-3.8; fi
-  - if [ "$CXX" == "clang++" ]; then export CXX=clang++-3.8; fi
-  - pushd . && cd $HOME
-  - git clone https://github.com/LB--/travis.git travis
-  - source "./travis/update-cmake.sh"
-  - popd
-
-install:
-  - pushd .
-  # Build SFML (dynamic)
-  - if [ ! -d "deps/SFML/build/install/lib" ]; then export REBUILD_SFML="yes"; else export REBUILD_SFML="no"; fi
-  - if [ "$REBUILD_SFML" == "yes" ]; then cd deps/SFML && rm -rf build && mkdir build && cd build; fi
-  - if [ "$REBUILD_SFML" == "yes" ]; then cmake .. -DCMAKE_INSTALL_PREFIX="$(pwd)/install" && cmake --build . && cmake --build . --target install; fi
-  - if [ "$REBUILD_SFML" == "yes" ]; then cd install/lib; fi
-  - if [ "$REBUILD_SFML" == "no"  ]; then cd deps/SFML/build/install/lib; fi
-  - export PATH="$(pwd):$PATH" && cd .. && export SFML_ROOT="$(pwd)"
-  - popd && pushd .
-  # Build SFML (static)
-  - if [ ! -d "deps/SFML/build-static/install/lib" ]; then export REBUILD_SFML_STATIC="yes"; else export REBUILD_SFML_STATIC="no"; fi
-  - if [ "$REBUILD_SFML_STATIC" == "yes" ]; then cd deps/SFML && rm -rf build-static && mkdir build-static && cd build-static; fi
-  - if [ "$REBUILD_SFML_STATIC" == "yes" ]; then cmake .. -DCMAKE_INSTALL_PREFIX="$(pwd)/install" -DBUILD_SHARED_LIBS=OFF && cmake --build . && cmake --build . --target install; fi
-  - if [ "$REBUILD_SFML_STATIC" == "yes" ]; then cd install; fi
-  - if [ "$REBUILD_SFML_STATIC" == "no"  ]; then cd deps/SFML/build-static/install; fi
-  - export SFML_STATIC_ROOT="$(pwd)"
-  - popd && pushd .
-  
+# Enable C++ support
+language: cpp
+# Compiler selection
+compiler:
+  - clang
+  - gcc
+# Build steps
+before_script:
+  - wget http://www.sfml-dev.org/files/SFML-2.4.0-linux-gcc-64-bit.tar.gz
+  - tar xf SFML-2.4.0-linux-gcc-64-bit.tar.gz
+  - sudo cp -r SFML-2.4.0/lib/* /usr/local/lib/.
+  - sudo cp -r SFML-2.4.0/include/* /usr/local/include/.
 script:
-  - mkdir build && cd build
-  - cmake .. -DSFML_ROOT="$SFML_ROOT"
-  - cmake --build .
-  - ctest -VV
-  - cd .. && mkdir build-static && cd build-static
-  - cmake .. -DSFML_ROOT="$SFML_STATIC_ROOT" -DSFML_STATIC_LIBRARIES=ON
-  - cmake --build .
-  - ctest -VV
+  - mkdir build
+  - cd build
+  - cmake .. && make
