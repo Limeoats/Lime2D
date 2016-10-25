@@ -1,4 +1,6 @@
 # Lime2D
+![build](https://travis-ci.org/Limeoats/Lime2D.svg?branch=master)
+
 [Lime2D](http://www.limeoats.com/lime2d) is an open source in-game map/animation editor for 2D C++ game development projects.
 
 Since it is an in-game editor, you can edit maps in real-time with your player, collisions, and everything else being rendered. 
