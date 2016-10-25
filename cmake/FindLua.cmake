@@ -55,6 +55,7 @@ find_path(LUA_INCLUDE_DIR lua.h
         /opt/csw # Blastwave
         /opt
         /usr/local
+        /usr/bin
         C:/Lua
         )
 
