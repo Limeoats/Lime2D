@@ -36,7 +36,7 @@ if(WIN32)
 elseif(APPLE)
     target_link_libraries(${PROJECT_NAME} ${SFML_LIBRARIES} ${OPENGL_LIBRARY} ${LUA_LIBRARY} )
 elseif(LINUX)
-    target_link_libraries(Lime2DTest ${SFML_LIBRARIES} ${LUA_LIBRARY}
+    target_link_libraries(Lime2DTest ${SFML_LIBRARIES} ${LUA_LIBRARY})
 endif()
 
 if (WIN32)
@@ -71,5 +71,5 @@ if(WIN32)
 elseif(APPLE)
     target_link_libraries(Lime2DTest ${SFML_LIBRARIES} ${OPENGL_LIBRARY} ${LUA_LIBRARY} )
 elseif(LINUX)
-    target_link_libraries(Lime2DTest ${SFML_LIBRARIES} ${LUA_LIBRARY}
+    target_link_libraries(Lime2DTest ${SFML_LIBRARIES} ${LUA_LIBRARY})
 endif()
