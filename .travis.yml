@@ -41,10 +41,6 @@ before_install:
 
 install:
   - pushd .
-  # SFML 2.3 has new dependencies that Travis doesn't have
-  - cd deps/SFML
-  - git checkout 2.2
-  - popd && pushd .
   # Build SFML (dynamic)
   - if [ ! -d "deps/SFML/build/install/lib" ]; then export REBUILD_SFML="yes"; else export REBUILD_SFML="no"; fi
   - if [ "$REBUILD_SFML" == "yes" ]; then cd deps/SFML && rm -rf build && mkdir build && cd build; fi
