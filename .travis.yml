@@ -19,6 +19,7 @@ before_script:
   - sudo cp -r SFML-2.4.0/include/* /usr/local/include/.
   #Lua
   - sudo apt-get install lua5.1
+  - sudo apt-get install liblua5.1-dev
 script:
   - mkdir build
   - cd build
