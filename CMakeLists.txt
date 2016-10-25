@@ -6,8 +6,10 @@ set(Lime2D_VERSION_MINOR 0)
 
 if (WIN32)
     set(CPP_VERSION -std=gnu++14)
-else()
+elseif(APPLE)
     set(CPP_VERSION -std=c++14)
+elseif(LINUX)
+    set(CPP_VERSION -std=C++1y
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall ${CPP_VERSION}")
