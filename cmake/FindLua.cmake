@@ -57,6 +57,7 @@ find_path(LUA_INCLUDE_DIR lua.h
         /usr/local
         /usr/bin
         /usr/bin/lua
+        /usr
         C:/Lua
         )
 
@@ -75,6 +76,7 @@ find_library(LUA_LIBRARY
         /usr/local
         /usr/bin
         /usr/bin/lua
+        /usr
         )
 
 if(LUA_LIBRARY)
