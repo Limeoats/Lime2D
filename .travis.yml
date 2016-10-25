@@ -5,6 +5,8 @@ compiler:
   - clang
   - gcc
 # Build steps
+before_install:
+  - sudo apt-get install libsfml-dev
 script:
   - mkdir build
   - cd build
