@@ -22,8 +22,7 @@ before_script:
   - tar zxf lua-5.3.3.tar.gz
   - cd lua-5.3.3
   - make linux test
-  - sudo cp -r lua-5.3.3/* /usr/local/lib/.
-  - sudo cp -r lua-5.3.3/include/* /usr/local/include/.
+  - sudo apt-get install lua5.1
 script:
   - mkdir build
   - cd build
