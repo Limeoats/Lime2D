@@ -33,8 +33,10 @@ include_directories(${LUA_INCLUDE_DIR})
 
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} ${SFML_LIBRARIES} ${LUA_LIBRARY} -lopengl32 -lmingw32 -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid)
-else()
+elseif(APPLE)
     target_link_libraries(${PROJECT_NAME} ${SFML_LIBRARIES} ${OPENGL_LIBRARY} ${LUA_LIBRARY} )
+elseif(LINUX)
+    target_link_libraries(Lime2DTest ${SFML_LIBRARIES} ${LUA_LIBRARY}
 endif()
 
 if (WIN32)
@@ -66,6 +68,8 @@ include_directories(${LUA_INCLUDE_DIR})
 
 if(WIN32)
     target_link_libraries(Lime2DTest ${SFML_LIBRARIES} ${LUA_LIBRARY} -lopengl32 -lmingw32 -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid)
-else()
+elseif(APPLE)
     target_link_libraries(Lime2DTest ${SFML_LIBRARIES} ${OPENGL_LIBRARY} ${LUA_LIBRARY} )
+elseif(LINUX)
+    target_link_libraries(Lime2DTest ${SFML_LIBRARIES} ${LUA_LIBRARY}
 endif()
