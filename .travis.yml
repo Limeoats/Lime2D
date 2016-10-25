@@ -1,1 +1,11 @@
-script: make
+# Enable C++ support
+language: cpp
+# Compiler selection
+compiler:
+  - clang
+  - gcc
+# Build steps
+script:
+  - mkdir build
+  - cd build
+  - cmake .. && make
