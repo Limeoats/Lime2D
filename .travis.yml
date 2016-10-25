@@ -18,7 +18,12 @@ before_script:
   - sudo cp -r SFML-2.4.0/lib/* /usr/local/lib/.
   - sudo cp -r SFML-2.4.0/include/* /usr/local/include/.
   #Lua
-  
+  - curl -R -O http://www.lua.org/ftp/lua-5.3.3.tar.gz
+  - tar zxf lua-5.3.3.tar.gz
+  - cd lua-5.3.3
+  - make linux test
+  - sudo cp -r lua-5.3.3/lib/* /usr/local/lib/.
+  - sudo cp -r lua-5.3.3/include/* /usr/local/include/.
 script:
   - mkdir build
   - cd build
