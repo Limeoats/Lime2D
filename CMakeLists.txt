@@ -8,8 +8,8 @@ if (WIN32)
     set(CPP_VERSION -std=gnu++14)
 elseif(APPLE)
     set(CPP_VERSION -std=c++14)
-elseif(LINUX)
-    set(CPP_VERSION -std=C++1y)
+else()
+    set(CPP_VERSION -std=c++14)
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall ${CPP_VERSION}")
@@ -37,8 +37,8 @@ if(WIN32)
     target_link_libraries(${PROJECT_NAME} ${SFML_LIBRARIES} ${LUA_LIBRARY} -lopengl32 -lmingw32 -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid)
 elseif(APPLE)
     target_link_libraries(${PROJECT_NAME} ${SFML_LIBRARIES} ${OPENGL_LIBRARY} ${LUA_LIBRARY} )
-elseif(LINUX)
-    target_link_libraries(Lime2DTest ${SFML_LIBRARIES} ${LUA_LIBRARY})
+else()
+    target_link_libraries(${PROJECT_NAME} ${SFML_LIBRARIES} ${OPENGL_LIBRARY} ${LUA_LIBRARY})
 endif()
 
 if (WIN32)
@@ -56,22 +56,3 @@ add_custom_command(
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target install
 )
-
-
-#Lime2D TEST Program configuration
-add_executable(Lime2DTest ${SOURCE_FILES})
-include(FindPkgConfig)
-find_package(SFML COMPONENTS system window graphics network audio REQUIRED)
-find_package(OpenGL REQUIRED)
-find_package(Lua REQUIRED)
-
-include_directories(${SFML_INCLUDE_DIR})
-include_directories(${LUA_INCLUDE_DIR})
-
-if(WIN32)
-    target_link_libraries(Lime2DTest ${SFML_LIBRARIES} ${LUA_LIBRARY} -lopengl32 -lmingw32 -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid)
-elseif(APPLE)
-    target_link_libraries(Lime2DTest ${SFML_LIBRARIES} ${OPENGL_LIBRARY} ${LUA_LIBRARY} )
-elseif(LINUX)
-    target_link_libraries(Lime2DTest ${SFML_LIBRARIES} ${LUA_LIBRARY})
-endif()
