@@ -1,6 +1,6 @@
 # Enable C++ support
 language: cpp
-sudo: false
+sudo: required
 dist: trusty
 
 os:
