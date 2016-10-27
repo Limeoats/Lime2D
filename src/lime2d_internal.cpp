@@ -333,6 +333,7 @@ void l2d_internal::AnimatedSprite::setVisible(bool visible) {
 
 void l2d_internal::AnimatedSprite::stopAnimation() {
     this->_frameIndex = 0;
+    this->_sprite.setTextureRect(this->_animations[this->_currentAnimation][0]);
 }
 
 void l2d_internal::AnimatedSprite::update(float elapsedTime) {

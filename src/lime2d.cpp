@@ -1965,9 +1965,8 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::Separator();
 
                 if (animationSelectIndex > -1) {
-                    sprite->update(t.asSeconds());
                     sprite->updateAnimation(frames, srcPos, animationName, size, offset, timeToUpdate <= 0 ? 0 : timeToUpdate);
-
+                    sprite->update(t.asSeconds());
                     ImGui::Image(sprite->getSprite(), spriteDisplaySize);
                     ImGui::SameLine();
                     //Zoom buttons
@@ -1993,8 +1992,6 @@ void l2d::Editor::update(sf::Time t) {
                             spritesheetSelectIndex = i;
                         }
                     }
-
-
 
                     ImGui::PushItemWidth(500);
                     ImGui::PushID("AnimationName");
