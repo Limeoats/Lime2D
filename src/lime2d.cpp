@@ -1122,6 +1122,9 @@ void l2d::Editor::update(sf::Time t) {
                     selectedTilesetPath = tilesetFiles[tilesetComboIndex];
                     selectedTileLayer = 1;
                     selectedTileSrcPos = sf::Vector2i(0,0);
+                    tilesetTexture = this->_graphics->loadImage(tilesetFiles[tilesetComboIndex]);
+                    selectedTilesetSize = sf::Vector2i(tilesetTexture.getSize());
+                    tilesetViewSize = sf::Vector2f(selectedTilesetSize) * 3.0f;
                 }
                 ImGui::PopItemWidth();
                 if (tilesetComboIndex > -1) {
