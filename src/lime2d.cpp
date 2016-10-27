@@ -976,7 +976,7 @@ void l2d::Editor::update(sf::Time t) {
                 }
                 if (this->_level.getName() != "l2dSTART") {
                     ImGui::Separator();
-                    if (ImGui::BeginMenu("Add")) {
+                    if (ImGui::BeginMenu("Add", this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object)) {
                         if (ImGui::BeginMenu("Light")) {
                             if (ImGui::MenuItem("Ambient light") && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {
                                 lightEditorWindowVisible = true;
