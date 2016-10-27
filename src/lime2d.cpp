@@ -54,6 +54,10 @@ void l2d::Editor::toggle(std::string mapName) {
     this->_enabled = !this->_enabled;
     this->_level.loadMap(mapName);
     this->createGridLines(true);
+    if (mapName != "l2dSTART") {
+        this->_currentFeature = l2d_internal::Features::Map;
+        this->_currentMapEditorMode = l2d_internal::MapEditorMode::Object;
+    }
 }
 
 bool l2d::Editor::isEnabled() {
@@ -468,7 +472,7 @@ void l2d::Editor::update(sf::Time t) {
          *  Menu
          *  File, View, Map, Animation, Help
          */
-        static bool cbMapEditor = false;
+        static bool cbMapEditor = this->_level.getName() != "l2dSTART";
         static bool cbAnimationEditor = false;
         static bool cbShowGridLines = true;
         static bool aboutBoxVisible = false;
