@@ -19,6 +19,8 @@ namespace l2d {
         explicit Editor(bool enabled, sf::RenderWindow* window);
         void toggle(std::string mapName = "l2dSTART");
         bool isEnabled();
+        bool isMapLoaded();
+        std::string getLevelName();
         void processEvent(sf::Event &event);
         void render();
         void update(sf::Time elapsedTime);

@@ -544,7 +544,7 @@ void l2d_internal::Level::createMap(std::string name, sf::Vector2i size, sf::Vec
 }
 
 std::string l2d_internal::Level::loadMap(std::string &name) {
-    this->_name = name;
+
     if (name == "l2dSTART") {
         return "";
     }
@@ -552,7 +552,7 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
         this->_name = "l2dSTART";
         return "You cannot open a map that has no name!";
     }
-
+    this->_name = name;
     this->_layerList.clear();
     this->_tilesetList.clear();
     this->_shapeList.clear();
@@ -790,6 +790,7 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
 }
 
 void l2d_internal::Level::saveMap(std::string name) {
+    this->_name = name;
     tx2::XMLDocument document;
     std::stringstream ss;
     ss << l2d_internal::utils::getConfigValue("map_path") << name << ".xml";

@@ -64,6 +64,14 @@ bool l2d::Editor::isEnabled() {
     return this->_enabled;
 }
 
+bool l2d::Editor::isMapLoaded() {
+    return this->_level.getName() != "l2dSTART";
+}
+
+std::string l2d::Editor::getLevelName() {
+    return this->_level.getName();
+}
+
 void l2d::Editor::processEvent(sf::Event &event) {
     ImGui::SFML::ProcessEvent(event);
     this->_currentEvent = event;
