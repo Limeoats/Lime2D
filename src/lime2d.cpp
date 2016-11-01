@@ -73,68 +73,80 @@ std::string l2d::Editor::getLevelName() {
 }
 
 void l2d::Editor::processEvent(sf::Event &event) {
-    ImGui::SFML::ProcessEvent(event);
-    this->_currentEvent = event;
-    switch (event.type) {
-        case sf::Event::GainedFocus:
-            this->_windowHasFocus = true;
-            break;
-        case sf::Event::LostFocus:
-            this->_windowHasFocus = false;
-            break;
-        case sf::Event::KeyReleased:
-            switch (event.key.code) {
-                case sf::Keyboard::T:
-                    if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map &&
+    if (this->_enabled) {
+        ImGui::SFML::ProcessEvent(event);
+        this->_currentEvent = event;
+        switch (event.type) {
+            case sf::Event::GainedFocus:
+                this->_windowHasFocus = true;
+                break;
+            case sf::Event::LostFocus:
+                this->_windowHasFocus = false;
+                break;
+            case sf::Event::KeyReleased:
+                switch (event.key.code) {
+                    case sf::Keyboard::T:
+                        if (this->_level.getName() != "l2dSTART" &&
+                            this->_currentFeature == l2d_internal::Features::Map &&
                             this->_currentMapEditorMode == l2d_internal::MapEditorMode::Tile &&
-                            (this->_currentWindowType == l2d_internal::WindowTypes::None || this->_currentWindowType == l2d_internal::WindowTypes::TilesetWindow)) {
-                        this->_tilesetEnabled = !this->_tilesetEnabled;
-                        this->_currentWindowType = this->_tilesetEnabled ? l2d_internal::WindowTypes::TilesetWindow : l2d_internal::WindowTypes::None;
-                    }
-                    break;
-                case sf::Keyboard::G:
-                    if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map && this->_currentWindowType == l2d_internal::WindowTypes::None) {
-                        this->_showGridLines = !this->_showGridLines;
-                    }
-                    break;
-                case sf::Keyboard::U:
-                    if (this->_currentWindowType == l2d_internal::WindowTypes::None) {
-                        this->_level.undo();
-                    }
-                    break;
-                case sf::Keyboard::R:
-                    if (this->_currentWindowType == l2d_internal::WindowTypes::None) {
-                        this->_level.redo();
-                    }
-                    break;
-                case sf::Keyboard::E:
-                    if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map &&
+                            (this->_currentWindowType == l2d_internal::WindowTypes::None ||
+                             this->_currentWindowType == l2d_internal::WindowTypes::TilesetWindow)) {
+                            this->_tilesetEnabled = !this->_tilesetEnabled;
+                            this->_currentWindowType = this->_tilesetEnabled ? l2d_internal::WindowTypes::TilesetWindow
+                                                                             : l2d_internal::WindowTypes::None;
+                        }
+                        break;
+                    case sf::Keyboard::G:
+                        if (this->_level.getName() != "l2dSTART" &&
+                            this->_currentFeature == l2d_internal::Features::Map &&
+                            this->_currentWindowType == l2d_internal::WindowTypes::None) {
+                            this->_showGridLines = !this->_showGridLines;
+                        }
+                        break;
+                    case sf::Keyboard::U:
+                        if (this->_currentWindowType == l2d_internal::WindowTypes::None) {
+                            this->_level.undo();
+                        }
+                        break;
+                    case sf::Keyboard::R:
+                        if (this->_currentWindowType == l2d_internal::WindowTypes::None) {
+                            this->_level.redo();
+                        }
+                        break;
+                    case sf::Keyboard::E:
+                        if (this->_level.getName() != "l2dSTART" &&
+                            this->_currentFeature == l2d_internal::Features::Map &&
                             this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object &&
-                            (this->_currentWindowType == l2d_internal::WindowTypes::None || this->_currentWindowType == l2d_internal::WindowTypes::EntityListWindow)) {
-                        this->_showEntityList = !this->_showEntityList;
-                        this->_currentWindowType = this->_showEntityList ? l2d_internal::WindowTypes::EntityListWindow : l2d_internal::WindowTypes::None;
-                    }
-                    break;
-                case sf::Keyboard::M:
-                    if (this->_currentFeature == l2d_internal::Features::Map && this->_currentWindowType == l2d_internal::WindowTypes::None) {
-                        this->_currentMapEditorMode =
-                                this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object ?
-                                l2d_internal::MapEditorMode::Tile : l2d_internal::MapEditorMode::Object;
-                    }
-                default:
-                    break;
-            }
-            break;
-        case sf::Event::MouseWheelScrolled:
-            if (this->_currentFeature == l2d_internal::Features::Map && this->_level.getName() != "l2dSTART") {
-                if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel) {
-                    this->_graphics.get()->zoom(event.mouseWheelScroll.delta,
-                                                {event.mouseWheelScroll.x, event.mouseWheelScroll.y});
+                            (this->_currentWindowType == l2d_internal::WindowTypes::None ||
+                             this->_currentWindowType == l2d_internal::WindowTypes::EntityListWindow)) {
+                            this->_showEntityList = !this->_showEntityList;
+                            this->_currentWindowType = this->_showEntityList
+                                                       ? l2d_internal::WindowTypes::EntityListWindow
+                                                       : l2d_internal::WindowTypes::None;
+                        }
+                        break;
+                    case sf::Keyboard::M:
+                        if (this->_currentFeature == l2d_internal::Features::Map &&
+                            this->_currentWindowType == l2d_internal::WindowTypes::None) {
+                            this->_currentMapEditorMode =
+                                    this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object ?
+                                    l2d_internal::MapEditorMode::Tile : l2d_internal::MapEditorMode::Object;
+                        }
+                    default:
+                        break;
                 }
-            }
-            break;
-        default:
-            break;
+                break;
+            case sf::Event::MouseWheelScrolled:
+                if (this->_currentFeature == l2d_internal::Features::Map && this->_level.getName() != "l2dSTART") {
+                    if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel) {
+                        this->_graphics.get()->zoom(event.mouseWheelScroll.delta,
+                                                    {event.mouseWheelScroll.x, event.mouseWheelScroll.y});
+                    }
+                }
+                break;
+            default:
+                break;
+        }
     }
 }
 
@@ -148,6 +160,7 @@ void l2d::Editor::render() {
                     sf::Mouse::getPosition(*this->_window).y +
                     static_cast<int>(this->_graphics->getView().getViewport().top)));
         };
+        this->_window->clear(sf::Color(30, 30, 30, 255));
 
         //If map editor
         if (this->_level.getName() != "l2dSTART" && this->_currentFeature != l2d_internal::Features::Animation) {
