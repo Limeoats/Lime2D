@@ -1150,10 +1150,12 @@ void l2d::Editor::update(sf::Time t) {
                     tilesetTexture = this->_graphics->loadImage(tilesetFiles[tilesetComboIndex]);
                     selectedTilesetSize = sf::Vector2i(tilesetTexture.getSize());
                     tilesetViewSize = sf::Vector2f(selectedTilesetSize) * 3.0f;
+                    selectedTilePos = sf::Vector2f(0.0f,0.0f);
+                    tw = (tilesetViewSize.x * this->_level.getTileSize().x) / tilesetTexture.getSize().x;
+                    th = (tilesetViewSize.y * this->_level.getTileSize().y) / tilesetTexture.getSize().y;
                 }
                 ImGui::PopItemWidth();
                 if (tilesetComboIndex > -1) {
-
                     ImGui::PushItemWidth(80);
                     if (ImGui::Button("+", ImVec2(20, 20))) {
                         tilesetViewSize *= 1.2f; //TODO: MAKE THIS 1.2 VALUE CONFIGURABLE
@@ -1194,8 +1196,7 @@ void l2d::Editor::update(sf::Time t) {
                 }
                 if (showTilesetImage) {
                     ImGui::BeginChild("tilesetChildArea", ImVec2(500, 200), true, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
-                    auto pos = ImGui::GetCursorScreenPos();
-
+                    ImVec2 pos = ImGui::GetCursorScreenPos();
                     tilesetTexture = this->_graphics->loadImage(tilesetFiles[tilesetComboIndex]);
                     selectedTilesetSize = sf::Vector2i(tilesetTexture.getSize());
                     ImGui::Image(tilesetTexture, tilesetViewSize);
@@ -1233,13 +1234,13 @@ void l2d::Editor::update(sf::Time t) {
                     }
 
                     //Click event on the tileset
-                    if (ImGui::IsMouseClicked(0) && ImGui::IsWindowFocused()) {
+                    if (ImGui::IsMouseClicked(0)) {
                         ImVec2 mPos = ImGui::GetMousePos();
                         dx = mPos.x - pos.x;
                         dy = mPos.y - pos.y;
                     }
                     //Make sure the user clicked on an actual tile and not blank space
-                    if (dx < tw && dy < th) {
+                    if (dx < (tw * (tilesetTexture.getSize().x / this->_level.getTileSize().x)) && dy < th * (tilesetTexture.getSize().y / this->_level.getTileSize().y)) {
                         selectedTilePos = ImVec2(tw * (static_cast<int>(dx) / static_cast<int>(tw)),
                                                  th * (static_cast<int>(dy) / static_cast<int>(th)));
                         tileHasBeenSelected = true;
