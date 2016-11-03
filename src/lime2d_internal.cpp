@@ -63,7 +63,7 @@ std::vector<const char*> l2d_internal::utils::getFilesInDirectory(std::string di
     glob(directory.c_str(), GLOB_MARK, NULL, &glob_result);
     for (unsigned int i = 0; i < glob_result.gl_pathc; ++i) {
         std::string str = glob_result.gl_pathv[i];
-        if (str[str.length() - 1] != '/') {
+        if (str[str.length() - 4] == '.') {
             mapFiles.push_back(glob_result.gl_pathv[i]);
         }
     }
