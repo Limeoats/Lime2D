@@ -1194,7 +1194,6 @@ void l2d::Editor::update(sf::Time t) {
                 }
                 if (showTilesetImage) {
                     ImGui::BeginChild("tilesetChildArea", ImVec2(500, 200), true, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
-
                     auto pos = ImGui::GetCursorScreenPos();
 
                     tilesetTexture = this->_graphics->loadImage(tilesetFiles[tilesetComboIndex]);
@@ -1239,12 +1238,16 @@ void l2d::Editor::update(sf::Time t) {
                         dx = mPos.x - pos.x;
                         dy = mPos.y - pos.y;
                     }
+                    //Make sure the user clicked on an actual tile and not blank space
+                    if (dx < tw && dy < th) {
+                        selectedTilePos = ImVec2(tw * (static_cast<int>(dx) / static_cast<int>(tw)),
+                                                 th * (static_cast<int>(dy) / static_cast<int>(th)));
+                        tileHasBeenSelected = true;
 
-                    selectedTilePos = ImVec2(tw * (static_cast<int>(dx) / static_cast<int>(tw)), th * (static_cast<int>(dy) / static_cast<int>(th)));
-                    tileHasBeenSelected = true;
-
-                    selectedTileSrcPos = sf::Vector2i((static_cast<int>(dx) / static_cast<int>(tw)) * this->_level.getTileSize().x, (static_cast<int>(dy) / static_cast<int>(th)) * this->_level.getTileSize().y);
-
+                        selectedTileSrcPos = sf::Vector2i(
+                                (static_cast<int>(dx) / static_cast<int>(tw)) * this->_level.getTileSize().x,
+                                (static_cast<int>(dy) / static_cast<int>(th)) * this->_level.getTileSize().y);
+                    }
                     ImGui::EndChild();
                 }
                 ImGui::End();
