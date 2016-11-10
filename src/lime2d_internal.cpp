@@ -1254,6 +1254,36 @@ void l2d_internal::Shape::setColor(sf::Color color) {
     this->_color = color;
 }
 
+std::vector<l2d_internal::CustomProperty> l2d_internal::Shape::getCustomProperties() {
+    return this->_customProperties;
+}
+
+void l2d_internal::Shape::addCustomProperty(std::string name, std::string value) {
+    for (int i = 0; ; ++i) {
+        if (![&]()->bool {
+            for (l2d_internal::CustomProperty &c : this->_customProperties) {
+                if (c.Id == i) {
+                    return true;
+                }
+            }
+            return false;
+        }()) {
+            this->_customProperties.push_back(l2d_internal::CustomProperty(i, name, value));
+            return;
+        }
+    }
+}
+
+void l2d_internal::Shape::removeCustomProperty(int id) {
+    this->_customProperties.erase(std::remove_if(this->_customProperties.begin(), this->_customProperties.end(), [&](l2d_internal::CustomProperty n)->bool {
+        return n.Id == id;
+    }), this->_customProperties.end());
+}
+
+void l2d_internal::Shape::clearCustomProperties() {
+    this->_customProperties.clear();
+}
+
 /*
  * Point
  */

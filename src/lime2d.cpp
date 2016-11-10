@@ -446,7 +446,7 @@ void l2d::Editor::render() {
                     for (auto &t : this->_level.getShapeList()) {
                         t->unselect();
                     }
-                    this->_selectedShape = nullptr;
+
                 }
             }
         }
@@ -1622,7 +1622,7 @@ void l2d::Editor::update(sf::Time t) {
         }
         if (showEntityProperties) {
             this->_currentWindowType = l2d_internal::WindowTypes::EntityPropertiesWindow;
-            ImGui::Begin("Properties", nullptr, ImVec2(482, 234), 100.0f, ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_AlwaysAutoResize |
+            ImGui::Begin("Properties", nullptr, ImVec2(511, 234), 100.0f, ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_AlwaysAutoResize |
                     ImGuiWindowFlags_HorizontalScrollbar);
             ImGui::PushID("SelectedEntityName");
             static char name[500] = "";
@@ -1664,8 +1664,8 @@ void l2d::Editor::update(sf::Time t) {
             }
 
             //List all of the points (with an option to delete)
-            ImGui::Text("Points");
             if (selectedEntityLine != nullptr) {
+                ImGui::Text("Points");
                 for (auto &p : selectedEntityLine->getPoints()) {
                     ImGui::Text(p->getName().c_str());
                     if (selectedEntityLine->getPoints().size() > 2) {
@@ -1677,10 +1677,49 @@ void l2d::Editor::update(sf::Time t) {
                         ImGui::PopID();
                     }
                 }
-                ImGui::Separator();
             }
 
+            //Custom properties
+            ImGui::Separator();
+            ImGui::Text("Custom properties");
+            static auto customProperties = this->_selectedShape->getCustomProperties();
+            for (auto &p : customProperties) {
+                ImGui::PushID(("txtPropName_" + std::to_string(p.Id)).c_str());
+                ImGui::InputText("Name", (char*)p.Name.c_str(), 100);
+                ImGui::PopID();
+                ImGui::SameLine(0.0f, 10.0f);
+                ImGui::PushID(("txtPropValue_" + std::to_string(p.Id)).c_str());
+                ImGui::InputText("Value", (char*)p.Value.c_str(), 100);
+                ImGui::PopID();
+                ImGui::SameLine(0.0f, 10.0f);
+                ImGui::PushID(("btnDeleteProp_" + std::to_string(p.Id)).c_str());
+                if (ImGui::Button("-", ImVec2(20, 20))) {
+                    //
+                }
+                ImGui::PopID();
+            }
+            if (ImGui::Button("+", ImVec2(20, 20))) {
+                for (int i = 0; ; ++i) {
+                    if (![&]()->bool {
+                        for (l2d_internal::CustomProperty &c : customProperties) {
+                            if (c.Id == i) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }()) {
+                        customProperties.push_back(l2d_internal::CustomProperty(i, "", ""));
+                        return;
+                    }
+                }
+            }
+            ImGui::Separator();
             if (ImGui::Button("Update")) {
+                auto addPropertiesToShape = [&](std::shared_ptr<l2d_internal::Shape> shape)->void {
+                    //Remove all existing custom properties, then re-add them
+                    shape.get()->clearCustomProperties();
+
+                };
                 if (selectedEntityRectangle != nullptr) {
                     selectedEntityRectangle->setName(name);
                     selectedEntityRectangle->setColor(selectedEntityColor);

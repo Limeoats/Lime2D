@@ -234,6 +234,15 @@ namespace l2d_internal {
         sf::Color _ambientColor = sf::Color::White;
     };
 
+    struct CustomProperty {
+    public:
+        CustomProperty(int id, std::string name, std::string value) :
+            Id(id), Name(name), Value(value) {}
+        int Id;
+        std::string Name;
+        std::string Value;
+    };
+
     /*
      * The internal Shape class for Lime2D
      */
@@ -245,6 +254,10 @@ namespace l2d_internal {
         virtual sf::Color getColor() const;
         void setName(std::string name);
         virtual void setColor(sf::Color color);
+        std::vector<l2d_internal::CustomProperty> getCustomProperties();
+        void addCustomProperty(std::string name, std::string value);
+        void removeCustomProperty(int id);
+        void clearCustomProperties();
         virtual void fixPosition(sf::Vector2i levelSize, sf::Vector2i tileSize, sf::Vector2f tileScale) = 0;
         virtual bool isPointInside(sf::Vector2f point) = 0;
         virtual void select() = 0;
@@ -257,6 +270,7 @@ namespace l2d_internal {
         std::string _name;
         sf::Color _color = sf::Color::White;
         bool _selected;
+        std::vector<l2d_internal::CustomProperty> _customProperties;
     };
 
 
