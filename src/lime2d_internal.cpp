@@ -916,8 +916,8 @@ void l2d_internal::Level::saveMap(std::string name) {
             for (auto &pr : props) {
                 tx2::XMLElement* pProperty = document.NewElement("property");
                 pProperty->SetAttribute("id", pr.Id);
-                pProperty->SetAttribute("name", pr.Name.c_str());
-                pProperty->SetAttribute("value", pr.Value.c_str());
+                pProperty->SetAttribute("name", pr.Name);
+                pProperty->SetAttribute("value", pr.Value);
                 pProperties->InsertEndChild(pProperty);
             }
             pRectangle->InsertEndChild(pProperties);
@@ -937,8 +937,8 @@ void l2d_internal::Level::saveMap(std::string name) {
             for (auto &pr : props) {
                 tx2::XMLElement* pProperty = document.NewElement("property");
                 pProperty->SetAttribute("id", pr.Id);
-                pProperty->SetAttribute("name", pr.Name.c_str());
-                pProperty->SetAttribute("value", pr.Value.c_str());
+                pProperty->SetAttribute("name", pr.Name);
+                pProperty->SetAttribute("value", pr.Value);
                 pProperties->InsertEndChild(pProperty);
             }
             pPoint->InsertEndChild(pProperties);
@@ -966,8 +966,8 @@ void l2d_internal::Level::saveMap(std::string name) {
             for (auto &pr : props) {
                 tx2::XMLElement* pProperty = document.NewElement("property");
                 pProperty->SetAttribute("id", pr.Id);
-                pProperty->SetAttribute("name", pr.Name.c_str());
-                pProperty->SetAttribute("value", pr.Value.c_str());
+                pProperty->SetAttribute("name", pr.Name);
+                pProperty->SetAttribute("value", pr.Value);
                 pProperties->InsertEndChild(pProperty);
             }
             pLine->InsertEndChild(pProperties);

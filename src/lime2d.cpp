@@ -1700,11 +1700,11 @@ void l2d::Editor::update(sf::Time t) {
             if (this->_selectedShape != nullptr) {
                 for (auto &p : customProperties) {
                     ImGui::PushID(("txtPropName_" + std::to_string(p.Id)).c_str());
-                    ImGui::InputText("Name", (char *) p.Name.c_str(), 100);
+                    ImGui::InputText("Name", p.Name, 100);
                     ImGui::PopID();
                     ImGui::SameLine(0.0f, 10.0f);
                     ImGui::PushID(("txtPropValue_" + std::to_string(p.Id)).c_str());
-                    ImGui::InputText("Value", (char *) p.Value.c_str(), 100);
+                    ImGui::InputText("Value", p.Value, 100);
                     ImGui::PopID();
                     ImGui::SameLine(0.0f, 10.0f);
                     ImGui::PushID(("btnDeleteProp_" + std::to_string(p.Id)).c_str());

@@ -19,6 +19,7 @@ extern "C" {
 #include <memory>
 #include <stack>
 #include <sstream>
+#include <cstring>
 
 namespace l2d_internal {
 
@@ -236,13 +237,17 @@ namespace l2d_internal {
 
     struct CustomProperty {
     public:
-        CustomProperty() :
-            Id(-1), Name(""), Value("") {}
-        CustomProperty(int id, std::string name, std::string value) :
-            Id(id), Name(name), Value(value) {}
+        CustomProperty() : Id(-1) {
+            std::strcpy(Name, "");
+            std::strcpy(Value, "");
+        }
+        CustomProperty(int id, std::string name, std::string value) : Id(id) {
+            std::strcpy(Name, name.c_str());
+            std::strcpy(Value, value.c_str());
+        }
         int Id;
-        std::string Name;
-        std::string Value;
+        char Name[100];
+        char Value[100];
     };
 
     /*
