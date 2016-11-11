@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(Lime2D)
 
 set(Lime2D_VERSION_MAJOR 1)
-set(Lime2D_VERSION_MINOR 0)
+set(Lime2D_VERSION_MINOR 1)
 
 if (WIN32)
     set(CPP_VERSION -std=gnu++14)

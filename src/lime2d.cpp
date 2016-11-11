@@ -446,7 +446,7 @@ void l2d::Editor::render() {
                     for (auto &t : this->_level.getShapeList()) {
                         t->unselect();
                     }
-
+                    this->_selectedShape = nullptr;
                 }
             }
         }
@@ -512,6 +512,8 @@ void l2d::Editor::update(sf::Time t) {
         static bool entityPropertiesLoaded = false;
         static bool cbHideShapes = false;
         static bool configureMapWindowVisible = false;
+
+        static std::shared_ptr<l2d_internal::Shape> rightClickedShape = nullptr;
 
         static sf::Vector2f mousePos(0.0f, 0.0f);
 
@@ -781,7 +783,7 @@ void l2d::Editor::update(sf::Time t) {
             this->_currentWindowType = l2d_internal::WindowTypes::AboutWindow;
             ImGui::SetNextWindowSize(ImVec2(300, 130));
             ImGui::Begin("About Lime2D", nullptr, ImVec2(300, 130), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
-            ImGui::Text("Lime2D Editor\nVersion: 1.0\n\nBy: Limeoats\nCopyright \u00a9 2016");
+            ImGui::Text("Lime2D Editor\nVersion: 1.1\n\nBy: Limeoats\nCopyright \u00a9 2016");
             ImGui::Separator();
             if (ImGui::Button("Close")) {
                 this->_currentWindowType = l2d_internal::WindowTypes::None;
@@ -1425,12 +1427,16 @@ void l2d::Editor::update(sf::Time t) {
         }
 
         if (this->_removingShape) {
+            rightClickedShape = this->_selectedShape;
             ImGui::OpenPopup("right_click_shape");
             this->_removingShape = false;
         }
         if (ImGui::BeginPopup("right_click_shape")) {
             if (ImGui::MenuItem("Edit shape")) {
                 entityPropertiesLoaded = false;
+                if (rightClickedShape != nullptr) {
+                    this->_selectedShape = rightClickedShape;
+                }
                 if (this->_selectedShape != nullptr) {
                     customProperties = this->_selectedShape->getCustomProperties();
                 }
@@ -1471,6 +1477,9 @@ void l2d::Editor::update(sf::Time t) {
             }
             ImGui::Separator();
             if (ImGui::MenuItem("Delete shape")) {
+                if (rightClickedShape != nullptr) {
+                    this->_selectedShape = rightClickedShape;
+                }
                 this->_level.removeShape(this->_selectedShape);
                 this->_selectedShape = nullptr;
             }
@@ -1498,7 +1507,8 @@ void l2d::Editor::update(sf::Time t) {
                         ImGui::PushID(strId.c_str());
                         if (ImGui::Selectable(s->getName().c_str())) {
                             entityPropertiesLoaded = false;
-                            s->select();
+                            shape->select();
+                            rightClickedShape = shape;
                             selectedEntityRectangle = s;
                             originalSelectedEntityRectangle = std::make_shared<l2d_internal::Rectangle>(s->getName(),
                                                                                                         s->getColor(),
@@ -1506,9 +1516,7 @@ void l2d::Editor::update(sf::Time t) {
                                                                                                         s->getRectangle());
                             selectedEntitySelectedObjectTypeIndex = static_cast<int>(s->getObjectType()) - 1;
                             selectedEntityColor = s->getColor();
-                            if (this->_selectedShape != nullptr) {
-                                customProperties = this->_selectedShape->getCustomProperties();
-                            }
+                            customProperties = shape->getCustomProperties();
 
                             //Unset the rest of the shapes
                             selectedEntityPoint = nullptr;
@@ -1536,13 +1544,12 @@ void l2d::Editor::update(sf::Time t) {
                         ImGui::PushID(strId.c_str());
                         if (ImGui::Selectable(p->getName().c_str())) {
                             entityPropertiesLoaded = false;
-                            p->select();
+                            shape->select();
+                            rightClickedShape = shape;
                             selectedEntityPoint = p;
                             originalSelectedEntityPoint = std::make_shared<l2d_internal::Point>(p->getName(), p->getColor(), p->getCircle());
                             selectedEntityColor = p->getColor();
-                            if (this->_selectedShape != nullptr) {
-                                customProperties = this->_selectedShape->getCustomProperties();
-                            }
+                            customProperties = shape->getCustomProperties();
 
                             //Unset the rest of the shapes
                             selectedEntityRectangle = nullptr;
@@ -1570,13 +1577,12 @@ void l2d::Editor::update(sf::Time t) {
                         ImGui::PushID(strId.c_str());
                         if (ImGui::Selectable(l->getName().c_str())) {
                             entityPropertiesLoaded = false;
-                            l->select();
+                            shape->select();
+                            rightClickedShape = shape;
                             selectedEntityLine = l;
                             originalSelectedEntityLine = std::make_shared<l2d_internal::Line>(l->getName(), l->getColor(), l->getPoints());
                             selectedEntityColor = l->getColor();
-                            if (this->_selectedShape != nullptr) {
-                                customProperties = this->_selectedShape->getCustomProperties();
-                            }
+                            customProperties = shape->getCustomProperties();
 
                             //Unset the rest of the shapes
                             selectedEntityRectangle = nullptr;
@@ -1636,6 +1642,9 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::End();
         }
         if (showEntityProperties) {
+            if (rightClickedShape != nullptr) {
+                this->_selectedShape = rightClickedShape;
+            }
             this->_currentWindowType = l2d_internal::WindowTypes::EntityPropertiesWindow;
             ImGui::Begin("Properties", nullptr, ImVec2(511, 234), 100.0f, ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_AlwaysAutoResize |
                     ImGuiWindowFlags_HorizontalScrollbar);
