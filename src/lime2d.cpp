@@ -543,6 +543,9 @@ void l2d::Editor::update(sf::Time t) {
         static std::shared_ptr<l2d_internal::Line> selectedEntityLine;
         static std::shared_ptr<l2d_internal::Line> originalSelectedEntityLine;
 
+        //Custom properties
+        static std::vector<l2d_internal::CustomProperty> customProperties;
+
         //Drawing tiles variables
         static bool tileHasBeenSelected = false;
         static std::string selectedTilesetPath = "content/tilesets/outside.png";
@@ -1428,6 +1431,9 @@ void l2d::Editor::update(sf::Time t) {
         if (ImGui::BeginPopup("right_click_shape")) {
             if (ImGui::MenuItem("Edit shape")) {
                 entityPropertiesLoaded = false;
+                if (this->_selectedShape != nullptr) {
+                    customProperties = this->_selectedShape->getCustomProperties();
+                }
 
                 //Unset all selected shapes
                 selectedEntityRectangle = nullptr;
@@ -1500,6 +1506,9 @@ void l2d::Editor::update(sf::Time t) {
                                                                                                         s->getRectangle());
                             selectedEntitySelectedObjectTypeIndex = static_cast<int>(s->getObjectType()) - 1;
                             selectedEntityColor = s->getColor();
+                            if (this->_selectedShape != nullptr) {
+                                customProperties = this->_selectedShape->getCustomProperties();
+                            }
 
                             //Unset the rest of the shapes
                             selectedEntityPoint = nullptr;
@@ -1531,6 +1540,9 @@ void l2d::Editor::update(sf::Time t) {
                             selectedEntityPoint = p;
                             originalSelectedEntityPoint = std::make_shared<l2d_internal::Point>(p->getName(), p->getColor(), p->getCircle());
                             selectedEntityColor = p->getColor();
+                            if (this->_selectedShape != nullptr) {
+                                customProperties = this->_selectedShape->getCustomProperties();
+                            }
 
                             //Unset the rest of the shapes
                             selectedEntityRectangle = nullptr;
@@ -1562,6 +1574,9 @@ void l2d::Editor::update(sf::Time t) {
                             selectedEntityLine = l;
                             originalSelectedEntityLine = std::make_shared<l2d_internal::Line>(l->getName(), l->getColor(), l->getPoints());
                             selectedEntityColor = l->getColor();
+                            if (this->_selectedShape != nullptr) {
+                                customProperties = this->_selectedShape->getCustomProperties();
+                            }
 
                             //Unset the rest of the shapes
                             selectedEntityRectangle = nullptr;
@@ -1682,48 +1697,51 @@ void l2d::Editor::update(sf::Time t) {
             //Custom properties
             ImGui::Separator();
             ImGui::Text("Custom properties");
-            static auto customProperties = this->_selectedShape->getCustomProperties();
-            for (auto &p : customProperties) {
-                ImGui::PushID(("txtPropName_" + std::to_string(p.Id)).c_str());
-                ImGui::InputText("Name", (char*)p.Name.c_str(), 100);
-                ImGui::PopID();
-                ImGui::SameLine(0.0f, 10.0f);
-                ImGui::PushID(("txtPropValue_" + std::to_string(p.Id)).c_str());
-                ImGui::InputText("Value", (char*)p.Value.c_str(), 100);
-                ImGui::PopID();
-                ImGui::SameLine(0.0f, 10.0f);
-                ImGui::PushID(("btnDeleteProp_" + std::to_string(p.Id)).c_str());
-                if (ImGui::Button("-", ImVec2(20, 20))) {
-                    //
+            if (this->_selectedShape != nullptr) {
+                for (auto &p : customProperties) {
+                    ImGui::PushID(("txtPropName_" + std::to_string(p.Id)).c_str());
+                    ImGui::InputText("Name", (char *) p.Name.c_str(), 100);
+                    ImGui::PopID();
+                    ImGui::SameLine(0.0f, 10.0f);
+                    ImGui::PushID(("txtPropValue_" + std::to_string(p.Id)).c_str());
+                    ImGui::InputText("Value", (char *) p.Value.c_str(), 100);
+                    ImGui::PopID();
+                    ImGui::SameLine(0.0f, 10.0f);
+                    ImGui::PushID(("btnDeleteProp_" + std::to_string(p.Id)).c_str());
+                    if (ImGui::Button("-", ImVec2(20, 20))) {
+                        customProperties.erase(std::remove_if(customProperties.begin(), customProperties.end(),
+                                                              [&](l2d_internal::CustomProperty prop) -> bool {
+                                                                  return prop.Id == p.Id;
+                                                              }), customProperties.end());
+                    }
+                    ImGui::PopID();
                 }
-                ImGui::PopID();
-            }
-            if (ImGui::Button("+", ImVec2(20, 20))) {
-                for (int i = 0; ; ++i) {
-                    if (![&]()->bool {
-                        for (l2d_internal::CustomProperty &c : customProperties) {
-                            if (c.Id == i) {
-                                return true;
+                if (ImGui::Button("+", ImVec2(20, 20))) {
+                    for (int i = 0;; ++i) {
+                        if (![&]() -> bool {
+                            for (l2d_internal::CustomProperty &c : customProperties) {
+                                if (c.Id == i) {
+                                    return true;
+                                }
                             }
+                            return false;
+                        }()) {
+                            customProperties.push_back(l2d_internal::CustomProperty(i, "", ""));
+                            break;
                         }
-                        return false;
-                    }()) {
-                        customProperties.push_back(l2d_internal::CustomProperty(i, "", ""));
-                        return;
                     }
                 }
+                ImGui::Separator();
             }
-            ImGui::Separator();
             if (ImGui::Button("Update")) {
-                auto addPropertiesToShape = [&](std::shared_ptr<l2d_internal::Shape> shape)->void {
-                    //Remove all existing custom properties, then re-add them
-                    shape.get()->clearCustomProperties();
-
-                };
+                this->_selectedShape.get()->clearCustomProperties();
+                this->_selectedShape.get()->setCustomProperties(customProperties);
                 if (selectedEntityRectangle != nullptr) {
                     selectedEntityRectangle->setName(name);
                     selectedEntityRectangle->setColor(selectedEntityColor);
                     selectedEntityRectangle->setObjectType(static_cast<l2d_internal::ObjectTypes>(selectedEntitySelectedObjectTypeIndex + 1));
+                    selectedEntityRectangle->clearCustomProperties();
+                    selectedEntityRectangle->setCustomProperties(customProperties);
                     this->_level.updateShape(originalSelectedEntityRectangle, selectedEntityRectangle);
                     this->_level.saveMap(this->_level.getName());
                     startStatusTimer("Rectangle saved successfully!", 200);
@@ -1731,6 +1749,8 @@ void l2d::Editor::update(sf::Time t) {
                 else if (selectedEntityPoint != nullptr) {
                     selectedEntityPoint->setName(name);
                     selectedEntityPoint->setColor(selectedEntityColor);
+                    selectedEntityPoint->clearCustomProperties();
+                    selectedEntityPoint->setCustomProperties(customProperties);
                     this->_level.updateShape(originalSelectedEntityPoint, selectedEntityPoint);
                     this->_level.saveMap(this->_level.getName());
                     startStatusTimer("Point saved successfully!", 200);
@@ -1738,6 +1758,8 @@ void l2d::Editor::update(sf::Time t) {
                 else if (selectedEntityLine != nullptr) {
                     selectedEntityLine->setName(name);
                     selectedEntityLine->setColor(selectedEntityColor);
+                    selectedEntityLine->clearCustomProperties();
+                    selectedEntityLine->setCustomProperties(customProperties);
                     this->_level.updateShape(originalSelectedEntityLine, selectedEntityLine);
                     this->_level.saveMap(this->_level.getName());
                     startStatusTimer("Line saved successfully!", 200);

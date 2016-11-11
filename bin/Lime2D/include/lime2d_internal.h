@@ -236,6 +236,8 @@ namespace l2d_internal {
 
     struct CustomProperty {
     public:
+        CustomProperty() :
+            Id(-1), Name(""), Value("") {}
         CustomProperty(int id, std::string name, std::string value) :
             Id(id), Name(name), Value(value) {}
         int Id;
@@ -257,6 +259,7 @@ namespace l2d_internal {
         std::vector<l2d_internal::CustomProperty> getCustomProperties();
         void addCustomProperty(std::string name, std::string value);
         void removeCustomProperty(int id);
+        void setCustomProperties(std::vector<l2d_internal::CustomProperty> &others);
         void clearCustomProperties();
         virtual void fixPosition(sf::Vector2i levelSize, sf::Vector2i tileSize, sf::Vector2f tileScale) = 0;
         virtual bool isPointInside(sf::Vector2f point) = 0;

@@ -897,6 +897,7 @@ void l2d_internal::Level::saveMap(std::string name) {
     tx2::XMLElement* pPoints = document.NewElement("points");
     tx2::XMLElement* pLines = document.NewElement("lines");
     for (std::shared_ptr<l2d_internal::Shape> &shape: this->_shapeList) {
+        auto props = shape->getCustomProperties();
         std::shared_ptr<l2d_internal::Rectangle> r = std::dynamic_pointer_cast<l2d_internal::Rectangle>(shape);
         if (r != nullptr) {
             tx2::XMLElement* pRectangle = document.NewElement("rectangle");
@@ -911,6 +912,15 @@ void l2d_internal::Level::saveMap(std::string name) {
             pRectangleSize->SetAttribute("w", r->getRectangle().getSize().x);
             pRectangleSize->SetAttribute("h", r->getRectangle().getSize().y);
             pRectangle->InsertEndChild(pRectangleSize);
+            tx2::XMLElement* pProperties = document.NewElement("properties");
+            for (auto &pr : props) {
+                tx2::XMLElement* pProperty = document.NewElement("property");
+                pProperty->SetAttribute("id", pr.Id);
+                pProperty->SetAttribute("name", pr.Name.c_str());
+                pProperty->SetAttribute("value", pr.Value.c_str());
+                pProperties->InsertEndChild(pProperty);
+            }
+            pRectangle->InsertEndChild(pProperties);
             pRectangles->InsertEndChild(pRectangle);
             continue;
         }
@@ -923,6 +933,15 @@ void l2d_internal::Level::saveMap(std::string name) {
             pPointPosition->SetAttribute("x", p->getCircle().getPosition().x);
             pPointPosition->SetAttribute("y", p->getCircle().getPosition().y);
             pPoint->InsertEndChild(pPointPosition);
+            tx2::XMLElement* pProperties = document.NewElement("properties");
+            for (auto &pr : props) {
+                tx2::XMLElement* pProperty = document.NewElement("property");
+                pProperty->SetAttribute("id", pr.Id);
+                pProperty->SetAttribute("name", pr.Name.c_str());
+                pProperty->SetAttribute("value", pr.Value.c_str());
+                pProperties->InsertEndChild(pProperty);
+            }
+            pPoint->InsertEndChild(pProperties);
             pPoints->InsertEndChild(pPoint);
             continue;
         }
@@ -943,6 +962,15 @@ void l2d_internal::Level::saveMap(std::string name) {
                 pLinePoints->InsertEndChild(pLinePoint);
             }
             pLine->InsertEndChild(pLinePoints);
+            tx2::XMLElement* pProperties = document.NewElement("properties");
+            for (auto &pr : props) {
+                tx2::XMLElement* pProperty = document.NewElement("property");
+                pProperty->SetAttribute("id", pr.Id);
+                pProperty->SetAttribute("name", pr.Name.c_str());
+                pProperty->SetAttribute("value", pr.Value.c_str());
+                pProperties->InsertEndChild(pProperty);
+            }
+            pLine->InsertEndChild(pProperties);
             pLines->InsertEndChild(pLine);
         }
     }
@@ -1236,6 +1264,7 @@ l2d_internal::Shape::Shape(std::string name, sf::Color color) {
     this->_name = name;
     this->_color = color;
     this->_selected = false;
+    this->_customProperties = {};
 }
 
 std::string l2d_internal::Shape::getName() {
@@ -1282,6 +1311,10 @@ void l2d_internal::Shape::removeCustomProperty(int id) {
 
 void l2d_internal::Shape::clearCustomProperties() {
     this->_customProperties.clear();
+}
+
+void l2d_internal::Shape::setCustomProperties(std::vector<l2d_internal::CustomProperty> &others) {
+    this->_customProperties = others;
 }
 
 /*
