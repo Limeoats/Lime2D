@@ -688,6 +688,7 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
                                             "type"));
                                     sf::Vector2f position;
                                     sf::Vector2f size;
+                                    std::vector<l2d_internal::CustomProperty> properties;
                                     tx2::XMLElement* pRectanglePosition = pRectangle->FirstChildElement("pos");
                                     if (pRectanglePosition != nullptr) {
                                         position.x = pRectanglePosition->FloatAttribute("x");
@@ -698,13 +699,28 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
                                         size.x = pRectangleSize->FloatAttribute("w");
                                         size.y = pRectangleSize->FloatAttribute("h");
                                     }
+                                    tx2::XMLElement* pProperties = pRectangle->FirstChildElement("properties");
+                                    if (pProperties != nullptr) {
+                                        tx2::XMLElement* pProperty = pProperties->FirstChildElement("property");
+                                        if (pProperty != nullptr) {
+                                            while (pProperty) {
+                                                int pid = pProperty->IntAttribute("id");
+                                                std::string pname = pProperty->Attribute("name");
+                                                std::string pvalue = pProperty->Attribute("value");
+                                                properties.push_back(l2d_internal::CustomProperty(pid, pname, pvalue));
+                                                pProperty = pProperty->NextSiblingElement("property");
+                                            }
+                                        }
+                                    }
                                     sf::RectangleShape rect;
                                     rect.setPosition(position);
                                     rect.setSize(size);
                                     rect.setFillColor(color);
                                     rect.setOutlineThickness(2.0f);
                                     rect.setOutlineColor(sf::Color(color.r, color.g, color.b, 160));
-                                    this->_shapeList.push_back(std::make_shared<l2d_internal::Rectangle>(name, color, type, rect));
+                                    auto rectangle = std::make_shared<l2d_internal::Rectangle>(name, color, type, rect);
+                                    rectangle->setCustomProperties(properties);
+                                    this->_shapeList.push_back(rectangle);
                                     pRectangle = pRectangle->NextSiblingElement("rectangle");
                                 }
                             }
@@ -721,10 +737,24 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
                                     std::string name = pPoint->Attribute("name");
                                     sf::Color color = sf::Color(static_cast<sf::Uint32>(pPoint->IntAttribute("color")));
                                     sf::Vector2f position;
+                                    std::vector<l2d_internal::CustomProperty> properties;
                                     tx2::XMLElement* pPointPosition = pPoint->FirstChildElement("pos");
                                     if (pPointPosition != nullptr) {
                                         position.x = pPointPosition->FloatAttribute("x");
                                         position.y = pPointPosition->FloatAttribute("y");
+                                    }
+                                    tx2::XMLElement* pProperties = pPoint->FirstChildElement("properties");
+                                    if (pProperties != nullptr) {
+                                        tx2::XMLElement* pProperty = pProperties->FirstChildElement("property");
+                                        if (pProperty != nullptr) {
+                                            while (pProperty) {
+                                                int pid = pProperty->IntAttribute("id");
+                                                std::string pname = pProperty->Attribute("name");
+                                                std::string pvalue = pProperty->Attribute("value");
+                                                properties.push_back(l2d_internal::CustomProperty(pid, pname, pvalue));
+                                                pProperty = pProperty->NextSiblingElement("property");
+                                            }
+                                        }
                                     }
                                     sf::CircleShape dot;
                                     dot.setPosition(position);
@@ -732,7 +762,9 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
                                     dot.setOutlineColor(sf::Color(color.r, color.g, color.b, 160));
                                     dot.setOutlineThickness(2.0f);
                                     dot.setRadius(6.0f);
-                                    this->_shapeList.push_back(std::make_shared<l2d_internal::Point>(name, color, dot));
+                                    auto point = std::make_shared<l2d_internal::Point>(name, color, dot);
+                                    point->setCustomProperties(properties);
+                                    this->_shapeList.push_back(point);
                                     pPoint = pPoint->NextSiblingElement("point");
                                 }
                             }
@@ -749,6 +781,7 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
                                     std::string name = pLine->Attribute("name");
                                     sf::Color color = sf::Color(static_cast<sf::Uint32>(pLine->IntAttribute("color")));
                                     std::vector<std::shared_ptr<l2d_internal::Point>> points;
+                                    std::vector<l2d_internal::CustomProperty> properties;
                                     tx2::XMLElement* pLinePoints = pLine->FirstChildElement("points");
                                     if (pLinePoints != nullptr) {
                                         while (pLinePoints) {
@@ -758,10 +791,24 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
                                                     std::string pointName = pPoint->Attribute("name");
                                                     sf::Color pointColor = sf::Color(static_cast<sf::Uint32>(pPoint->IntAttribute("color")));
                                                     sf::Vector2f position;
+                                                    std::vector<l2d_internal::CustomProperty> props;
                                                     tx2::XMLElement* pLinePointPosition = pPoint->FirstChildElement("pos");
                                                     if (pLinePointPosition != nullptr) {
                                                         position.x = pLinePointPosition->FloatAttribute("x");
                                                         position.y = pLinePointPosition->FloatAttribute("y");
+                                                    }
+                                                    tx2::XMLElement* pProperties = pLine->FirstChildElement("properties");
+                                                    if (pProperties != nullptr) {
+                                                        tx2::XMLElement* pProperty = pProperties->FirstChildElement("property");
+                                                        if (pProperty != nullptr) {
+                                                            while (pProperty) {
+                                                                int pid = pProperty->IntAttribute("id");
+                                                                std::string pname = pProperty->Attribute("name");
+                                                                std::string pvalue = pProperty->Attribute("value");
+                                                                props.push_back(l2d_internal::CustomProperty(pid, pname, pvalue));
+                                                                pProperty = pProperty->NextSiblingElement("property");
+                                                            }
+                                                        }
                                                     }
                                                     sf::CircleShape dot;
                                                     dot.setPosition(position);
@@ -769,14 +816,31 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
                                                     dot.setOutlineColor(sf::Color(pointColor.r, pointColor.g, pointColor.b, 160));
                                                     dot.setOutlineThickness(2.0f);
                                                     dot.setRadius(6.0f);
-                                                    points.push_back(std::make_shared<l2d_internal::Point>(pointName, pointColor, dot));
+                                                    auto point = std::make_shared<l2d_internal::Point>(pointName, pointColor, dot);
+                                                    point->setCustomProperties(props);
+                                                    points.push_back(point);
                                                     pPoint = pPoint->NextSiblingElement("point");
                                                 }
                                             }
                                             pLinePoints = pLinePoints->NextSiblingElement("points");
                                         }
                                     }
-                                    this->_shapeList.push_back(std::make_shared<l2d_internal::Line>(name, color, points));
+                                    tx2::XMLElement* pProperties = pLine->FirstChildElement("properties");
+                                    if (pProperties != nullptr) {
+                                        tx2::XMLElement* pProperty = pProperties->FirstChildElement("property");
+                                        if (pProperty != nullptr) {
+                                            while (pProperty) {
+                                                int pid = pProperty->IntAttribute("id");
+                                                std::string pname = pProperty->Attribute("name");
+                                                std::string pvalue = pProperty->Attribute("value");
+                                                properties.push_back(l2d_internal::CustomProperty(pid, pname, pvalue));
+                                                pProperty = pProperty->NextSiblingElement("property");
+                                            }
+                                        }
+                                    }
+                                    auto line = std::make_shared<l2d_internal::Line>(name, color, points);
+                                    line->setCustomProperties(properties);
+                                    this->_shapeList.push_back(line);
                                     pLine = pLine->NextSiblingElement("lines");
                                 }
                             }
