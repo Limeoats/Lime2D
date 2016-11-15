@@ -487,7 +487,7 @@ void l2d::Editor::createGridLines(bool always) {
 
 void l2d::Editor::update(sf::Time t) {
     if (this->_enabled) {
-        ImGui::SFML::Update(t);
+        ImGui::SFML::Update(*this->_window, t);
 
         /*
          *  Menu
