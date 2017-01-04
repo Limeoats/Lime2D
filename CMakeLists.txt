@@ -31,7 +31,7 @@ find_package(Lua REQUIRED)
 
 include_directories(${SFML_INCLUDE_DIR})
 include_directories(${LUA_INCLUDE_DIR})
-
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 add_executable(Lime2DTest ${SOURCE_FILES})
 add_library(Lime2D ${SOURCE_FILES})
 
