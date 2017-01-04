@@ -33,9 +33,9 @@ before_script:
   - sudo apt-get install lua5.1
   - sudo apt-get install liblua5.1-dev
   #OpenGL
-  - sudo apt-get install libglu1-mesa-dev freeglut3-dev mesa-common-dev
+  - sudo apt-get install libglu1-mesa-dev freeglut3-dev mesa-common-dev libglu1-mesa
   #Other
-  - sudo apt-get install libxxf86vm1 libglu1-mesa libopenal1 libssl1.0.0
+  - sudo apt-get install libxcb-image libxcb-image0-dev
 script:
   - mkdir build
   - cd build
