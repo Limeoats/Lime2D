@@ -15,7 +15,8 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall ${CPP_VERSION}")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
@@ -31,7 +32,6 @@ find_package(Lua REQUIRED)
 
 include_directories(${SFML_INCLUDE_DIR})
 include_directories(${LUA_INCLUDE_DIR})
-set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 add_executable(Lime2DTest ${SOURCE_FILES})
 add_library(Lime2D ${SOURCE_FILES})
 
