@@ -35,7 +35,7 @@ before_script:
   #OpenGL
   - sudo apt-get install libglu1-mesa-dev freeglut3-dev mesa-common-dev libglu1-mesa
   #Other
-  - sudo apt-get install libxcb-image libxcb-image0-dev
+  - sudo apt-get install libxcb-image0 libxcb-image0-dev
 script:
   - mkdir build
   - cd build
