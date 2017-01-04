@@ -33,11 +33,11 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
         _hideShapes(false),
         _menuClicks(0),
         _lastFrameMousePos(0.0f, 0.0f),
-        _currentFeature(l2d_internal::Features::None),
+        _currentFeature(l2d_internal::Features::Map),
         _graphics(new l2d_internal::Graphics(window)),
         _level(this->_graphics, "l2dSTART"),
         _currentDrawShape(l2d_internal::DrawShapes::None),
-        _currentMapEditorMode(l2d_internal::MapEditorMode::None),
+        _currentMapEditorMode(l2d_internal::MapEditorMode::Object),
         _currentEvent(),
         _selectedShape(nullptr),
         _currentWindowType(l2d_internal::WindowTypes::None)
@@ -86,7 +86,7 @@ void l2d::Editor::processEvent(sf::Event &event) {
             case sf::Event::KeyReleased:
                 switch (event.key.code) {
                     case sf::Keyboard::T:
-                        if (this->_level.getName() != "l2dSTART" &&
+                        if (this->_level.isLoaded() &&
                             this->_currentFeature == l2d_internal::Features::Map &&
                             this->_currentMapEditorMode == l2d_internal::MapEditorMode::Tile &&
                             (this->_currentWindowType == l2d_internal::WindowTypes::None ||
@@ -97,7 +97,7 @@ void l2d::Editor::processEvent(sf::Event &event) {
                         }
                         break;
                     case sf::Keyboard::G:
-                        if (this->_level.getName() != "l2dSTART" &&
+                        if (this->_level.isLoaded() &&
                             this->_currentFeature == l2d_internal::Features::Map &&
                             this->_currentWindowType == l2d_internal::WindowTypes::None) {
                             this->_showGridLines = !this->_showGridLines;
@@ -114,7 +114,7 @@ void l2d::Editor::processEvent(sf::Event &event) {
                         }
                         break;
                     case sf::Keyboard::E:
-                        if (this->_level.getName() != "l2dSTART" &&
+                        if (this->_level.isLoaded() &&
                             this->_currentFeature == l2d_internal::Features::Map &&
                             this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object &&
                             (this->_currentWindowType == l2d_internal::WindowTypes::None ||
@@ -137,7 +137,7 @@ void l2d::Editor::processEvent(sf::Event &event) {
                 }
                 break;
             case sf::Event::MouseWheelScrolled:
-                if (this->_currentFeature == l2d_internal::Features::Map && this->_level.getName() != "l2dSTART") {
+                if (this->_currentFeature == l2d_internal::Features::Map && this->_level.isLoaded()) {
                     if (event.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel) {
                         this->_graphics.get()->zoom(event.mouseWheelScroll.delta,
                                                     {event.mouseWheelScroll.x, event.mouseWheelScroll.y});
@@ -163,7 +163,7 @@ void l2d::Editor::render() {
         this->_window->clear(sf::Color(30, 30, 30, 255));
 
         //If map editor
-        if (this->_level.getName() != "l2dSTART" && this->_currentFeature != l2d_internal::Features::Animation) {
+        if (this->_level.isLoaded() && this->_currentFeature != l2d_internal::Features::Animation) {
             this->_ambientLight.setUniform("texture", sf::Shader::CurrentTexture);
             this->_ambientLight.setUniform("color", sf::Glsl::Vec3(this->_level.getAmbientColor().r / 255.0f,
                                                                    this->_level.getAmbientColor().g / 255.0f,
@@ -455,7 +455,7 @@ void l2d::Editor::render() {
 }
 
 void l2d::Editor::createGridLines(bool always) {
-    if (this->_level.getName() != "l2dSTART" && (this->_currentFeature == l2d_internal::Features::Map || always)) {
+    if (this->_level.isLoaded() && (this->_currentFeature == l2d_internal::Features::Map || always)) {
         this->_gridLines.clear();
         std::array<sf::Vertex, 2> line;
         //Horizontal lines
@@ -493,7 +493,7 @@ void l2d::Editor::update(sf::Time t) {
          *  Menu
          *  File, View, Map, Animation, Help
          */
-        static bool cbMapEditor = this->_level.getName() != "l2dSTART";
+        static bool cbMapEditor = true;
         static bool cbAnimationEditor = false;
         static bool cbShowGridLines = true;
         static bool aboutBoxVisible = false;
@@ -737,7 +737,7 @@ void l2d::Editor::update(sf::Time t) {
                         os << "animation_path=" << animationPath << "\n";
                         os << "camera_pan_factor=" << cameraPanFactor << "\n";
                         os.close();
-                        if (this->_level.getName() != "l2dSTART") {
+                        if (this->_level.isLoaded()) {
                             std::string name = this->_level.getName();
                             configureMapErrorText = this->_level.loadMap(name);
                             if (configureMapErrorText.length() <= 0) {
@@ -994,13 +994,14 @@ void l2d::Editor::update(sf::Time t) {
                 if (ImGui::MenuItem("Load map", nullptr, false, this->_mainHasFocus)) {
                     mapSelectBoxVisible = true;
                 }
-                if (this->_level.getName() != "l2dSTART") {
+                if (this->_level.isLoaded()) {
                     if (ImGui::MenuItem("Save map")) {
                         this->_level.saveMap(this->_level.getName());
                         startStatusTimer("Map saved successfully!", 200);
                     }
                 }
-                if (this->_level.getName() != "l2dSTART") {
+                if (this->_level.isLoaded()) {
+                    std::cout << _level.getName() << std::endl;
                     ImGui::Separator();
                     if (ImGui::BeginMenu("Add", this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object)) {
                         if (ImGui::BeginMenu("Light")) {
@@ -1092,7 +1093,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::EndMainMenuBar();
         }
 
-        if (this->_level.getName() != "l2dSTART" && this->_currentFeature == l2d_internal::Features::Map) {
+        if (this->_level.isLoaded() && this->_currentFeature == l2d_internal::Features::Map) {
             //Clicking on a tile normally
             if (tileHasBeenSelected && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Tile) {
                 sf::Vector2f drawingMousePos = getMousePos();
@@ -2213,7 +2214,7 @@ void l2d::Editor::update(sf::Time t) {
                      ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus);
         ImGui::GetWindowDrawList()->AddText(ImVec2(6, this->_window->getSize().y  - 20), ImColor(1.0f, 1.0f, 1.0f, 1.0f), currentFeature.c_str());
         //Map zoom percentage
-        if (this->_currentFeature == l2d_internal::Features::Map && this->_level.getName() != "l2dSTART") {
+        if (this->_currentFeature == l2d_internal::Features::Map && this->_level.isLoaded()) {
             std::stringstream ss;
             ss << std::fixed << std::setprecision(2) << this->_graphics.get()->getZoomPercentage() << "%";
             ImGui::GetWindowDrawList()->AddText(ImVec2(this->_window->getSize().x - 80, this->_window->getSize().y - 20),

@@ -444,6 +444,7 @@ void l2d_internal::Layer::draw(sf::Shader* ambientLight) {
  */
 
 l2d_internal::Level::Level(std::shared_ptr<Graphics> graphics, std::string name) {
+    this->_loaded = false;
     this->loadMap(name);
     this->_graphics = graphics;
     this->_oldLayerList = std::stack<std::vector<std::shared_ptr<Layer>>>();
@@ -853,6 +854,7 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
             pObjects = pObjects->NextSiblingElement("objects");
         }
     }
+    this->_loaded = true;
     return "";
 }
 
@@ -1308,6 +1310,10 @@ void l2d_internal::Level::removeShape(std::shared_ptr<l2d_internal::Shape> shape
 sf::Vector2i l2d_internal::Level::globalToLocalCoordinates(sf::Vector2f coords) const {
     return sf::Vector2i(static_cast<int>(coords.x) / this->_tileSize.x / static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"))) + 1,
                         static_cast<int>(coords.y) / this->_tileSize.y / static_cast<int>(std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"))) + 1);
+}
+
+bool l2d_internal::Level::isLoaded() const {
+    return this->_loaded;
 }
 
 void l2d_internal::Level::draw(sf::Shader* ambientLight) {

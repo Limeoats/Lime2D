@@ -221,8 +221,10 @@ namespace l2d_internal {
         void redo();
         bool isRedoListEmpty() const;
         sf::Vector2i globalToLocalCoordinates(sf::Vector2f coords) const;
+        bool isLoaded() const;
     private:
         std::string _name;
+        bool _loaded;
         sf::Vector2i _size;
         sf::Vector2i _tileSize;
         std::vector<Tileset> _tilesetList;
