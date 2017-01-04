@@ -34,7 +34,8 @@ before_script:
   - sudo apt-get install liblua5.1-dev
   #OpenGL
   - sudo apt-get install libglu1-mesa-dev freeglut3-dev mesa-common-dev
-  - sudo apt-get install libxxf86vm1:i386 libglu1-mesa:i386 libopenal1:i386 libssl1.0.0:i386
+  #Other
+  - sudo apt-get install libxxf86vm1 libglu1-mesa libopenal1 libssl1.0.0
 script:
   - mkdir build
   - cd build
