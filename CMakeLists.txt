@@ -37,7 +37,7 @@ find_package(Lua REQUIRED)
 include_directories(${SFML_INCLUDE_DIR})
 include_directories(${LUA_INCLUDE_DIR})
 add_executable(Lime2DTest ${SOURCE_FILES})
-add_library(Lime2D ${SOURCE_FILES})
+add_library(Lime2D SHARED ${SOURCE_FILES})
 
 if (WIN32)
     install(TARGETS Lime2D DESTINATION C:/Libs/Lime2D/lib)
