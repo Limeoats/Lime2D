@@ -55,6 +55,12 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target install
 )
 
+add_custom_command(
+        TARGET Lime2DTest
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target install
+)
+
 SET_TARGET_PROPERTIES(Lime2DTest PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
 if(WIN32)
