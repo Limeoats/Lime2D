@@ -36,13 +36,13 @@ add_library(Lime2D SHARED ${SOURCE_FILES})
 add_executable(Lime2DTest ${SOURCE_FILES})
 
 if (WIN32)
-    install(TARGETS Lime2D Lime2DTest DESTINATION C:/Libs/Lime2D/lib)
+    install(TARGETS Lime2D DESTINATION C:/Libs/Lime2D/lib)
     install(FILES src/lime2d.h src/lime2d_internal.h DESTINATION C:/Libs/Lime2D/include)
 else()
-    install(TARGETS Lime2D Lime2DTest DESTINATION ~/Library/Frameworks/Lime2D/lib)
+    install(TARGETS Lime2D DESTINATION ~/Library/Frameworks/Lime2D/lib)
     install(FILES src/lime2d.h src/lime2d_internal.h DESTINATION ~/Library/Frameworks/Lime2D/include)
 endif()
-install(TARGETS Lime2D Lime2DTest DESTINATION ${CMAKE_CURRENT_LIST_DIR}/bin/Lime2D/lib)
+install(TARGETS Lime2D DESTINATION ${CMAKE_CURRENT_LIST_DIR}/bin/Lime2D/lib)
 install(FILES src/lime2d.h src/lime2d_internal.h DESTINATION ${CMAKE_CURRENT_LIST_DIR}/bin/Lime2D/include)
 
 add_custom_command(
@@ -51,19 +51,13 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target install
 )
 
-add_custom_command(
-        TARGET Lime2DTest
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target install
-)
-
 if(WIN32)
     target_link_libraries(Lime2D ${SFML_LIBRARIES} ${LUA_LIBRARY} -lopengl32 -lmingw32 -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid)
-    target_link_libraries(Lime2DTest ${SFML_LIBRARIES} ${LUA_LIBRARY} -lopengl32 -lmingw32 -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid)
+    target_link_libraries(Lime2DTest Lime2D)
 elseif(APPLE)
     target_link_libraries(Lime2D ${SFML_LIBRARIES} ${OPENGL_LIBRARY} ${LUA_LIBRARY})
-    target_link_libraries(Lime2DTest ${SFML_LIBRARIES} ${OPENGL_LIBRARY} ${LUA_LIBRARY})
+    target_link_libraries(Lime2DTest Lime2D)
 else()
     target_link_libraries(Lime2D ${SFML_LIBRARIES} ${OPENGL_LIBRARY} ${LUA_LIBRARY})
-    target_link_libraries(Lime2DTest ${SFML_LIBRARIES} ${OPENGL_LIBRARY} ${LUA_LIBRARY})
+    target_link_libraries(Lime2DTest Lime2D)
 endif()
