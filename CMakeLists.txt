@@ -13,8 +13,11 @@ else()
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall ${CPP_VERSION}")
+set(CMAKE_EXE_LINKER_FLAGS "-static")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(BUILD_SHARED_LIBS false)
 
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
@@ -32,7 +35,7 @@ find_package(Lua REQUIRED)
 include_directories(${SFML_INCLUDE_DIR})
 include_directories(${LUA_INCLUDE_DIR})
 
-add_library(Lime2D SHARED ${SOURCE_FILES})
+add_library(Lime2D ${SOURCE_FILES})
 add_executable(Lime2DTest ${SOURCE_FILES})
 
 if (WIN32)
