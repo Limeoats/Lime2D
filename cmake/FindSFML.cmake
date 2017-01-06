@@ -66,7 +66,8 @@ set(FIND_SFML_PATHS
         $ENV{SFML_ROOT}
         ~/Library/Frameworks
         /Library/Frameworks
-        /usr/local
+        /usr/lib
+        /usr/lib/x86_64-linux-gnu
         /usr
         /sw
         /opt/local
