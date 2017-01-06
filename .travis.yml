@@ -21,7 +21,6 @@ addons:
     - g++-5
     - clang
 
-    
 # Build steps
 before_script:
   #SFML
@@ -34,8 +33,6 @@ before_script:
   - sudo apt-get install liblua5.1-dev
   #OpenGL
   - sudo apt-get install libglu1-mesa-dev freeglut3-dev mesa-common-dev libglu1-mesa
-  #Other
-  - sudo apt-get install libxcb-image0 libxcb-image0-dev
 script:
   - mkdir build
   - cd build
