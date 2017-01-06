@@ -1,5 +1,6 @@
 # Lime2D
 ![build](https://travis-ci.org/Limeoats/Lime2D.svg?branch=master)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/Limeoats/Lime2D/blob/master/LICENSE.md)
 
 [Lime2D](http://www.limeoats.com/lime2d) is an open source in-game map/animation editor for 2D C++ game development projects.
 
