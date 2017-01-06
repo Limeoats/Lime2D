@@ -13,7 +13,6 @@ else()
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall ${CPP_VERSION}")
-set(CMAKE_EXE_LINKER_FLAGS "-static")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
