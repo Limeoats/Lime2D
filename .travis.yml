@@ -50,7 +50,7 @@ before_script:
     #Lua
     - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install lua51; fi
     #OpenGL
-    - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install --HEAD fltk cmake git pkg-config; fi
+    - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install fltk cmake git pkg-config; fi
 script:
   - mkdir build
   - cd build
