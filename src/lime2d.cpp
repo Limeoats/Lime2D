@@ -134,9 +134,6 @@ void l2d::Editor::processEvent(sf::Event &event) {
                                     l2d_internal::MapEditorMode::Tile : l2d_internal::MapEditorMode::Object;
                         }
                         break;
-                    case sf::Keyboard::C:
-                        this->_showConsole = !this->_showConsole;
-                        break;
                     default:
                         break;
                 }
@@ -517,6 +514,7 @@ void l2d::Editor::update(sf::Time t) {
         static bool entityPropertiesLoaded = false;
         static bool cbHideShapes = false;
         static bool configureMapWindowVisible = false;
+        static bool cbShowConsole = false;
 
         static std::shared_ptr<l2d_internal::Shape> rightClickedShape = nullptr;
 
@@ -561,8 +559,13 @@ void l2d::Editor::update(sf::Time t) {
         static sf::Vector2i selectedTilesetSize(0,0);
 
         //Light variables
-
         static l2d_internal::LightType selectedLightType = l2d_internal::LightType::None;
+        
+        //Console variables
+        static std::vector<l2d_internal::ConsoleItem> consoleItems;
+        static char consoleInputBuffer[256];
+        static std::vector<l2d_internal::ConsoleItem> consoleHistory;
+        static int consoleHistoryPos = -1;
 
         //startStatusTimer function is written like this so that it can exist within the update function
         //This way, it can access the static timer variables without making them member variables
@@ -989,6 +992,9 @@ void l2d::Editor::update(sf::Time t) {
                         this->_currentFeature = l2d_internal::Features::None;
                         currentFeature = "Lime2D";
                     }
+                }
+                if (ImGui::Checkbox("Console", &cbShowConsole)) {
+                    this->_showConsole = cbShowConsole;
                 }
                 ImGui::EndMenu();
             }
@@ -1846,11 +1852,65 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::End();
         }
         
+        //Add a line to the console
+        static auto addConsoleLine = [&](l2d_internal::ConsoleItem::Type type, std::string command, std::string message)->void {
+            consoleItems.push_back(l2d_internal::ConsoleItem(type, " > " + command, message));
+        };
+        //Clear the console
+        static auto clearConsole = [&]()->void {
+            consoleItems.clear();
+        };
+        //Process console command. Return false if command does not exist
+        static auto processCommand = [&](char* command)->void {
+            if (strcmp(command, "/help") == 0) {
+                addConsoleLine(l2d_internal::ConsoleItem::Type::Info, std::string(command), "This text is supposed to help you!!");
+                return;
+            }
+            addConsoleLine(l2d_internal::ConsoleItem::Type::Error, std::string(command), "The command you entered (" + std::string(command) + ") is not valid. Type /help for a list of commands.");
+            return;
+        };
+        
         if (this->_showConsole) {
             this->_currentWindowType = l2d_internal::WindowTypes::ConsoleWindow;
             ImGui::SetNextWindowPosCenter();
-            ImGui::SetNextWindowSize(ImVec2(400, 250));
-            ImGui::Begin("Console", nullptr, ImVec2(400, 250), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
+            ImGui::SetNextWindowSize(ImVec2(600, 450));
+            ImGui::Begin("Console", nullptr, ImVec2(600, 450), 60.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
+            ImGui::TextWrapped("This is the Lime2D console. You can enter commands into the textbox below, press enter, and the commands will be executed.");
+            ImGui::TextWrapped("Type '/help' for a list of commands.");
+            ImGui::Separator();
+            if (ImGui::SmallButton("Clear")) {
+                clearConsole();
+            }
+            ImGui::Separator();
+            ImGui::BeginChild("ScrollingRegion", ImVec2(0, -ImGui::GetItemsLineHeightWithSpacing()), false, ImGuiWindowFlags_HorizontalScrollbar);
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
+            for (int i = 0; i < consoleItems.size(); ++i) {
+                ImVec4 color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+                if (consoleItems[i].MessageType == l2d_internal::ConsoleItem::Type::Error) {
+                    color = ImVec4(1.0f, 0.78f, 0.58f, 1.0f);
+                }
+                ImGui::PushStyleColor(ImGuiCol_Text, color);
+                ImGui::TextWrapped(consoleItems[i].Command.c_str());
+                ImGui::TextWrapped(consoleItems[i].Message.c_str());
+                ImGui::PopStyleColor();
+            }
+            //ImGui::SetScrollHere();
+            ImGui::PopStyleVar();
+            ImGui::EndChild();
+            ImGui::Separator();
+            ImGui::PushItemWidth(584);
+            if (ImGui::InputText("", consoleInputBuffer, IM_ARRAYSIZE(consoleInputBuffer), ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory, nullptr, (void*)this)) {
+                char* inputEnd = consoleInputBuffer + strlen(consoleInputBuffer);
+                while (inputEnd > consoleInputBuffer && inputEnd[-1] == ' ') --inputEnd;
+                *inputEnd = 0;
+                if (consoleInputBuffer[0]) {
+                    processCommand(consoleInputBuffer);
+                }
+                strcpy(consoleInputBuffer, "");
+            }
+            if (ImGui::IsItemHovered() || (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)))
+                ImGui::SetKeyboardFocusHere(-1); // Auto focus previous widget
+            ImGui::PopItemWidth();
             ImGui::End();
         }
 

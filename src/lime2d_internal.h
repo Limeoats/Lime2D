@@ -72,6 +72,22 @@ namespace l2d_internal {
             NotImplementedException(std::string method = "") : std::logic_error("Function not yet implemented." + (method.length() > 0 ? " Method: " + method : "")) {};
         };
     }
+    
+    struct ConsoleItem {
+    public:
+        enum Type {
+            Info,
+            Error
+        };
+        ConsoleItem::Type MessageType;
+        std::string Command;
+        std::string Message;
+        ConsoleItem(ConsoleItem::Type type, std::string command, std::string message) {
+            MessageType = type;
+            Command = command;
+            Message = message;
+        }
+    };
 
     /*
      * The internal graphics class for Lime2D.
