@@ -31,6 +31,7 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
         _mainHasFocus(true),
         _removingShape(false),
         _hideShapes(false),
+        _showConsole(false),
         _menuClicks(0),
         _lastFrameMousePos(0.0f, 0.0f),
         _currentFeature(l2d_internal::Features::Map),
@@ -132,6 +133,10 @@ void l2d::Editor::processEvent(sf::Event &event) {
                                     this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object ?
                                     l2d_internal::MapEditorMode::Tile : l2d_internal::MapEditorMode::Object;
                         }
+                        break;
+                    case sf::Keyboard::C:
+                        this->_showConsole = !this->_showConsole;
+                        break;
                     default:
                         break;
                 }
@@ -1838,6 +1843,14 @@ void l2d::Editor::update(sf::Time t) {
                 this->_currentWindowType = l2d_internal::WindowTypes::None;
                 configureMapWindowVisible = false;
             }
+            ImGui::End();
+        }
+        
+        if (this->_showConsole) {
+            this->_currentWindowType = l2d_internal::WindowTypes::ConsoleWindow;
+            ImGui::SetNextWindowPosCenter();
+            ImGui::SetNextWindowSize(ImVec2(400, 250));
+            ImGui::Begin("Console", nullptr, ImVec2(400, 250), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
             ImGui::End();
         }
 

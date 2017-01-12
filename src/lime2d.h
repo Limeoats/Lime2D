@@ -35,6 +35,7 @@ namespace l2d {
         bool _mainHasFocus;
         bool _removingShape;
         bool _hideShapes;
+        bool _showConsole;
 
         int _menuClicks;
 
