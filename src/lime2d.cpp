@@ -1862,6 +1862,11 @@ void l2d::Editor::update(sf::Time t) {
         };
         //Process console command. Return false if command does not exist
         static auto processCommand = [&](char* command)->void {
+            if (strcmp(command, "/clear") == 0) {
+                clearConsole();
+                addConsoleLine(l2d_internal::ConsoleItem::Type::Info, std::string(command), "");
+                return;
+            }
             if (strcmp(command, "/help") == 0) {
                 addConsoleLine(l2d_internal::ConsoleItem::Type::Info, std::string(command), "This text is supposed to help you!!");
                 return;
@@ -1877,10 +1882,8 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::Begin("Console", nullptr, ImVec2(600, 450), 60.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
             ImGui::TextWrapped("This is the Lime2D console. You can enter commands into the textbox below, press enter, and the commands will be executed.");
             ImGui::TextWrapped("Type '/help' for a list of commands.");
-            ImGui::Separator();
-            if (ImGui::SmallButton("Clear")) {
-                clearConsole();
-            }
+            //ImGui::Separator();
+            //Add buttons here if necessary
             ImGui::Separator();
             ImGui::BeginChild("ScrollingRegion", ImVec2(0, -ImGui::GetItemsLineHeightWithSpacing()), false, ImGuiWindowFlags_HorizontalScrollbar);
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
