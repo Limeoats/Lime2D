@@ -1868,7 +1868,10 @@ void l2d::Editor::update(sf::Time t) {
                 return;
             }
             if (strcmp(command, "/help") == 0) {
-                addConsoleLine(l2d_internal::ConsoleItem::Type::Info, std::string(command), "This text is supposed to help you!!");
+                addConsoleLine(l2d_internal::ConsoleItem::Type::Info, std::string(command),
+                               "/clear : Clear out all of the text in the console\n"
+                               "/help : Show a list of console commands"
+                                       "");
                 return;
             }
             addConsoleLine(l2d_internal::ConsoleItem::Type::Error, std::string(command), "The command you entered (" + std::string(command) + ") is not valid. Type /help for a list of commands.");
@@ -1894,7 +1897,9 @@ void l2d::Editor::update(sf::Time t) {
                 }
                 ImGui::PushStyleColor(ImGuiCol_Text, color);
                 ImGui::TextWrapped(consoleItems[i].Command.c_str());
-                ImGui::TextWrapped(consoleItems[i].Message.c_str());
+                if (consoleItems[i].Message.size() > 0) {
+                    ImGui::TextWrapped(consoleItems[i].Message.c_str());
+                }
                 ImGui::PopStyleColor();
             }
             //ImGui::SetScrollHere();
