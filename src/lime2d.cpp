@@ -1917,7 +1917,7 @@ void l2d::Editor::update(sf::Time t) {
                 strcpy(consoleInputBuffer, "");
             }
             if (ImGui::IsItemHovered() || (ImGui::IsRootWindowOrAnyChildFocused() && !ImGui::IsAnyItemActive() && !ImGui::IsMouseClicked(0)))
-                ImGui::SetKeyboardFocusHere(-1); // Auto focus previous widget
+                ImGui::SetKeyboardFocusHere(-1); //Re-focus on input box
             ImGui::PopItemWidth();
             ImGui::End();
         }
