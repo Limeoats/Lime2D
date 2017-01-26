@@ -1,5 +1,5 @@
 .idea/*
 build/*
 *~
-
 *.swp
+cmake-build-debug

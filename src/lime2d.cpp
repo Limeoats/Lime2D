@@ -623,9 +623,9 @@ void l2d::Editor::update(sf::Time t) {
             static bool loaded = false;
 
             ImGui::SetNextWindowPosCenter();
-            ImGui::SetNextWindowSize(ImVec2(500, 480));
+            ImGui::SetNextWindowSize(ImVec2(480, 380));
             static std::string configureMapErrorText = "";
-            ImGui::Begin("Configure", nullptr, ImVec2(500,480), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
+            ImGui::Begin("Configure", nullptr, ImVec2(480,380), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
 
             ImGui::PushID("ConfigureMapPath");
             ImGui::Text("Map path");
@@ -839,9 +839,9 @@ void l2d::Editor::update(sf::Time t) {
         if (newMapBoxVisible) {
             this->_currentWindowType = l2d_internal::WindowTypes::NewMapWindow;
             ImGui::SetNextWindowPosCenter();
-            ImGui::SetNextWindowSize(ImVec2(500, 350));
+            ImGui::SetNextWindowSize(ImVec2(460, 250));
             static std::string newMapErrorText = "";
-            ImGui::Begin("New map properties", nullptr, ImVec2(500, 350), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
+            ImGui::Begin("New map properties", nullptr, ImVec2(460, 250), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
             ImGui::Text("Name");
             static char name[500] = "";
             ImGui::PushItemWidth(300);
@@ -1012,7 +1012,6 @@ void l2d::Editor::update(sf::Time t) {
                     }
                 }
                 if (this->_level.isLoaded()) {
-                    std::cout << _level.getName() << std::endl;
                     ImGui::Separator();
                     if (ImGui::BeginMenu("Add", this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object)) {
                         if (ImGui::BeginMenu("Light")) {
@@ -1819,8 +1818,8 @@ void l2d::Editor::update(sf::Time t) {
         if (configureMapWindowVisible) {
             this->_currentWindowType = l2d_internal::WindowTypes::ConfigureMapWindow;
             ImGui::SetNextWindowPosCenter();
-            ImGui::SetNextWindowSize(ImVec2(400, 250));
-            ImGui::Begin("Configure map", nullptr, ImVec2(400, 250), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
+            ImGui::SetNextWindowSize(ImVec2(360, 180));
+            ImGui::Begin("Configure map", nullptr, ImVec2(360, 180), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
             ImGui::PushItemWidth(100);
             ImGui::PushID("ConfigureMapSize");
             ImGui::Text("Map size (in tiles)");
@@ -1881,8 +1880,8 @@ void l2d::Editor::update(sf::Time t) {
         if (this->_showConsole) {
             this->_currentWindowType = l2d_internal::WindowTypes::ConsoleWindow;
             ImGui::SetNextWindowPosCenter();
-            ImGui::SetNextWindowSize(ImVec2(600, 450));
-            ImGui::Begin("Console", nullptr, ImVec2(600, 450), 60.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
+            ImGui::SetNextWindowSize(ImVec2(520, 380));
+            ImGui::Begin("Console", nullptr, ImVec2(520, 380), 60.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
             ImGui::TextWrapped("This is the Lime2D console. You can enter commands into the textbox below, press enter, and the commands will be executed.");
             ImGui::TextWrapped("Type '/help' for a list of commands.");
             //ImGui::Separator();
@@ -1906,7 +1905,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::PopStyleVar();
             ImGui::EndChild();
             ImGui::Separator();
-            ImGui::PushItemWidth(584);
+            ImGui::PushItemWidth(504);
             if (ImGui::InputText("", consoleInputBuffer, IM_ARRAYSIZE(consoleInputBuffer), ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory, nullptr, (void*)this)) {
                 char* inputEnd = consoleInputBuffer + strlen(consoleInputBuffer);
                 while (inputEnd > consoleInputBuffer && inputEnd[-1] == ' ') --inputEnd;
@@ -2103,7 +2102,7 @@ void l2d::Editor::update(sf::Time t) {
             ss << l2d_internal::utils::getConfigValue("animation_path") << "*";
             std::vector<const char*> existingAnimationSprites = l2d_internal::utils::getFilesInDirectory(ss.str());
 
-            ImGui::PushItemWidth(500);
+            ImGui::PushItemWidth(400);
             if (ImGui::Combo("Choose an animated sprite", &animationSpriteSelectIndex, &existingAnimationSprites[0], static_cast<int>(existingAnimationSprites.size()))) {
                 animationSelectIndex = -1;
                 selectedAnimationFileName = existingAnimationSprites[animationSpriteSelectIndex];
@@ -2131,7 +2130,7 @@ void l2d::Editor::update(sf::Time t) {
                     timeToUpdate = script.get()->get<float>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".time_to_update");
                 };
                 static bool loaded = false;
-                ImGui::PushItemWidth(500);
+                ImGui::PushItemWidth(400);
                 if (ImGui::Combo("Choose an animation", &animationSelectIndex, &existingAnimations[0],
                                  static_cast<int>(existingAnimations.size()))) {
                     loaded = false;
@@ -2177,7 +2176,7 @@ void l2d::Editor::update(sf::Time t) {
                         }
                     }
 
-                    ImGui::PushItemWidth(500);
+                    ImGui::PushItemWidth(400);
                     ImGui::PushID("AnimationName");
                     static char animationNameArray[500] = "";
                     if (!loaded) {
@@ -2188,7 +2187,7 @@ void l2d::Editor::update(sf::Time t) {
                     ImGui::PopItemWidth();
                     ImGui::Separator();
 
-                    ImGui::PushItemWidth(500);
+                    ImGui::PushItemWidth(400);
                     ImGui::PushID("AnimationDescription");
                     static char animationDescriptionArray[1000] = "";
                     if (!loaded) {
@@ -2199,7 +2198,7 @@ void l2d::Editor::update(sf::Time t) {
                     ImGui::PopItemWidth();
                     ImGui::Separator();
 
-                    ImGui::PushItemWidth(500);
+                    ImGui::PushItemWidth(400);
                     ImGui::PushID("AnimationSpriteSheet");
                     ImGui::Combo("Sprite sheet", &spritesheetSelectIndex, &spriteList[0], static_cast<int>(spriteList.size()));
                     ImGui::PopID();
