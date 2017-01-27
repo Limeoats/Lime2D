@@ -1712,6 +1712,14 @@ void l2d_internal::LuaScript::printError(const std::string &variable, const std:
     std::cerr << "Error: Unable to get [" << variable << "]" << std::endl << error << std::endl;
 }
 
+void l2d_internal::LuaScript::doString(const char *command) {
+    luaL_dostring(this->L, command);
+}
+
+const char* l2d_internal::LuaScript::getTop() {
+    return lua_tostring(this->L, -1);
+}
+
 bool l2d_internal::LuaScript::lua_getVariable(const std::string &variable) {
     int level = 0;
     std::string var = "";

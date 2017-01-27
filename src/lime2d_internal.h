@@ -380,6 +380,8 @@ namespace l2d_internal {
         LuaScript(const std::string &filePath);
         ~LuaScript();
         void printError(const std::string &variable, const std::string error);
+        void doString(const char* command);
+        const char* getTop();
 
         template<typename T>
         T lua_getDefault() {

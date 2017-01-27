@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map name="hi" width="20" height="15" tileWidth="16" tileHeight="16">
+    <tiles/>
+    <objects>
+        <lights/>
+        <shapes>
+            <rectangles/>
+            <points/>
+            <lines/>
+        </shapes>
+    </objects>
+</map>

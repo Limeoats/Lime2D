@@ -1,0 +1,7 @@
+--
+-- consoleLua.lua
+-- By: Mark Guerra
+-- Created on: 1/27/2017
+--
+-- This file contains nothing. It is just here so that the console's Lua context
+-- has a Lua file to latch on to. Nothing ever gets written to this file.

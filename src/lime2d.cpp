@@ -564,8 +564,7 @@ void l2d::Editor::update(sf::Time t) {
         //Console variables
         static std::vector<l2d_internal::ConsoleItem> consoleItems;
         static char consoleInputBuffer[256];
-        static std::vector<l2d_internal::ConsoleItem> consoleHistory;
-        static int consoleHistoryPos = -1;
+        static bool consoleLuaActive = false;
 
         //startStatusTimer function is written like this so that it can exist within the update function
         //This way, it can access the static timer variables without making them member variables
@@ -1861,20 +1860,43 @@ void l2d::Editor::update(sf::Time t) {
         };
         //Process console command. Return false if command does not exist
         static auto processCommand = [&](char* command)->void {
-            if (strcmp(command, "/clear") == 0) {
-                clearConsole();
-                addConsoleLine(l2d_internal::ConsoleItem::Type::Info, std::string(command), "");
+            if (consoleLuaActive) {
+                if (strcmp(command, "/quit") == 0) {
+                    addConsoleLine(l2d_internal::ConsoleItem::Type::Info, std::string(command), "The Lua session has been ended.");
+                    consoleLuaActive = false;
+                }
+                else {
+                    l2d_internal::LuaScript ls("consoleLua.lua");
+                    ls.doString(command);
+                    addConsoleLine(l2d_internal::ConsoleItem::Type::Info, command, ls.getTop());
+                }
                 return;
             }
-            if (strcmp(command, "/help") == 0) {
-                addConsoleLine(l2d_internal::ConsoleItem::Type::Info, std::string(command),
-                               "/clear : Clear out all of the text in the console\n"
-                               "/help : Show a list of console commands"
-                                       "");
+            else {
+                if (strcmp(command, "/clear") == 0) {
+                    clearConsole();
+                    addConsoleLine(l2d_internal::ConsoleItem::Type::Info, std::string(command), "");
+                    return;
+                }
+                if (strcmp(command, "/help") == 0) {
+                    addConsoleLine(l2d_internal::ConsoleItem::Type::Info, std::string(command),
+                                   "/clear : Clear out all of the text in the console\n"
+                                           "/help : Show a list of console commands\n"
+                                           "/lua : Start an interactive Lua session\n"
+                                            "");
+                    return;
+                }
+                if (strcmp(command, "/lua") == 0 && !consoleLuaActive) {
+                    addConsoleLine(l2d_internal::ConsoleItem::Type::Info, std::string(command),
+                                   "Lua console is now active. Type /quit to exit the Lua session.");
+                    consoleLuaActive = true;
+                    return;
+                }
+                addConsoleLine(l2d_internal::ConsoleItem::Type::Error, std::string(command),
+                               "The command you entered (" + std::string(command) +
+                               ") is not valid. Type /help for a list of commands.");
                 return;
             }
-            addConsoleLine(l2d_internal::ConsoleItem::Type::Error, std::string(command), "The command you entered (" + std::string(command) + ") is not valid. Type /help for a list of commands.");
-            return;
         };
         
         if (this->_showConsole) {
