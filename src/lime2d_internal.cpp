@@ -201,6 +201,10 @@ void l2d_internal::Graphics::draw(const sf::Vertex *vertices, unsigned int verte
     this->_window->draw(vertices, vertexCount, type, states);
 }
 
+void l2d_internal::Graphics::setViewPosition(sf::Vector2f pos) {
+    this->_view.reset(sf::FloatRect(pos.x, pos.y, this->_window->getSize().x, this->_window->getSize().y));
+}
+
 void l2d_internal::Graphics::zoom(float n, sf::Vector2i pixel) {
     const sf::Vector2f before {this->_window->mapPixelToCoords(pixel) };
     if (n > 0) {

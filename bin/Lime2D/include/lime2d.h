@@ -17,7 +17,7 @@ namespace l2d {
     class Editor {
     public:
         explicit Editor(bool enabled, sf::RenderWindow* window);
-        void toggle(std::string mapName = "l2dSTART");
+        void toggle(std::string mapName = "l2dSTART", sf::Vector2f cameraPosition = sf::Vector2f(-1.0f, -20.0f));
         bool isEnabled();
         bool isMapLoaded();
         std::string getLevelName();

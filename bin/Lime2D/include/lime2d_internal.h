@@ -26,7 +26,6 @@ namespace l2d_internal {
     /*
      * Forward declares
      */
-    class Camera;
     class Shape;
 
     /*
@@ -99,6 +98,7 @@ namespace l2d_internal {
         void draw(sf::Drawable &drawable, sf::Shader* ambientLight = nullptr);
         void draw(const sf::Vertex* vertices, unsigned int vertexCount, sf::PrimitiveType type, const sf::RenderStates &states = sf::RenderStates::Default);
         sf::Texture loadImage(const std::string &filePath);
+        void setViewPosition(sf::Vector2f pos);
         void zoom(float n, sf::Vector2i pixel);
         void update(float elapsedTime, sf::Vector2f tileSize, bool windowHasFocus);
         sf::View getView() const;

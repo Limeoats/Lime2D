@@ -51,13 +51,14 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
     }
 }
 
-void l2d::Editor::toggle(std::string mapName) {
+void l2d::Editor::toggle(std::string mapName, sf::Vector2f cameraPos) {
     this->_enabled = !this->_enabled;
     this->_level.loadMap(mapName);
     this->createGridLines(true);
     if (mapName != "l2dSTART") {
         this->_currentFeature = l2d_internal::Features::Map;
         this->_currentMapEditorMode = l2d_internal::MapEditorMode::Object;
+        this->_graphics->setViewPosition(cameraPos);
     }
 }
 
