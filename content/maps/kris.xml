@@ -226,22 +226,27 @@
                 <rectangle name="Green!" color="367991156" type="1">
                     <pos x="105.8538" y="130.83051"/>
                     <size w="149" h="52.000008"/>
+                    <properties/>
                 </rectangle>
                 <rectangle name="Black!" color="132" type="1">
                     <pos x="16" y="77"/>
                     <size w="34" h="135"/>
+                    <properties/>
                 </rectangle>
                 <rectangle name="Pink" color="4020891472" type="2">
                     <pos x="49.000004" y="117.00003"/>
                     <size w="40.000008" h="115"/>
+                    <properties/>
                 </rectangle>
             </rectangles>
             <points>
                 <point name="Blue!" color="11250687">
                     <pos x="164.99997" y="38.999992"/>
+                    <properties/>
                 </point>
                 <point name="Green!!!" color="59654143">
                     <pos x="81.999969" y="49.999992"/>
+                    <properties/>
                 </point>
             </points>
             <lines>
@@ -269,6 +274,7 @@
                             <pos x="144" y="228"/>
                         </point>
                     </points>
+                    <properties/>
                 </line>
             </lines>
         </shapes>

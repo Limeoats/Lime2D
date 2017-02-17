@@ -98,6 +98,16 @@ void l2d::Editor::processEvent(sf::Event &event) {
                                                                              : l2d_internal::WindowTypes::None;
                         }
                         break;
+                    case sf::Keyboard::B:
+                        if (this->_level.isLoaded() && this->_currentFeature == l2d_internal::Features::Map &&
+                                (this->_currentWindowType == l2d_internal::WindowTypes::None ||
+                                        this->_currentWindowType == l2d_internal::WindowTypes::BackgroundWindow)) {
+                            this->_backgroundWindowEnabled = !this->_backgroundWindowEnabled;
+                            this->_currentWindowType = this->_backgroundWindowEnabled ?
+                                                       l2d_internal::WindowTypes::BackgroundWindow :
+                                                       l2d_internal::WindowTypes::None;
+                        }
+                        break;
                     case sf::Keyboard::G:
                         if (this->_level.isLoaded() &&
                             this->_currentFeature == l2d_internal::Features::Map &&
@@ -505,6 +515,7 @@ void l2d::Editor::update(sf::Time t) {
         static bool newMapBoxVisible = false;
         static bool newMapExistsOverwriteVisible = false;
         static bool tilesetWindowVisible = false;
+        static bool backgroundWindowVisible = false;
         static bool lightEditorWindowVisible = false;
         static bool newAnimatedSpriteWindowVisible = false;
         static bool newAnimationWindowVisible = false;
@@ -1126,6 +1137,66 @@ void l2d::Editor::update(sf::Time t) {
                         }
                     }
                 }
+            }
+            
+            //Background open/close event
+            backgroundWindowVisible = this->_backgroundWindowEnabled;
+            if (backgroundWindowVisible) {
+                this->_currentWindowType = l2d_internal::WindowTypes::BackgroundWindow;
+            }
+            else if (!backgroundWindowVisible && this->_currentWindowType == l2d_internal::WindowTypes::BackgroundWindow) {
+                this->_currentWindowType = l2d_internal::WindowTypes::None;
+            }
+            
+            //Background window
+            if (backgroundWindowVisible && this->_currentFeature == l2d_internal::Features::Map) {
+                this->_currentWindowType = l2d_internal::WindowTypes::BackgroundWindow;
+                ImGui::SetNextWindowPosCenter();
+                ImGui::SetNextWindowSize(ImVec2(540, 300));
+                ImGui::Begin("Background Editor", nullptr, ImVec2(500, 300), 100.0f, ImGuiWindowFlags_AlwaysAutoResize |
+                        ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
+                std::stringstream ss;
+                ss << l2d_internal::utils::getConfigValue("background_path") << "*";
+                std::vector<const char *> backgroundFiles = l2d_internal::utils::getFilesInDirectory(ss.str());
+                if (ImGui::Button("New layer")) {
+                    this->_level.getBackground().addLayer(this->_graphics, sf::Vector2i(640, 480),
+                                                          backgroundFiles.size() > 0 ? backgroundFiles[0] : "",
+                                                          this->_level.getSize(), this->_level.getTileSize());
+                }
+                auto numLayers = this->_level.getBackground().getLayers().size();
+                if (numLayers > 0) {
+                    static int backgroundComboIndex = -1;
+                    static int backgroundLayerIndex = -1;
+                    static bool showImageCombo = false;
+                    std::vector<const char*> backgroundLayerIds = [&]() {
+                        auto x = this->_level.getBackground().getLayers();
+                        std::vector<const char*> ids;
+                        for (auto &xx : x) ids.push_back(std::to_string(xx.first).c_str());
+                        return ids;
+                    }();
+                    if (ImGui::Combo("Select layer", &backgroundLayerIndex, &backgroundLayerIds[0], static_cast<int>(backgroundLayerIds.size()))) {
+                        if (backgroundLayerIndex > -1) {
+                            showImageCombo = true;
+                        }
+                    }
+                    if (showImageCombo) {
+                        ImGui::PushItemWidth(400);
+                        if (ImGui::Combo("Select image", &backgroundComboIndex, &backgroundFiles[0],
+                                         static_cast<int>(backgroundFiles.size()))) {
+                            
+                        }
+                        
+                        if (ImGui::Button("Save")) {
+                            this->_backgroundWindowEnabled = false;
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button("Delete")) {
+                            //TODO: DELETE LAYER
+                        }
+                    }
+                    
+                }
+                ImGui::End();
             }
 
             //Tileset open/close event
@@ -2315,7 +2386,8 @@ void l2d::Editor::update(sf::Time t) {
                      ImGuiWindowFlags_NoCollapse |
                      ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs |
                      ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus);
-        ImGui::GetWindowDrawList()->AddText(ImVec2(6, this->_window->getSize().y  - 20), ImColor(1.0f, 1.0f, 1.0f, 1.0f), currentFeature.c_str());
+        ImGui::GetWindowDrawList()->AddText(ImVec2(6, this->_window->getSize().y  - 20),
+                                            ImColor(1.0f, 1.0f, 1.0f, 1.0f), currentFeature.c_str());
         //Map zoom percentage
         if (this->_currentFeature == l2d_internal::Features::Map && this->_level.isLoaded()) {
             std::stringstream ss;

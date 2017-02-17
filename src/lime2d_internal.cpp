@@ -66,6 +66,12 @@ std::vector<const char*> l2d_internal::utils::getFilesInDirectory(std::string di
         if (str[str.length() - 4] == '.') {
             mapFiles.push_back(glob_result.gl_pathv[i]);
         }
+        else {
+            std::stringstream ss;
+            ss << str << "/*";
+            auto r = getFilesInDirectory(ss.str());
+            for (auto &x : r) mapFiles.push_back(x);
+        }
     }
     return mapFiles;
 }
@@ -441,6 +447,65 @@ void l2d_internal::Layer::draw(sf::Shader* ambientLight) {
     for (auto &t : this->Tiles) {
         t->draw(ambientLight);
     }
+}
+
+/*
+ * BackgroundLayer
+ */
+l2d_internal::BackgroundLayer::BackgroundLayer() {}
+
+l2d_internal::BackgroundLayer::BackgroundLayer(std::shared_ptr<Graphics> &graphics, sf::Vector2i size,
+                                               const std::string &filePath, sf::Vector2i levelSize,
+                                               sf::Vector2i tileSize) {
+    this->_filePath = filePath;
+    auto c = levelSize.x * std::stof(l2d_internal::utils::getConfigValue("tile_scale_x")) * tileSize.x /
+            std::stof(l2d_internal::utils::getConfigValue("screen_size_x"));
+    auto r = levelSize.y * std::stof(l2d_internal::utils::getConfigValue("tile_scale_y")) * tileSize.y /
+            std::stof(l2d_internal::utils::getConfigValue("screen_size_y"));
+    for (auto x = 0; x < c; ++x) {
+        for (auto y = 0; y < r; ++y) {
+            this->_sprites.push_back(std::make_shared<l2d_internal::Sprite>(graphics, filePath, sf::Vector2i(0, 0), size,
+                                                                            sf::Vector2f(x * std::stof(l2d_internal::utils::getConfigValue("screen_size_x")),
+                                                                                         y * std::stof(l2d_internal::utils::getConfigValue("screen_size_y")))));
+        }
+    }
+}
+
+std::string l2d_internal::BackgroundLayer::getPath() const {
+    return this->_filePath;
+}
+
+void l2d_internal::BackgroundLayer::draw(sf::Shader* ambientLight, l2d_internal::Graphics &graphics) {
+    for (auto &sp : this->_sprites) {
+        sp->draw(ambientLight);
+    }
+}
+
+void l2d_internal::BackgroundLayer::update(float elapsedTime) {
+    (void)elapsedTime;
+}
+
+/*
+ * Background
+ */
+l2d_internal::Background::Background() {
+    
+}
+
+void l2d_internal::Background::draw(sf::Shader* ambientLight, l2d_internal::Graphics &graphics) {
+    for (auto &l : this->_layers) {
+        l.second.draw(ambientLight, graphics);
+    }
+}
+
+std::map<int, l2d_internal::BackgroundLayer> l2d_internal::Background::getLayers() const {
+    return this->_layers;
+}
+
+void l2d_internal::Background::addLayer(std::shared_ptr<Graphics> &graphics, sf::Vector2i size, const std::string &filePath, sf::Vector2i levelSize,
+                          sf::Vector2i tileSize) {
+    auto n = this->_layers.size() == 0 ? 0 : this->_layers.end()->first + 1;
+    this->_layers[n] = BackgroundLayer(graphics, size, filePath, levelSize, tileSize);
 }
 
 /*
@@ -889,6 +954,18 @@ void l2d_internal::Level::saveMap(std::string name) {
         pTileset->SetAttribute("height", t.Size.y);
         pMap->InsertEndChild(pTileset);
     }
+    
+    //Background
+    tx2::XMLElement* pBackground = document.NewElement("background");
+    tx2::XMLElement* pBackgroundLayers = document.NewElement("layers");
+    for (auto i = 0; i < this->_background.getLayers().size(); ++i) {
+        tx2::XMLElement* pBackgroundLayer = document.NewElement("layer");
+        pBackgroundLayer->SetAttribute("id", i);
+        pBackgroundLayer->SetAttribute("path", this->_background.getLayers()[i].getPath().c_str());
+        pBackgroundLayers->InsertEndChild(pBackgroundLayer);
+    }
+    pBackground->InsertEndChild(pBackgroundLayers);
+    pMap->InsertEndChild(pBackground);
 
     //Tiles
     tx2::XMLElement* pTiles = document.NewElement("tiles");
@@ -1320,7 +1397,12 @@ bool l2d_internal::Level::isLoaded() const {
     return this->_loaded;
 }
 
+l2d_internal::Background &l2d_internal::Level::getBackground() {
+    return this->_background;
+}
+
 void l2d_internal::Level::draw(sf::Shader* ambientLight) {
+    this->_background.draw(ambientLight, *this->_graphics);
     for (auto &layer : this->_layerList) {
         layer->draw(ambientLight);
     }
