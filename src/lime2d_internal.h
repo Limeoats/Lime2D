@@ -120,6 +120,7 @@ namespace l2d_internal {
         Sprite(std::shared_ptr<Graphics>, const std::string &filePath, sf::Vector2i srcPos, sf::Vector2i size, sf::Vector2f destPos);
         Sprite(const Sprite&) = delete;
         Sprite& operator=(const Sprite&) = delete;
+        sf::Sprite &getSprite();
         virtual void update(float elapsedTime);
         virtual void draw(sf::Shader* ambientLight = nullptr);
     protected:

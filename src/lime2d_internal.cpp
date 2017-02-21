@@ -274,6 +274,10 @@ l2d_internal::Sprite::Sprite(std::shared_ptr<Graphics> graphics, const std::stri
     this->_graphics = graphics;
 }
 
+sf::Sprite& l2d_internal::Sprite::getSprite() {
+    return this->_sprite;
+}
+
 void l2d_internal::Sprite::draw(sf::Shader* ambientLight) {
     this->_graphics->draw(this->_sprite, ambientLight);
 }
@@ -468,6 +472,9 @@ l2d_internal::BackgroundLayer::BackgroundLayer(std::shared_ptr<Graphics> &graphi
                                                                             sf::Vector2f(x * std::stof(l2d_internal::utils::getConfigValue("screen_size_x")),
                                                                                          y * std::stof(l2d_internal::utils::getConfigValue("screen_size_y")))));
         }
+    }
+    for (auto &s : this->_sprites) {
+        s->getSprite().setScale(1.25, 1.25);
     }
 }
 
@@ -665,6 +672,30 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
             tsPath = pTileset->Attribute("path");
             this->_tilesetList.push_back(Tileset(tsId, tsPath, sf::Vector2i(tsWidth, tsHeight)));
             pTileset = pTileset->NextSiblingElement("tileset");
+        }
+    }
+    
+    //Loading the background
+    tx2::XMLElement* pBackground = pMap->FirstChildElement("background");
+    if (pBackground != nullptr) {
+        while (pBackground) {
+            tx2::XMLElement* pLayers = pBackground->FirstChildElement("layers");
+            if (pLayers != nullptr) {
+                while (pLayers) {
+                    tx2::XMLElement* pLayer = pLayers->FirstChildElement("layer");
+                    if (pLayer != nullptr) {
+                        while (pLayer) {
+                            int id = pLayer->IntAttribute("id");
+                            std::string path = pLayer->Attribute("path");
+                            this->_background.addLayer(this->_graphics, sf::Vector2i(640, 480), path,
+                                                       this->_size, this->_tileSize);
+                            pLayer = pLayer->NextSiblingElement("layer");
+                        }
+                    }
+                    pLayers = pLayers->NextSiblingElement("layers");
+                }
+            }
+            pBackground = pBackground->NextSiblingElement("background");
         }
     }
 

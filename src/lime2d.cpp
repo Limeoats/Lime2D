@@ -802,7 +802,7 @@ void l2d::Editor::update(sf::Time t) {
             this->_currentWindowType = l2d_internal::WindowTypes::AboutWindow;
             ImGui::SetNextWindowSize(ImVec2(300, 130));
             ImGui::Begin("About Lime2D", nullptr, ImVec2(300, 130), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
-            ImGui::Text("Lime2D Editor\nVersion: 1.1\n\nBy: Limeoats\nCopyright \u00a9 2016");
+            ImGui::Text("Lime2D Editor\nVersion: 1.2\n\nBy: Limeoats\nCopyright \u00a9 2016-2017");
             ImGui::Separator();
             if (ImGui::Button("Close")) {
                 this->_currentWindowType = l2d_internal::WindowTypes::None;

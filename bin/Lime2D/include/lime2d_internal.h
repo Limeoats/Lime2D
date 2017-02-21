@@ -49,7 +49,7 @@ namespace l2d_internal {
     enum class WindowTypes {
         None, TilesetWindow, NewMapWindow, ConfigWindow, MapSelectWindow, AboutWindow, LightEditorWindow,
         NewAnimatedSpriteWindow, NewAnimationWindow, RemoveAnimationWindow, EntityListWindow, EntityPropertiesWindow, ShapeColorWindow,
-        ConfigureMapWindow, ConfigureBackgroundColorWindow, ConsoleWindow
+        ConfigureMapWindow, ConfigureBackgroundColorWindow, ConsoleWindow, BackgroundWindow
     };
 
     namespace utils {
@@ -120,6 +120,7 @@ namespace l2d_internal {
         Sprite(std::shared_ptr<Graphics>, const std::string &filePath, sf::Vector2i srcPos, sf::Vector2i size, sf::Vector2f destPos);
         Sprite(const Sprite&) = delete;
         Sprite& operator=(const Sprite&) = delete;
+        sf::Sprite &getSprite();
         virtual void update(float elapsedTime);
         virtual void draw(sf::Shader* ambientLight = nullptr);
     protected:
@@ -200,6 +201,34 @@ namespace l2d_internal {
         Layer();
         void draw(sf::Shader* ambientLight);
     };
+    
+    /*
+     * The internal BackgroundLayer class
+     */
+    class BackgroundLayer {
+    public:
+        BackgroundLayer();
+        BackgroundLayer(std::shared_ptr<Graphics> &graphics, sf::Vector2i size, const std::string &filePath, sf::Vector2i levelSize, sf::Vector2i tileSize);
+        std::string getPath() const;
+        void update(float elapsedTime);
+        void draw(sf::Shader* ambientLight, l2d_internal::Graphics &graphics);
+    private:
+        std::vector<std::shared_ptr<l2d_internal::Sprite>> _sprites;
+        std::string _filePath;
+    };
+    
+    /*
+     * The internal Background class
+     */
+    class Background {
+    public:
+        Background();
+        void addLayer(std::shared_ptr<Graphics> &graphics, sf::Vector2i size, const std::string &filePath, sf::Vector2i levelSize, sf::Vector2i tileSize);
+        std::map<int, l2d_internal::BackgroundLayer> getLayers() const;
+        void draw(sf::Shader* ambientLight, l2d_internal::Graphics &graphics);
+    private:
+        std::map<int, l2d_internal::BackgroundLayer> _layers;
+    };
 
     /*
      * The internal Level class for Lime2D
@@ -238,6 +267,7 @@ namespace l2d_internal {
         bool isRedoListEmpty() const;
         sf::Vector2i globalToLocalCoordinates(sf::Vector2f coords) const;
         bool isLoaded() const;
+        l2d_internal::Background &getBackground();
     private:
         std::string _name;
         bool _loaded;
@@ -251,6 +281,7 @@ namespace l2d_internal {
         std::stack<std::vector<std::shared_ptr<Layer>>> _redoList;
         float _ambientIntensity = 1.0f;
         sf::Color _ambientColor = sf::Color::White;
+        l2d_internal::Background _background;
     };
 
     struct CustomProperty {
