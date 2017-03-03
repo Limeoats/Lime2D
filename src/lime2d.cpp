@@ -28,6 +28,7 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
         _showEntityList(false),
         _eraserActive(false),
         _tilesetEnabled(false),
+        _backgroundWindowEnabled(false),
         _mainHasFocus(true),
         _removingShape(false),
         _hideShapes(false),

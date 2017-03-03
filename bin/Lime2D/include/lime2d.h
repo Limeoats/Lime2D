@@ -32,6 +32,7 @@ namespace l2d {
         bool _showEntityList;
         bool _eraserActive;
         bool _tilesetEnabled;
+        bool _backgroundWindowEnabled;
         bool _mainHasFocus;
         bool _removingShape;
         bool _hideShapes;
