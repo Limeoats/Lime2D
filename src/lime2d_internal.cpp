@@ -64,7 +64,7 @@ std::vector<const char*> l2d_internal::utils::getFilesInDirectory(std::string di
     for (unsigned int i = 0; i < glob_result.gl_pathc; ++i) {
         std::string str = glob_result.gl_pathv[i];
         if (str[str.length() - 4] == '.') {
-            mapFiles.push_back(glob_result.gl_pathv[i]);
+            mapFiles.emplace_back(glob_result.gl_pathv[i]);
         }
         else {
             std::stringstream ss;
@@ -165,7 +165,7 @@ void l2d_internal::utils::removeAnimationFromAnimationFile(std::string fileName,
     std::string str = ss.str();
     animationName += " = {";
     std::vector<std::string> x = l2d_internal::utils::split(str, animationName);
-    std::string before = x.front();
+    auto before = x.front();
     auto t = x.back().find("__},");
     std::string after = x.back().substr(t+5); //+5 grabs __}, and the new line and gets rid of it too
     std::ofstream out(fileName, std::ios_base::trunc);
@@ -624,7 +624,6 @@ void l2d_internal::Level::createMap(std::string name, sf::Vector2i size, sf::Vec
 }
 
 std::string l2d_internal::Level::loadMap(std::string &name) {
-
     if (name == "l2dSTART") {
         return "";
     }
@@ -1206,7 +1205,7 @@ void l2d_internal::Level::updateTile(std::string newTilesetPath, sf::Vector2i ne
         l2d_internal::Layer l;
         l.Id = this->_layerList.at(i).get()->Id;
         for (unsigned int j = 0; j < this->_layerList[i].get()->Tiles.size(); ++j) {
-            l.Tiles.push_back(this->_layerList[i].get()->Tiles.at(j));
+            l.Tiles.emplace_back(this->_layerList[i].get()->Tiles.at(j));
         }
         tmpList.push_back(std::make_shared<l2d_internal::Layer>(l));
     }
@@ -1290,7 +1289,7 @@ void l2d_internal::Level::removeTile(int layer, sf::Vector2f pos, bool fromResiz
             l2d_internal::Layer l;
             l.Id = this->_layerList.at(i).get()->Id;
             for (unsigned int j = 0; j < this->_layerList[i].get()->Tiles.size(); ++j) {
-                l.Tiles.push_back(this->_layerList[i].get()->Tiles.at(j));
+                l.Tiles.emplace_back(this->_layerList[i].get()->Tiles.at(j));
             }
             tmpList.push_back(std::make_shared<l2d_internal::Layer>(l));
         }
@@ -1347,7 +1346,7 @@ void l2d_internal::Level::undo() {
             l2d_internal::Layer l;
             l.Id = this->_oldLayerList.top().at(i).get()->Id;
             for (unsigned int j = 0; j < this->_oldLayerList.top()[i].get()->Tiles.size(); ++j) {
-                l.Tiles.push_back(this->_oldLayerList.top()[i].get()->Tiles.at(j));
+                l.Tiles.emplace_back(this->_oldLayerList.top()[i].get()->Tiles.at(j));
             }
             tmpList.push_back(std::make_shared<l2d_internal::Layer>(l));
         }
@@ -1358,7 +1357,7 @@ void l2d_internal::Level::undo() {
             l2d_internal::Layer l;
             l.Id = this->_layerList.at(i).get()->Id;
             for (unsigned int j = 0; j < this->_layerList[i].get()->Tiles.size(); ++j) {
-                l.Tiles.push_back(this->_layerList[i].get()->Tiles.at(j));
+                l.Tiles.emplace_back(this->_layerList[i].get()->Tiles.at(j));
             }
             tmpRedoList.push_back(std::make_shared<l2d_internal::Layer>(l));
         }
@@ -1380,7 +1379,7 @@ void l2d_internal::Level::redo() {
             l2d_internal::Layer l;
             l.Id = this->_redoList.top().at(i).get()->Id;
             for (unsigned int j = 0; j < this->_redoList.top()[i].get()->Tiles.size(); ++j) {
-                l.Tiles.push_back(this->_redoList.top()[i].get()->Tiles.at(j));
+                l.Tiles.emplace_back(this->_redoList.top()[i].get()->Tiles.at(j));
             }
             tmpList.push_back(std::make_shared<l2d_internal::Layer>(l));
         }
@@ -1391,7 +1390,7 @@ void l2d_internal::Level::redo() {
             l2d_internal::Layer l;
             l.Id = this->_layerList.at(i).get()->Id;
             for (unsigned int j = 0; j < this->_layerList[i].get()->Tiles.size(); ++j) {
-                l.Tiles.push_back(this->_layerList[i].get()->Tiles.at(j));
+                l.Tiles.emplace_back(this->_layerList[i].get()->Tiles.at(j));
             }
             tmpUndoList.push_back(std::make_shared<l2d_internal::Layer>(l));
         }
@@ -1539,10 +1538,10 @@ void l2d_internal::Point::select() {
     if (!this->_selected) {
         this->_selected = true;
         this->_dot.setOutlineThickness(this->_dot.getOutlineThickness() + 1);
-        this->_dot.setFillColor(sf::Color(std::min(255, this->_dot.getFillColor().r + 16),
-                                           std::min(255, this->_dot.getFillColor().g + 16),
-                                           std::min(255, this->_dot.getFillColor().b + 16),
-                                           std::min(255, this->_dot.getFillColor().a + 16)
+        this->_dot.setFillColor(sf::Color(static_cast<sf::Uint8>(std::min(255, this->_dot.getFillColor().r + 16)),
+                                           static_cast<sf::Uint8>(std::min(255, this->_dot.getFillColor().g + 16)),
+                                           static_cast<sf::Uint8>(std::min(255, this->_dot.getFillColor().b + 16)),
+                                           static_cast<sf::Uint8>(std::min(255, this->_dot.getFillColor().a + 16))
         ));
     }
 }
@@ -1551,10 +1550,10 @@ void l2d_internal::Point::unselect() {
     if (this->_selected) {
         this->_selected = false;
         this->_dot.setOutlineThickness(this->_dot.getOutlineThickness() - 1);
-        this->_dot.setFillColor(sf::Color(std::max(0, this->_dot.getFillColor().r - 16),
-                                           std::max(0, this->_dot.getFillColor().g - 16),
-                                           std::max(0, this->_dot.getFillColor().b - 16),
-                                           std::max(0, this->_dot.getFillColor().a - 16)
+        this->_dot.setFillColor(sf::Color(static_cast<sf::Uint8>(std::max(0, this->_dot.getFillColor().r - 16)),
+                                           static_cast<sf::Uint8>(std::max(0, this->_dot.getFillColor().g - 16)),
+                                           static_cast<sf::Uint8>(std::max(0, this->_dot.getFillColor().b - 16)),
+                                           static_cast<sf::Uint8>(std::max(0, this->_dot.getFillColor().a - 16))
         ));
     }
 }
@@ -1761,10 +1760,10 @@ void l2d_internal::Rectangle::select() {
     if (!this->_selected) {
         this->_selected = true;
         this->_rect.setOutlineThickness(this->_rect.getOutlineThickness() + 1);
-        this->_rect.setFillColor(sf::Color(std::min(255, this->_rect.getFillColor().r + 16),
-                                           std::min(255, this->_rect.getFillColor().g + 16),
-                                           std::min(255, this->_rect.getFillColor().b + 16),
-                                           std::min(255, this->_rect.getFillColor().a + 16)
+        this->_rect.setFillColor(sf::Color(static_cast<sf::Uint8>(std::min(255, this->_rect.getFillColor().r + 16)),
+                                           static_cast<sf::Uint8>(std::min(255, this->_rect.getFillColor().g + 16)),
+                                           static_cast<sf::Uint8>(std::min(255, this->_rect.getFillColor().b + 16)),
+                                           static_cast<sf::Uint8>(std::min(255, this->_rect.getFillColor().a + 16))
         ));
     }
 }
@@ -1773,10 +1772,10 @@ void l2d_internal::Rectangle::unselect() {
     if (this->_selected) {
         this->_selected = false;
         this->_rect.setOutlineThickness(this->_rect.getOutlineThickness() - 1);
-        this->_rect.setFillColor(sf::Color(std::max(0, this->_rect.getFillColor().r - 16),
-                                           std::max(0, this->_rect.getFillColor().g - 16),
-                                           std::max(0, this->_rect.getFillColor().b - 16),
-                                           std::max(0, this->_rect.getFillColor().a - 16)
+        this->_rect.setFillColor(sf::Color(static_cast<sf::Uint8>(std::max(0, this->_rect.getFillColor().r - 16)),
+                                           static_cast<sf::Uint8>(std::max(0, this->_rect.getFillColor().g - 16)),
+                                           static_cast<sf::Uint8>(std::max(0, this->_rect.getFillColor().b - 16)),
+                                           static_cast<sf::Uint8>(std::max(0, this->_rect.getFillColor().a - 16))
         ));
     }
 }
@@ -1810,7 +1809,7 @@ bool l2d_internal::Rectangle::equals(std::shared_ptr<Shape> other) {
 l2d_internal::LuaScript::LuaScript(const std::string &filePath) {
     this->L = luaL_newstate();
     if (luaL_loadfile(this->L, filePath.c_str()) || lua_pcall(this->L, 0, 0, 0)) {
-        std::cerr << "Unable to load Lua script." << std::endl;
+        std::cerr << "Unable to load Lua script '" << filePath << "'" << std::endl;
         this->L = nullptr;
     }
     if (this->L != nullptr) {
