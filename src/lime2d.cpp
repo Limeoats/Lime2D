@@ -29,6 +29,7 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
         _eraserActive(false),
         _tilesetEnabled(false),
         _backgroundWindowEnabled(false),
+        _tileTypeWindowEnabled(false),
         _mainHasFocus(true),
         _removingShape(false),
         _hideShapes(false),
@@ -47,6 +48,8 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
     this->_enabled = enabled;
     ImGui::SFML::Init(*window);
     this->_window = window;
+    this->_tileTypes = l2d_internal::utils::split(l2d_internal::utils::getConfigValue("tile_types"), ",");
+    this->_currentTileType = this->_tileTypes.size() > 0 ? this->_tileTypes[0] : "";
     if (!this->_ambientLight.loadFromFile("content/shaders/ambient.frag", sf::Shader::Fragment)) {
         return;
     }
@@ -73,6 +76,19 @@ bool l2d::Editor::isMapLoaded() {
 
 std::string l2d::Editor::getLevelName() {
     return this->_level.getName();
+}
+
+void l2d::Editor::nextTileType() {
+    this->_currentTileType = [&](std::string current)->std::string {
+        if (this->_tileTypes.size() <= 0) return "";
+        auto it = std::find(this->_tileTypes.begin(), this->_tileTypes.end(), current);
+        if (it != this->_tileTypes.end()) {
+            auto index = std::distance(this->_tileTypes.begin(), it);
+            if (index == this->_tileTypes.size() - 1) return this->_tileTypes[0];
+            else return this->_tileTypes[index + 1];
+        }
+        return this->_tileTypes[0];
+    }(this->_currentTileType);
 }
 
 void l2d::Editor::processEvent(sf::Event &event) {
@@ -142,10 +158,19 @@ void l2d::Editor::processEvent(sf::Event &event) {
                         if (this->_currentFeature == l2d_internal::Features::Map &&
                             this->_currentWindowType == l2d_internal::WindowTypes::None) {
                             this->_currentMapEditorMode =
-                                    this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object ?
-                                    l2d_internal::MapEditorMode::Tile : l2d_internal::MapEditorMode::Object;
+                                    this->_currentMapEditorMode == l2d_internal::MapEditorMode::Tile ?
+                                    l2d_internal::MapEditorMode::TileType :
+                                    this->_currentMapEditorMode == l2d_internal::MapEditorMode::TileType ? l2d_internal::MapEditorMode::Object :
+                                    l2d_internal::MapEditorMode::Tile;
                         }
                         break;
+                    case sf::Keyboard::P:
+                        if (this->_level.isLoaded() && this->_currentFeature == l2d_internal::Features::Map &&
+                                this->_currentMapEditorMode == l2d_internal::MapEditorMode::TileType &&
+                                (this->_currentWindowType == l2d_internal::WindowTypes::None ||
+                                        this->_currentWindowType == l2d_internal::WindowTypes::TileTypeWindow)) {
+                            this->nextTileType();
+                        }
                     default:
                         break;
                 }
@@ -517,6 +542,7 @@ void l2d::Editor::update(sf::Time t) {
         static bool newMapExistsOverwriteVisible = false;
         static bool tilesetWindowVisible = false;
         static bool backgroundWindowVisible = false;
+        static bool tileTypeWindowVisible = false;
         static bool lightEditorWindowVisible = false;
         static bool newAnimatedSpriteWindowVisible = false;
         static bool newAnimationWindowVisible = false;
@@ -722,6 +748,40 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::InputFloat("", &cameraPanFactor, 0.25f, 0.0f, 2);
             ImGui::Separator();
             ImGui::PopID();
+            
+            ImGui::PushID("ConfigureTileTypes");
+            ImGui::Text("Tile types");
+            static std::string typeStr = l2d_internal::utils::getConfigValue("tile_types");
+            static std::vector<std::string> typeList = l2d_internal::utils::split(typeStr, ",");
+            for (auto &str : typeList) {
+                std::string id = "button_" + str;
+                ImGui::PushID(id.c_str());
+                if (ImGui::Button(" - ")) {
+                    typeList.erase(std::remove_if(typeList.begin(), typeList.end(), [&](std::string s)->bool {
+                        return str == s;
+                    }));
+                }
+                ImGui::SameLine();
+                ImGui::Text(str.c_str());
+            }
+            static char newTileTypeBuffer[500];
+            ImGui::Separator();
+            ImGui::PushID("plus");
+            if (ImGui::Button(" + ")) {
+                if (strlen(newTileTypeBuffer) > 0) {
+                    typeList.push_back(std::string(newTileTypeBuffer));
+                    memset(&newTileTypeBuffer[0], 0, sizeof(newTileTypeBuffer));
+                }
+            }
+            ImGui::PopID();
+            ImGui::SameLine();
+            ImGui::InputText("New tile type", newTileTypeBuffer, sizeof(newTileTypeBuffer));
+            ImGui::Separator();
+            ImGui::PopID();
+            std::stringstream ss;
+            for (auto &s : typeList) {
+                ss << s << ",";
+            }
 
             ImGui::PopItemWidth();
 
@@ -740,6 +800,9 @@ void l2d::Editor::update(sf::Time t) {
                 else if (strlen(animationPath) <= 0) {
                     configureMapErrorText = "You must enter the location of your animations!";
                 }
+                else if (typeList.size() <= 0) {
+                    configureMapErrorText = "You must have at least one tile type. Solid is a good default option.";
+                }
                 else {
                     configureMapErrorText = "";
                     //Everything checks out, so save.
@@ -756,6 +819,7 @@ void l2d::Editor::update(sf::Time t) {
                         os << "sprite_path=" << spritePath << "\n";
                         os << "animation_path=" << animationPath << "\n";
                         os << "camera_pan_factor=" << cameraPanFactor << "\n";
+                        os << "tile_types=" << ss.str() << "\n";
                         os.close();
                         if (this->_level.isLoaded()) {
                             std::string name = this->_level.getName();
@@ -765,6 +829,9 @@ void l2d::Editor::update(sf::Time t) {
                                 this->_currentWindowType = l2d_internal::WindowTypes::None;
                                 configWindowVisible = false;
                                 startStatusTimer("Configurations saved successfully!", 200);
+                                this->_tileTypes = l2d_internal::utils::split(l2d_internal::utils::getConfigValue("tile_types"), ",");
+                                this->_currentTileType = this->_tileTypes.size() > 0 ? this->_tileTypes[0] : "";
+                                this->nextTileType();
                             }
                         }
                         else {
@@ -2021,11 +2088,15 @@ void l2d::Editor::update(sf::Time t) {
         if (this->_currentFeature == l2d_internal::Features::Map) {
             std::stringstream ss;
 
-            ss << "Map Editor - " << (this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object ? "Object mode" : "Tile mode")
+            ss << "Map Editor - " << (this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object ? "Object mode" :
+                                      this->_currentMapEditorMode == l2d_internal::MapEditorMode::Tile ? "Tile mode" : "Tile Type mode")
                << (this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_currentDrawShape == l2d_internal::DrawShapes::Rectangle ? " - Rectangle" :
                    this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_currentDrawShape == l2d_internal::DrawShapes::Point ? " - Point" :
                    this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_currentDrawShape == l2d_internal::DrawShapes::Line ? " - Line" :
                    this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_currentDrawShape == l2d_internal::DrawShapes::None ? " - Select" : "");
+            if (this->_currentMapEditorMode == l2d_internal::MapEditorMode::TileType) {
+                ss << " - " << this->_currentTileType;
+            }
             currentFeature = ss.str();
         }
 

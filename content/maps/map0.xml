@@ -433,13 +433,7 @@
             <ambient color="2108069375" intensity="1.8"/>
         </lights>
         <shapes>
-            <rectangles>
-                <rectangle name="Rectangle" color="422682756" type="2">
-                    <pos x="0" y="353.53235"/>
-                    <size w="551.12756" h="168.94087"/>
-                    <properties/>
-                </rectangle>
-            </rectangles>
+            <rectangles/>
             <points>
                 <point name="Point" color="3254831871">
                     <pos x="135.00002" y="187"/>

@@ -35,7 +35,7 @@ namespace l2d_internal {
         None, Map, Animation
     };
     enum class MapEditorMode {
-        None, Tile, Object
+        None, Tile, Object, TileType
     };
     enum class LightType {
         None, Ambient, Point
@@ -49,7 +49,7 @@ namespace l2d_internal {
     enum class WindowTypes {
         None, TilesetWindow, NewMapWindow, ConfigWindow, MapSelectWindow, AboutWindow, LightEditorWindow,
         NewAnimatedSpriteWindow, NewAnimationWindow, RemoveAnimationWindow, EntityListWindow, EntityPropertiesWindow, ShapeColorWindow,
-        ConfigureMapWindow, ConfigureBackgroundColorWindow, ConsoleWindow, BackgroundWindow
+        ConfigureMapWindow, ConfigureBackgroundColorWindow, ConsoleWindow, BackgroundWindow, TileTypeWindow
     };
 
     namespace utils {

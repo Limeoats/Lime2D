@@ -33,12 +33,15 @@ namespace l2d {
         bool _eraserActive;
         bool _tilesetEnabled;
         bool _backgroundWindowEnabled;
+        bool _tileTypeWindowEnabled;
         bool _mainHasFocus;
         bool _removingShape;
         bool _hideShapes;
         bool _showConsole;
 
         int _menuClicks;
+        std::vector<std::string> _tileTypes;
+        std::string _currentTileType;
 
         sf::Vector2f _lastFrameMousePos;
 
@@ -55,6 +58,7 @@ namespace l2d {
         l2d_internal::WindowTypes _currentWindowType;
 
         void createGridLines(bool always = false);
+        void nextTileType();
     };
 }
 
