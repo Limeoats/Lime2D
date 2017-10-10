@@ -192,7 +192,7 @@ void l2d::Editor::processEvent(sf::Event &event) {
 void l2d::Editor::render() {
     if (this->_enabled) {
         //Return the current mouse position
-        static auto getMousePos = [&]() {
+        static auto getMousePos = [&]()->sf::Vector2f {
             return this->_window->mapPixelToCoords(sf::Vector2i(
                     sf::Mouse::getPosition(*this->_window).x +
                     static_cast<int>(this->_graphics->getView().getViewport().left),
@@ -629,7 +629,7 @@ void l2d::Editor::update(sf::Time t) {
         };
 
         //Return the current mouse position
-        static auto getMousePos = [&]() {
+        static auto getMousePos = [&]()->sf::Vector2f {
             return this->_window->mapPixelToCoords(sf::Vector2i(
                     sf::Mouse::getPosition(*this->_window).x +
                     static_cast<int>(this->_graphics->getView().getViewport().left),
@@ -2051,15 +2051,15 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::Separator();
             ImGui::BeginChild("ScrollingRegion", ImVec2(0, -ImGui::GetItemsLineHeightWithSpacing()), false, ImGuiWindowFlags_HorizontalScrollbar);
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1));
-            for (int i = 0; i < consoleItems.size(); ++i) {
+            for (l2d_internal::ConsoleItem &item : consoleItems) {
                 ImVec4 color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-                if (consoleItems[i].MessageType == l2d_internal::ConsoleItem::Type::Error) {
+                if (item.MessageType == l2d_internal::ConsoleItem::Type::Error) {
                     color = ImVec4(1.0f, 0.78f, 0.58f, 1.0f);
                 }
                 ImGui::PushStyleColor(ImGuiCol_Text, color);
-                ImGui::TextWrapped(consoleItems[i].Command.c_str());
-                if (consoleItems[i].Message.size() > 0) {
-                    ImGui::TextWrapped(consoleItems[i].Message.c_str());
+                ImGui::TextWrapped(item.Command.c_str());
+                if (item.Message.size() > 0) {
+                    ImGui::TextWrapped(item.Message.c_str());
                 }
                 ImGui::PopStyleColor();
             }
