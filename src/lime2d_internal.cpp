@@ -5,13 +5,14 @@
  * Copyright (c) 2016 Limeoats
  */
 
-#include <glob.h>
+#include <experimental/filesystem>
 #include <sstream>
 #include <fstream>
 #include <tuple>
 #include <iostream>
 #include <cmath>
 #include <memory>
+#include <functional>
 
 #include "../libext/tinyxml2.h"
 #include "lime2d_internal.h"
@@ -58,20 +59,24 @@ std::vector<std::string> l2d_internal::utils::split(const std::string &str, cons
 }
 
 std::vector<const char*> l2d_internal::utils::getFilesInDirectory(std::string directory) {
-    glob_t glob_result;
+//    glob_t glob_result;
+//    std::vector<const char*> mapFiles;
+//    glob(directory.c_str(), GLOB_MARK, NULL, &glob_result);
+//    for (unsigned int i = 0; i < glob_result.gl_pathc; ++i) {
+//        std::string str = glob_result.gl_pathv[i];
+//        if (str[str.length() - 4] == '.') {
+//            mapFiles.emplace_back(glob_result.gl_pathv[i]);
+//        }
+//        else {
+//            std::stringstream ss;
+//            ss << str << "/*";
+//            auto r = getFilesInDirectory(ss.str());
+//            for (auto &x : r) mapFiles.push_back(x);
+//        }
+//    }
     std::vector<const char*> mapFiles;
-    glob(directory.c_str(), GLOB_MARK, NULL, &glob_result);
-    for (unsigned int i = 0; i < glob_result.gl_pathc; ++i) {
-        std::string str = glob_result.gl_pathv[i];
-        if (str[str.length() - 4] == '.') {
-            mapFiles.emplace_back(glob_result.gl_pathv[i]);
-        }
-        else {
-            std::stringstream ss;
-            ss << str << "/*";
-            auto r = getFilesInDirectory(ss.str());
-            for (auto &x : r) mapFiles.push_back(x);
-        }
+    for (auto &p : std::experimental::filesystem::directory_iterator(directory)) {
+        mapFiles.push_back(p.path().generic_string().c_str());
     }
     return mapFiles;
 }
