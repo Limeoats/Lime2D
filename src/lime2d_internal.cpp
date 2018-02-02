@@ -59,26 +59,13 @@ std::vector<std::string> l2d_internal::utils::split(const std::string &str, cons
 }
 
 std::vector<const char*> l2d_internal::utils::getFilesInDirectory(std::string directory) {
-//    glob_t glob_result;
-//    std::vector<const char*> mapFiles;
-//    glob(directory.c_str(), GLOB_MARK, NULL, &glob_result);
-//    for (unsigned int i = 0; i < glob_result.gl_pathc; ++i) {
-//        std::string str = glob_result.gl_pathv[i];
-//        if (str[str.length() - 4] == '.') {
-//            mapFiles.emplace_back(glob_result.gl_pathv[i]);
-//        }
-//        else {
-//            std::stringstream ss;
-//            ss << str << "/*";
-//            auto r = getFilesInDirectory(ss.str());
-//            for (auto &x : r) mapFiles.push_back(x);
-//        }
-//    }
-    std::vector<const char*> mapFiles;
+    std::vector<std::string> mapFiles;
     for (auto &p : std::experimental::filesystem::directory_iterator(directory)) {
-        mapFiles.push_back(p.path().generic_string().c_str());
+        mapFiles.push_back(p.path().string());
     }
-    return mapFiles;
+    std::vector<const char*> ret(mapFiles.size());
+    std::transform(mapFiles.begin(), mapFiles.end(), ret.begin(), std::mem_fun_ref(&std::string::c_str));
+    return ret;
 }
 
 std::string l2d_internal::utils::getConfigValue(std::string key) {

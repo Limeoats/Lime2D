@@ -7,6 +7,126 @@
         </layers>
     </background>
     <tiles>
+        <pos x="1" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="2" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="3" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="4" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="5" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="6" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="7" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="8" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="9" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="10" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="11" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="12" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="13" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="14" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="15" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="16" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="17" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="18" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="19" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="20" y="1">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="1" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="2" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="3" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="4" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="5" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="6" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="7" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="8" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="9" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="10" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="11" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="12" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="13" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="14" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="15" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="16" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="17" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="18" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="19" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
+        <pos x="20" y="2">
+            <tile layer="1" tileset="1">6</tile>
+        </pos>
         <pos x="1" y="12">
             <tile layer="1" tileset="1">1</tile>
         </pos>
@@ -430,7 +550,7 @@
     </tiles>
     <objects>
         <lights>
-            <ambient color="2108069375" intensity="1.8"/>
+            <ambient color="2377754623" intensity="1.8"/>
         </lights>
         <shapes>
             <rectangles/>
@@ -441,7 +561,7 @@
                 </point>
             </points>
             <lines>
-                <line name="A long platform path" color="4278190335">
+                <line name="A long platform path" color="2558787583">
                     <points>
                         <point name="p1" color="16711935">
                             <pos x="153" y="121.99999"/>

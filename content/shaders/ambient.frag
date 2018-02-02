@@ -1,6 +1,6 @@
 uniform sampler2D texture;
- uniform vec3 color;
- uniform float intensity;
+uniform vec3 color;
+uniform float intensity;
 
  void main() {
      vec4 pixel = texture2D(texture, gl_TexCoord[0].xy);

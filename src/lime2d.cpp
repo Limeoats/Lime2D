@@ -884,7 +884,7 @@ void l2d::Editor::update(sf::Time t) {
             this->_currentWindowType = l2d_internal::WindowTypes::MapSelectWindow;
             std::string mapSelectErrorMessage = "";
             std::stringstream ss;
-            ss << l2d_internal::utils::getConfigValue("map_path") << "*";
+            ss << l2d_internal::utils::getConfigValue("map_path");
             std::vector<const char*> mapFiles = l2d_internal::utils::getFilesInDirectory(ss.str());
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(500, 270));
@@ -962,7 +962,7 @@ void l2d::Editor::update(sf::Time t) {
                 else {
                     //Check if map with that name already exists. If so, give a box asking to overwrite
                     std::stringstream ss;
-                    ss << l2d_internal::utils::getConfigValue("map_path") << "*";
+                    ss << l2d_internal::utils::getConfigValue("map_path");
                     std::vector<const char*> mapFiles = l2d_internal::utils::getFilesInDirectory(ss.str());
                     ss.str("");
                     ss << l2d_internal::utils::getConfigValue("map_path") << name << ".xml";
@@ -1224,7 +1224,7 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::Begin("Background Editor", nullptr, ImVec2(500, 300), 100.0f, ImGuiWindowFlags_AlwaysAutoResize |
                         ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
                 std::stringstream ss;
-                ss << l2d_internal::utils::getConfigValue("background_path") << "*";
+                ss << l2d_internal::utils::getConfigValue("background_path");
                 std::vector<const char *> backgroundFiles = l2d_internal::utils::getFilesInDirectory(ss.str());
                 if (ImGui::Button("New layer")) {
                     this->_level.getBackground().addLayer(this->_graphics, sf::Vector2i(640, 480),
@@ -1294,7 +1294,7 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::SetNextWindowSize(ImVec2(540, 300));
                 ImGui::Begin("Tilesets", nullptr, ImVec2(500, 300), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
                 std::stringstream ss;
-                ss << l2d_internal::utils::getConfigValue("tileset_path") << "*";
+                ss << l2d_internal::utils::getConfigValue("tileset_path");
                 std::vector<const char*> tilesetFiles = l2d_internal::utils::getFilesInDirectory(ss.str());
                 ImGui::PushItemWidth(400);
                 if (ImGui::Combo("Select tileset", &tilesetComboIndex, &tilesetFiles[0], static_cast<int>(tilesetFiles.size()))) {
@@ -2111,7 +2111,7 @@ void l2d::Editor::update(sf::Time t) {
             static std::string newSpriteErrorMessage = "";
 
             std::stringstream ss;
-            ss << l2d_internal::utils::getConfigValue("sprite_path") << "*";
+            ss << l2d_internal::utils::getConfigValue("sprite_path");
             std::vector<const char*> spriteList = l2d_internal::utils::getFilesInDirectory(ss.str());
 
             ImGui::SetNextWindowPosCenter();
@@ -2265,7 +2265,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::Begin("Animation editor", nullptr, ImVec2(this->_window->getSize().x - 20, this->_window->getSize().y - 80), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
 
             std::stringstream ss;
-            ss << l2d_internal::utils::getConfigValue("animation_path") << "*";
+            ss << l2d_internal::utils::getConfigValue("animation_path");
             std::vector<const char*> existingAnimationSprites = l2d_internal::utils::getFilesInDirectory(ss.str());
 
             ImGui::PushItemWidth(400);
@@ -2332,7 +2332,7 @@ void l2d::Editor::update(sf::Time t) {
                     ImGui::Separator();
 
                     ss.str("");
-                    ss << l2d_internal::utils::getConfigValue("sprite_path") << "*";
+                    ss << l2d_internal::utils::getConfigValue("sprite_path");
                     std::vector<const char*> spriteList = l2d_internal::utils::getFilesInDirectory(ss.str());
                     std::string p = script.get()->get<std::string>(
                             "animations.sprite_path");
