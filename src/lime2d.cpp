@@ -663,7 +663,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(480, 380));
             static std::string configureMapErrorText = "";
-            ImGui::Begin("Configure", nullptr, ImVec2(480,380), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
+            ImGui::Begin("Configure", nullptr, ImVec2(480,380), 100.0f, ImGuiWindowFlags_AlwaysAutoResize);
 
             ImGui::PushID("ConfigureMapPath");
             ImGui::Text("Map path");
@@ -869,7 +869,7 @@ void l2d::Editor::update(sf::Time t) {
         if (aboutBoxVisible) {
             this->_currentWindowType = l2d_internal::WindowTypes::AboutWindow;
             ImGui::SetNextWindowSize(ImVec2(300, 130));
-            ImGui::Begin("About Lime2D", nullptr, ImVec2(300, 130), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
+            ImGui::Begin("About Lime2D", nullptr, ImVec2(300, 130), 100.0f, ImGuiWindowFlags_AlwaysAutoResize);
             ImGui::Text("Lime2D Editor\nVersion: 1.2\n\nBy: Limeoats\nCopyright \u00a9 2016-2017");
             ImGui::Separator();
             if (ImGui::Button("Close")) {
@@ -888,7 +888,7 @@ void l2d::Editor::update(sf::Time t) {
             std::vector<const char*> mapFiles = l2d_internal::utils::getFilesInDirectory(ss.str());
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(500, 270));
-            ImGui::Begin("Select a map", nullptr, ImVec2(500, 270), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
+            ImGui::Begin("Select a map", nullptr, ImVec2(500, 270), 100.0f, ImGuiWindowFlags_AlwaysAutoResize);
             ImGui::Text("Select a map from the list below.");
             ImGui::Separator();
             ImGui::PushItemWidth(-1);
@@ -920,7 +920,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(460, 250));
             static std::string newMapErrorText = "";
-            ImGui::Begin("New map properties", nullptr, ImVec2(460, 250), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_ShowBorders);
+            ImGui::Begin("New map properties", nullptr, ImVec2(460, 250), 100.0f, ImGuiWindowFlags_AlwaysAutoResize);
             ImGui::Text("Name");
             static char name[500] = "";
             ImGui::PushItemWidth(300);
@@ -1222,7 +1222,7 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::SetNextWindowPosCenter();
                 ImGui::SetNextWindowSize(ImVec2(540, 300));
                 ImGui::Begin("Background Editor", nullptr, ImVec2(500, 300), 100.0f, ImGuiWindowFlags_AlwaysAutoResize |
-                        ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
+                        ImGuiWindowFlags_HorizontalScrollbar);
                 std::stringstream ss;
                 ss << l2d_internal::utils::getConfigValue("background_path");
                 std::vector<const char *> backgroundFiles = l2d_internal::utils::getFilesInDirectory(ss.str());
@@ -1292,7 +1292,7 @@ void l2d::Editor::update(sf::Time t) {
 
                 ImGui::SetNextWindowPosCenter();
                 ImGui::SetNextWindowSize(ImVec2(540, 300));
-                ImGui::Begin("Tilesets", nullptr, ImVec2(500, 300), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
+                ImGui::Begin("Tilesets", nullptr, ImVec2(500, 300), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
                 std::stringstream ss;
                 ss << l2d_internal::utils::getConfigValue("tileset_path");
                 std::vector<const char*> tilesetFiles = l2d_internal::utils::getFilesInDirectory(ss.str());
@@ -1350,7 +1350,7 @@ void l2d::Editor::update(sf::Time t) {
                     ImGui::PopItemWidth();
                 }
                 if (showTilesetImage) {
-                    ImGui::BeginChild("tilesetChildArea", ImVec2(500, 200), true, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
+                    ImGui::BeginChild("tilesetChildArea", ImVec2(500, 200), true, ImGuiWindowFlags_HorizontalScrollbar);
                     ImVec2 pos = ImGui::GetCursorScreenPos();
                     tilesetTexture = this->_graphics->loadImage(tilesetFiles[tilesetComboIndex]);
                     selectedTilesetSize = sf::Vector2i(tilesetTexture.getSize());
@@ -1415,7 +1415,7 @@ void l2d::Editor::update(sf::Time t) {
             this->_currentWindowType = l2d_internal::WindowTypes::LightEditorWindow;
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(300, 400));
-            ImGui::Begin("Light editor", nullptr, ImVec2(300, 400), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
+            ImGui::Begin("Light editor", nullptr, ImVec2(300, 400), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
             if (selectedLightType == l2d_internal::LightType::Ambient) {
                 ImGui::Text("Ambient light editor");
                 ImGui::Separator();
@@ -1449,7 +1449,7 @@ void l2d::Editor::update(sf::Time t) {
             this->_currentWindowType = l2d_internal::WindowTypes::ShapeColorWindow;
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(300, 400));
-            ImGui::Begin("Shape color editor", nullptr, ImVec2(300, 400), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
+            ImGui::Begin("Shape color editor", nullptr, ImVec2(300, 400), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
             ImGui::Text("Shape color editor");
             ImGui::Separator();
             ImGui::ColorPicker3("", (float*)&selectedEntityColor);
@@ -1752,8 +1752,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(500, 300));
             ImGui::Begin("Entity list", nullptr, ImVec2(500, 300), 100.0f,
-                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar |
-                         ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_NoBringToFrontOnFocus);
+                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoBringToFrontOnFocus);
             if (ImGui::TreeNode("Entities")) {
                 if (ImGui::TreeNode("Objects")) {
                     if (ImGui::TreeNode("Lines")) {
@@ -1796,7 +1795,7 @@ void l2d::Editor::update(sf::Time t) {
                 this->_selectedShape = rightClickedShape;
             }
             this->_currentWindowType = l2d_internal::WindowTypes::EntityPropertiesWindow;
-            ImGui::Begin("Properties", nullptr, ImVec2(511, 234), 100.0f, ImGuiWindowFlags_ShowBorders | ImGuiWindowFlags_AlwaysAutoResize |
+            ImGui::Begin("Properties", nullptr, ImVec2(511, 234), 100.0f, ImGuiWindowFlags_AlwaysAutoResize |
                     ImGuiWindowFlags_HorizontalScrollbar);
             ImGui::PushID("SelectedEntityName");
             static char name[500] = "";
@@ -1815,7 +1814,7 @@ void l2d::Editor::update(sf::Time t) {
 
             ImGui::PushID("SelectedEntityColor");
             ImGui::PushItemWidth(200);
-            if (ImGui::ColorButton(selectedEntityColor, false, true)) {
+            if (ImGui::ColorButton("SelectedEntityColor", selectedEntityColor, false)) {
                 shapeColorWindowVisible = true;
             }
             ImGui::PopItemWidth();
@@ -1958,7 +1957,7 @@ void l2d::Editor::update(sf::Time t) {
             this->_currentWindowType = l2d_internal::WindowTypes::ConfigureMapWindow;
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(360, 180));
-            ImGui::Begin("Configure map", nullptr, ImVec2(360, 180), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
+            ImGui::Begin("Configure map", nullptr, ImVec2(360, 180), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
             ImGui::PushItemWidth(100);
             ImGui::PushID("ConfigureMapSize");
             ImGui::Text("Map size (in tiles)");
@@ -2043,7 +2042,7 @@ void l2d::Editor::update(sf::Time t) {
             this->_currentWindowType = l2d_internal::WindowTypes::ConsoleWindow;
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(520, 380));
-            ImGui::Begin("Console", nullptr, ImVec2(520, 380), 60.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
+            ImGui::Begin("Console", nullptr, ImVec2(520, 380), 60.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
             ImGui::TextWrapped("This is the Lime2D console. You can enter commands into the textbox below, press enter, and the commands will be executed.");
             ImGui::TextWrapped("Type '/help' for a list of commands.");
             //ImGui::Separator();
@@ -2116,7 +2115,7 @@ void l2d::Editor::update(sf::Time t) {
 
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(380, 160));
-            ImGui::Begin("Create new animated sprite", nullptr, ImVec2(380, 200), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
+            ImGui::Begin("Create new animated sprite", nullptr, ImVec2(380, 200), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
 
             ImGui::PushItemWidth(364);
             ImGui::PushID("NewAnimatedSpriteName");
@@ -2167,7 +2166,7 @@ void l2d::Editor::update(sf::Time t) {
 
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(380, 160));
-            ImGui::Begin("Create new animation", nullptr, ImVec2(380, 200), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
+            ImGui::Begin("Create new animation", nullptr, ImVec2(380, 200), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
 
             ImGui::PushItemWidth(364);
             ImGui::PushID("NewAnimationName");
@@ -2225,7 +2224,7 @@ void l2d::Editor::update(sf::Time t) {
             this->_currentWindowType = l2d_internal::WindowTypes::RemoveAnimationWindow;
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(280, 100));
-            ImGui::Begin("Remove selected animation", nullptr, ImVec2(280, 100), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
+            ImGui::Begin("Remove selected animation", nullptr, ImVec2(280, 100), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
             std::string txt = "Are you sure you want to delete \nthe selected animation?\n\"" + selectedAnimationName + "\"";
             ImGui::Text("%s", txt.c_str());
             ImGui::Separator();
@@ -2262,7 +2261,7 @@ void l2d::Editor::update(sf::Time t) {
 
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(this->_window->getSize().x - 20, this->_window->getSize().y - 80));
-            ImGui::Begin("Animation editor", nullptr, ImVec2(this->_window->getSize().x - 20, this->_window->getSize().y - 80), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_ShowBorders);
+            ImGui::Begin("Animation editor", nullptr, ImVec2(this->_window->getSize().x - 20, this->_window->getSize().y - 80), 100.0f, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
 
             std::stringstream ss;
             ss << l2d_internal::utils::getConfigValue("animation_path");

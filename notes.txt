@@ -1,0 +1,9 @@
+======================================
+Updating ImGUI to a newer version
+======================================
+- Go into imgui_draw.cpp and copy the function: void ImGui::StyleColorsLime2D(ImGuiStyle* dst);
+- Replace all 5 imgui files (imgui.h, imgui.cpp, imgui_internal.h, imgui_draw.cpp, imgui_demo.cpp with the new files
+- Add the function copied above to the new imgui_draw.cpp file
+- Also add it to imgui.h: IMGUI_API void          StyleColorsLime2D(ImGuiStyle* dst = NULL);
+- Put this line into the ImGuiStyle::ImGuiStyle() constructor in imgui.cpp: ImGui::StyleColorsLime2D(this);
+- Fix any new errors from breaking changes
