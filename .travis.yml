@@ -10,16 +10,16 @@ compiler:
   - clang
 install:
   #Linux
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq g++-4.8; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -qq g++-5; fi
   - if [ "$TRAVIS_OS_NAME" != "osx" ] && [ "$CXX" == "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
 
   #OS X
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install gcc48; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install gcc5; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew unlink wget; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install wget; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ] && [ "$CC" == "gcc" ]; then export CC="gcc-4.8"; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ] && [ "$CC" == "gcc" ]; then export CXX="g++-4.8"; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ] && [ "$CC" == "gcc" ]; then export CC="gcc-5"; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ] && [ "$CC" == "gcc" ]; then export CXX="g++-5"; fi
 addons:
   apt:
     sources:
@@ -38,8 +38,8 @@ before_script:
     - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo cp -r SFML-2.4.0/lib/* /usr/local/lib/.; fi
     - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo cp -r SFML-2.4.0/include/* /usr/local/include/.; fi
     #Lua
-    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install lua5.1; fi
-    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install liblua5.1-dev; fi
+    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install lua5.3; fi
+    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install liblua5.3-dev; fi
     #OpenGL
     - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install libglu1-mesa-dev freeglut3-dev mesa-common-dev libglu1-mesa; fi
   #OS X
@@ -49,7 +49,7 @@ before_script:
     - if [ "$TRAVIS_OS_NAME" == "osx" ]; then sudo cp -r SFML-2.4.0-osx-clang/lib/* /usr/local/lib/.; fi
     - if [ "$TRAVIS_OS_NAME" == "osx" ]; then sudo cp -r SFML-2.4.0-osx-clang/include/* /usr/local/include/.; fi
     #Lua
-    - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install lua51; fi
+    - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install lua53; fi
     #OpenGL
     - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install fltk; fi
 script:
