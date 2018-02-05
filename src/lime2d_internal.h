@@ -413,6 +413,7 @@ namespace l2d_internal {
         void printError(const std::string &variable, const std::string error);
         void doString(const char* command);
         const char* getTop();
+        int mPrint();
 
         template<typename T>
         T lua_getDefault() {

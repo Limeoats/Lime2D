@@ -11,6 +11,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cmath>
+#include <chrono>
 
 #include "lime2d.h"
 
@@ -870,7 +871,12 @@ void l2d::Editor::update(sf::Time t) {
             this->_currentWindowType = l2d_internal::WindowTypes::AboutWindow;
             ImGui::SetNextWindowSize(ImVec2(300, 130));
             ImGui::Begin("About Lime2D", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-            ImGui::Text("Lime2D Editor\nVersion: 1.2\n\nBy: Limeoats\nCopyright \u00a9 2016-2017");
+
+            auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+            struct tm *parts = std::localtime(&now);
+            std::stringstream ss;
+            ss << "Lime2D Editor\nVersion: 1.2\n\nBy: Limeoats\nCopyright \u00a9 2016-" << 1900 + parts->tm_year << std::endl;
+            ImGui::Text(ss.str().c_str());
             ImGui::Separator();
             if (ImGui::Button("Close")) {
                 this->_currentWindowType = l2d_internal::WindowTypes::None;
@@ -2066,6 +2072,7 @@ void l2d::Editor::update(sf::Time t) {
                 if (item.Message.size() > 0) {
                     ImGui::TextWrapped(item.Message.c_str());
                 }
+                ImGui::SetScrollHere();
                 ImGui::PopStyleColor();
             }
             //ImGui::SetScrollHere();

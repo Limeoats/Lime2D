@@ -1821,9 +1821,7 @@ void l2d_internal::LuaScript::printError(const std::string &variable, const std:
 }
 
 void l2d_internal::LuaScript::doString(const char *command) {
-    std::cout << "BEFORE DOSTRING: " << lua_gettop(this->L) << std::endl;
-    (luaL_loadstring(this->L, command) || lua_pcall(this->L, 0, LUA_MULTRET, 0));
-    std::cout << "AFTER DOSTRING: " << lua_gettop(this->L) << std::endl;
+    luaL_dostring(this->L, command);
 }
 
 const char* l2d_internal::LuaScript::getTop() {
