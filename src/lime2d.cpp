@@ -555,6 +555,7 @@ void l2d::Editor::update(sf::Time t) {
         static bool cbHideShapes = false;
         static bool configureMapWindowVisible = false;
         static bool cbShowConsole = false;
+        static bool newTileTypeColorWindowVisible = false;
 
         static std::shared_ptr<l2d_internal::Shape> rightClickedShape = nullptr;
 
@@ -571,6 +572,9 @@ void l2d::Editor::update(sf::Time t) {
         static int spritesheetSelectIndex = -1;
         static std::string selectedAnimationFileName = "";
         static std::string selectedAnimationName = "";
+
+        // New entity type color
+        static ImVec4 newTileTypeColor = sf::Color::White;
 
         //Entity list variables
         static ImVec4 selectedEntityColor = sf::Color::White;
@@ -754,29 +758,49 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::Text("Tile types");
             static std::string typeStr = l2d_internal::utils::getConfigValue("tile_types");
             static std::vector<std::string> typeList = l2d_internal::utils::split(typeStr, ",");
-            for (auto &str : typeList) {
-                std::string id = "button_" + str;
+            static std::vector<std::vector<std::string>> typeListColors;
+            for (int i = 0; i < typeList.size(); ++i) {
+                typeListColors.push_back(l2d_internal::utils::split(typeList[i], "|"));
+                std::string id = "button_" + typeList[i];
                 ImGui::PushID(id.c_str());
                 if (ImGui::Button(" - ")) {
                     typeList.erase(std::remove_if(typeList.begin(), typeList.end(), [&](std::string s)->bool {
-                        return str == s;
+                        return typeList[i] == s;
                     }));
                 }
                 ImGui::SameLine();
-                ImGui::Text(str.c_str());
+                ImGui::Text(typeListColors[i][0].c_str());
+                ImGui::SameLine();
+                std::string ettcColor = "EditTileTypeColor_" + typeListColors[i][0];
+                ImGui::PushID(ettcColor.c_str());
+                ImGui::PushItemWidth(200);
+                ImVec4 editTileTypeColor = ImVec4(sf::Color(static_cast<sf::Uint32>(std::stoi(typeListColors[i][1]))));
+
+                if (ImGui::ColorButton(("EditTileTypeColor_" + typeListColors[i][0]).c_str(), editTileTypeColor, false)) {
+
+                }
             }
             static char newTileTypeBuffer[500];
             ImGui::Separator();
             ImGui::PushID("plus");
             if (ImGui::Button(" + ")) {
                 if (strlen(newTileTypeBuffer) > 0) {
-                    typeList.push_back(std::string(newTileTypeBuffer));
+                    std::stringstream ss;
+                    ss << newTileTypeBuffer << "|" << (sf::Color(newTileTypeColor.x, newTileTypeColor.y, newTileTypeColor.z)).toInteger();
+                    typeList.emplace_back(ss.str());
                     memset(&newTileTypeBuffer[0], 0, sizeof(newTileTypeBuffer));
                 }
             }
             ImGui::PopID();
             ImGui::SameLine();
             ImGui::InputText("New tile type", newTileTypeBuffer, sizeof(newTileTypeBuffer));
+            ImGui::SameLine();
+            ImGui::PushID("NewTileTypeColor");
+            ImGui::PushItemWidth(200);
+            if (ImGui::ColorButton("NewTileTypeColor", newTileTypeColor, false)) {
+                newTileTypeColorWindowVisible = true;
+            }
+            ImGui::PopItemWidth();
             ImGui::Separator();
             ImGui::PopID();
             std::stringstream ss;
@@ -1992,6 +2016,22 @@ void l2d::Editor::update(sf::Time t) {
                 height = this->_level.getSize().y;
                 this->_currentWindowType = l2d_internal::WindowTypes::None;
                 configureMapWindowVisible = false;
+            }
+            ImGui::End();
+        }
+
+        if (newTileTypeColorWindowVisible) {
+            this->_currentWindowType = l2d_internal::WindowTypes::TileTypeColorSelectionWindow;
+            ImGui::SetNextWindowPosCenter();
+            ImGui::SetNextWindowSize(ImVec2(300, 400));
+            ImGui::Begin("Tile type color", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
+            ImGui::Text("Select a color for the new tile type");
+            ImGui::Separator();
+            ImGui::ColorPicker3("", (float*)&newTileTypeColor);
+            ImGui::Separator();
+            if (ImGui::Button("Close")) {
+                this->_currentWindowType = l2d_internal::WindowTypes::None;
+                newTileTypeColorWindowVisible = false;
             }
             ImGui::End();
         }

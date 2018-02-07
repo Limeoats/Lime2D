@@ -10,7 +10,7 @@ You can then switch out of the editor and automatically see your updated map / a
 The editor can be used in any C++ project using SFML on Windows, Mac OS X, and Linux.
 
 ### External libraries used
-* [SFML 2.4.0](http://www.sfml-dev.org/)
+* [SFML 2.4.2](http://www.sfml-dev.org/)
 * [ImGui](https://github.com/ocornut/imgui)
 * [TinyXML2](http://www.grinninglizard.com/tinyxml2/index.html)
 
