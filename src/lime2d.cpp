@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <cmath>
 #include <chrono>
+#include <utility>
 
 #include "lime2d.h"
 
@@ -49,8 +50,8 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow* window) :
     this->_enabled = enabled;
     ImGui::SFML::Init(*window);
     this->_window = window;
-    this->_tileTypes = l2d_internal::utils::split(l2d_internal::utils::getConfigValue("tile_types"), ",");
-    this->_currentTileType = this->_tileTypes.size() > 0 ? this->_tileTypes[0] : "";
+    this->_tileTypes = l2d_internal::utils::splitVector(l2d_internal::utils::split(l2d_internal::utils::getConfigValue("tile_types"), ","), "|", 0);
+    this->_currentTileType = !this->_tileTypes.empty() ? this->_tileTypes[0] : "";
     if (!this->_ambientLight.loadFromFile("content/shaders/ambient.frag", sf::Shader::Fragment)) {
         return;
     }
@@ -556,6 +557,7 @@ void l2d::Editor::update(sf::Time t) {
         static bool configureMapWindowVisible = false;
         static bool cbShowConsole = false;
         static bool newTileTypeColorWindowVisible = false;
+        static bool editExistingTileTypeColorWindowVisible = false;
 
         static std::shared_ptr<l2d_internal::Shape> rightClickedShape = nullptr;
 
@@ -575,6 +577,11 @@ void l2d::Editor::update(sf::Time t) {
 
         // New entity type color
         static ImVec4 newTileTypeColor = sf::Color::White;
+        static ImVec4 newEditExistingTileTypeColor = sf::Color::White;
+        static std::string editExistingTileTypeColorName = "";
+
+        static std::string typeStr = l2d_internal::utils::getConfigValue("tile_types");
+        static std::vector<std::string> typeList = l2d_internal::utils::split(typeStr, ",");
 
         //Entity list variables
         static ImVec4 selectedEntityColor = sf::Color::White;
@@ -756,11 +763,20 @@ void l2d::Editor::update(sf::Time t) {
             
             ImGui::PushID("ConfigureTileTypes");
             ImGui::Text("Tile types");
-            static std::string typeStr = l2d_internal::utils::getConfigValue("tile_types");
-            static std::vector<std::string> typeList = l2d_internal::utils::split(typeStr, ",");
-            static std::vector<std::vector<std::string>> typeListColors;
+
+            struct TileTypeAndColor {
+                std::string Name;
+                std::string Color;
+                TileTypeAndColor(std::string name, std::string color) {
+                    Name = std::move(name);
+                    Color = std::move(color);
+                }
+            };
+
+            std::vector<TileTypeAndColor> tileTypesAndColors;
             for (int i = 0; i < typeList.size(); ++i) {
-                typeListColors.push_back(l2d_internal::utils::split(typeList[i], "|"));
+                auto v = l2d_internal::utils::split(typeList[i], "|");
+                tileTypesAndColors.emplace_back(v[0], v[1]);
                 std::string id = "button_" + typeList[i];
                 ImGui::PushID(id.c_str());
                 if (ImGui::Button(" - ")) {
@@ -769,15 +785,16 @@ void l2d::Editor::update(sf::Time t) {
                     }));
                 }
                 ImGui::SameLine();
-                ImGui::Text(typeListColors[i][0].c_str());
+                ImGui::Text(tileTypesAndColors[i].Name.c_str());
                 ImGui::SameLine();
-                std::string ettcColor = "EditTileTypeColor_" + typeListColors[i][0];
+                std::string ettcColor = "EditTileTypeColor_" + tileTypesAndColors[i].Name;
                 ImGui::PushID(ettcColor.c_str());
                 ImGui::PushItemWidth(200);
-                ImVec4 editTileTypeColor = ImVec4(sf::Color(static_cast<sf::Uint32>(std::stoi(typeListColors[i][1]))));
+                ImVec4 editTileTypeColor = ImVec4(sf::Color(static_cast<sf::Uint32>(std::stoll(tileTypesAndColors[i].Color))));
 
-                if (ImGui::ColorButton(("EditTileTypeColor_" + typeListColors[i][0]).c_str(), editTileTypeColor, false)) {
-
+                if (ImGui::ColorButton(("EditTileTypeColor_" + tileTypesAndColors[i].Name).c_str(), editTileTypeColor, false)) {
+                    editExistingTileTypeColorWindowVisible = true;
+                    editExistingTileTypeColorName = tileTypesAndColors[i].Name;
                 }
             }
             static char newTileTypeBuffer[500];
@@ -786,8 +803,8 @@ void l2d::Editor::update(sf::Time t) {
             if (ImGui::Button(" + ")) {
                 if (strlen(newTileTypeBuffer) > 0) {
                     std::stringstream ss;
-                    ss << newTileTypeBuffer << "|" << (sf::Color(newTileTypeColor.x, newTileTypeColor.y, newTileTypeColor.z)).toInteger();
-                    typeList.emplace_back(ss.str());
+                    ss << newTileTypeBuffer << "|" << (sf::Color(newTileTypeColor.x * 255, newTileTypeColor.y * 255, newTileTypeColor.z * 255, newTileTypeColor.z * 255)).toInteger();
+                    typeList.push_back(ss.str());
                     memset(&newTileTypeBuffer[0], 0, sizeof(newTileTypeBuffer));
                 }
             }
@@ -854,7 +871,7 @@ void l2d::Editor::update(sf::Time t) {
                                 this->_currentWindowType = l2d_internal::WindowTypes::None;
                                 configWindowVisible = false;
                                 startStatusTimer("Configurations saved successfully!", 200);
-                                this->_tileTypes = l2d_internal::utils::split(l2d_internal::utils::getConfigValue("tile_types"), ",");
+                                this->_tileTypes = l2d_internal::utils::splitVector(l2d_internal::utils::split(l2d_internal::utils::getConfigValue("tile_types"), ","), "|", 0);
                                 this->_currentTileType = this->_tileTypes.size() > 0 ? this->_tileTypes[0] : "";
                                 this->nextTileType();
                             }
@@ -933,6 +950,7 @@ void l2d::Editor::update(sf::Time t) {
                     createGridLines();
                     this->_currentWindowType = l2d_internal::WindowTypes::None;
                     mapSelectBoxVisible = false;
+                    this->_graphics->setZoomPercentage(100.0f);
                 }
             }
             ImGui::SameLine();
@@ -1915,7 +1933,7 @@ void l2d::Editor::update(sf::Time t) {
                             }
                             return false;
                         }()) {
-                            customProperties.push_back(l2d_internal::CustomProperty(i, "", ""));
+                            customProperties.emplace_back(i, "", "");
                             break;
                         }
                     }
@@ -2023,15 +2041,42 @@ void l2d::Editor::update(sf::Time t) {
         if (newTileTypeColorWindowVisible) {
             this->_currentWindowType = l2d_internal::WindowTypes::TileTypeColorSelectionWindow;
             ImGui::SetNextWindowPosCenter();
-            ImGui::SetNextWindowSize(ImVec2(300, 400));
+            ImGui::SetNextWindowSize(ImVec2(300, 340));
             ImGui::Begin("Tile type color", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
             ImGui::Text("Select a color for the new tile type");
             ImGui::Separator();
-            ImGui::ColorPicker3("", (float*)&newTileTypeColor);
+            ImGui::ColorPicker4("", (float*)&newTileTypeColor);
             ImGui::Separator();
             if (ImGui::Button("Close")) {
                 this->_currentWindowType = l2d_internal::WindowTypes::None;
                 newTileTypeColorWindowVisible = false;
+            }
+            ImGui::End();
+        }
+
+        if (editExistingTileTypeColorWindowVisible) {
+            this->_currentWindowType = l2d_internal::WindowTypes::TileTypeColorSelectionWindow;
+            ImGui::SetNextWindowPosCenter();
+            ImGui::SetNextWindowSize(ImVec2(400, 340));
+            ImGui::Begin("Tile type color", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_HorizontalScrollbar);
+            ImGui::Text(("Select a color for the existing tile type: " + editExistingTileTypeColorName).c_str());
+            ImGui::Separator();
+            ImGui::ColorPicker4("", (float*)&newEditExistingTileTypeColor);
+            ImGui::Separator();
+            if (ImGui::Button("Close")) {
+                this->_currentWindowType = l2d_internal::WindowTypes::None;
+                editExistingTileTypeColorWindowVisible = false;
+                auto iter = std::find_if(typeList.begin(), typeList.end(), [&](const std::string &str) {
+                    return str.find(editExistingTileTypeColorName) != std::string::npos;
+                });
+                if (iter != typeList.end()) {
+                    std::stringstream ss;
+                    ss << editExistingTileTypeColorName << "|"
+                       << sf::Color(newEditExistingTileTypeColor.x * 255, newEditExistingTileTypeColor.y * 255,
+                                    newEditExistingTileTypeColor.z * 255,
+                                    newEditExistingTileTypeColor.w * 255).toInteger();
+                    typeList[std::distance(typeList.begin(), iter)] = ss.str();
+                }
             }
             ImGui::End();
         }
@@ -2331,21 +2376,21 @@ void l2d::Editor::update(sf::Time t) {
             //Based on animationSpriteSelectIndex, parse the lua file and get the list of animations
             if (animationSpriteSelectIndex > -1) {
                 script = std::make_unique<l2d_internal::LuaScript>(existingAnimationSprites[animationSpriteSelectIndex]);
-                std::vector<std::string> existingAnimationsStrings = script.get()->getTableKeys("animations.list");
+                std::vector<std::string> existingAnimationsStrings = script->getTableKeys("animations.list");
                 std::vector<const char*> existingAnimations;
                 for (auto &str : existingAnimationsStrings) {
                     existingAnimations.push_back(str.c_str());
                 }
 
                 static auto setAnimationFromScript = [&]() {
-                    frames = script.get()->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".frames");
-                    animationName = script.get()->get<std::string>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".name");
-                    animationDescription = script.get()->get<std::string>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".description");
-                    animationPath = script.get()->get<std::string>("animations.sprite_path");
-                    srcPos = sf::Vector2i(script.get()->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.x"), script.get()->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.y"));
-                    size = sf::Vector2i(script.get()->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".size.w"), script.get()->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".size.h"));
-                    offset = sf::Vector2i(script.get()->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".offset.x"), script.get()->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".offset.y"));
-                    timeToUpdate = script.get()->get<float>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".time_to_update");
+                    frames = script->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".frames");
+                    animationName = script->get<std::string>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".name");
+                    animationDescription = script->get<std::string>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".description");
+                    animationPath = script->get<std::string>("animations.sprite_path");
+                    srcPos = sf::Vector2i(script->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.x"), script->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.y"));
+                    size = sf::Vector2i(script->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".size.w"), script->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".size.h"));
+                    offset = sf::Vector2i(script->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".offset.x"), script->get<int>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".offset.y"));
+                    timeToUpdate = script->get<float>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".time_to_update");
                 };
                 static bool loaded = false;
                 ImGui::PushItemWidth(400);
@@ -2354,7 +2399,7 @@ void l2d::Editor::update(sf::Time t) {
                     loaded = false;
                     setAnimationFromScript();
                     selectedAnimationName = animationName;
-                    originalAnimationName = script.get()->get<std::string>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".name");
+                    originalAnimationName = script->get<std::string>("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".name");
                     sprite = std::make_shared<l2d_internal::AnimatedSprite>(
                             this->_graphics, animationPath, srcPos, size, sf::Vector2f(0,0), timeToUpdate);
                     sprite->addAnimation(frames, srcPos, animationName, size, offset);
@@ -2386,7 +2431,7 @@ void l2d::Editor::update(sf::Time t) {
                     ss.str("");
                     ss << l2d_internal::utils::getConfigValue("sprite_path");
                     std::vector<const char*> spriteList = l2d_internal::utils::getFilesInDirectory(ss.str());
-                    std::string p = script.get()->get<std::string>(
+                    std::string p = script->get<std::string>(
                             "animations.sprite_path");
                     for (unsigned int i = 0; i < spriteList.size(); ++i) {
                         if (strcmp(spriteList[i], p.c_str()) == 0) {
@@ -2466,21 +2511,21 @@ void l2d::Editor::update(sf::Time t) {
                     ImGui::PopID();
 
                     if (ImGui::Button("Save")) {
-                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".name", animationNameArray);
-                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".description", animationDescriptionArray);
-                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".frames", frames);
-                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.x", srcPos.x);
-                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.y", srcPos.y);
-                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".size.w", size.x);
-                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".size.h", size.y);
-                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".offset.x", offset.x);
-                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".offset.y", offset.y);
-                        script.get()->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".time_to_update", timeToUpdate);
-                        script.get()->lua_set("animations.sprite_path", animationPath);
-                        script.get()->lua_save("animations");
+                        script->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".name", animationNameArray);
+                        script->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".description", animationDescriptionArray);
+                        script->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".frames", frames);
+                        script->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.x", srcPos.x);
+                        script->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".src_pos.y", srcPos.y);
+                        script->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".size.w", size.x);
+                        script->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".size.h", size.y);
+                        script->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".offset.x", offset.x);
+                        script->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".offset.y", offset.y);
+                        script->lua_set("animations.list." + existingAnimationsStrings[animationSelectIndex] + ".time_to_update", timeToUpdate);
+                        script->lua_set("animations.sprite_path", animationPath);
+                        script->lua_save("animations");
                         if (originalAnimationName != animationNameArray) {
-                            script.get()->updateKeyName(originalAnimationName, std::string(animationNameArray));
-                            originalAnimationName = std::string(animationNameArray); //Update originalAnimationName in case the name changes again before reloading animation
+                            script->updateKeyName(originalAnimationName, std::string(animationNameArray));
+                            originalAnimationName = std::string(animationNameArray); // Update originalAnimationName in case the name changes again before reloading animation
                         }
                         startStatusTimer("Animation saved successfully!", 200);
                     }

@@ -232,7 +232,7 @@
     </tiles>
     <objects>
         <lights>
-            <ambient color="218961919" intensity="7.0099998"/>
+            <ambient color="218961919" intensity="4.9499998"/>
         </lights>
         <shapes>
             <rectangles/>

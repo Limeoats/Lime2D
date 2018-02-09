@@ -60,6 +60,7 @@ namespace l2d_internal {
         };
         std::vector<std::string> split(std::string str, char c);
         std::vector<std::string> split(const std::string& str, const std::string& delim, int count = -1);
+        std::vector<std::string> splitVector(const std::vector<std::string> &v, const std::string &delim, int index = 0);
         std::vector<const char*> getFilesInDirectory(std::string directory);
         std::string getConfigValue(std::string key);
         void createNewAnimationFile(std::string name, std::string spriteSheetPath);
@@ -104,6 +105,7 @@ namespace l2d_internal {
         void update(float elapsedTime, sf::Vector2f tileSize, bool windowHasFocus);
         sf::View getView() const;
         float getZoomPercentage() const;
+        void setZoomPercentage(float zoomPercentage);
     private:
         std::map<std::string, sf::Texture> _spriteSheets;
         sf::RenderWindow* _window;

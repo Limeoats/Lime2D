@@ -58,6 +58,19 @@ std::vector<std::string> l2d_internal::utils::split(const std::string &str, cons
     return tokens;
 }
 
+// std::vector<std::string> splitVector
+// Splits each item in an existing vector of strings by a delimiter. Gets [index] from the result of the split
+// and adds it to the return vector. Returns the new vector of split strings
+std::vector<std::string> l2d_internal::utils::splitVector(const std::vector<std::string> &v, const std::string &delim,
+                                                          int index) {
+    std::vector<std::string> returnVector;
+    for (const auto &i : v) {
+        auto t = utils::split(i, delim);
+        returnVector.push_back(t[index]);
+    }
+    return returnVector;
+}
+
 std::vector<const char*> l2d_internal::utils::getFilesInDirectory(std::string directory) {
     std::vector<std::string> mapFiles;
     for (auto &p : std::experimental::filesystem::directory_iterator(directory)) {
@@ -222,6 +235,10 @@ void l2d_internal::Graphics::zoom(float n, sf::Vector2i pixel) {
 
 float l2d_internal::Graphics::getZoomPercentage() const {
     return this->_zoomPercentage;
+}
+
+void l2d_internal::Graphics::setZoomPercentage(float zoomPercentage) {
+    this->_zoomPercentage = zoomPercentage;
 }
 
 sf::Texture l2d_internal::Graphics::loadImage(const std::string &filePath) {
@@ -676,7 +693,7 @@ std::string l2d_internal::Level::loadMap(std::string &name) {
                     tx2::XMLElement* pLayer = pLayers->FirstChildElement("layer");
                     if (pLayer != nullptr) {
                         while (pLayer) {
-                            int id = pLayer->IntAttribute("id");
+                            // int id = pLayer->IntAttribute("id");
                             std::string path = pLayer->Attribute("path");
                             this->_background.addLayer(this->_graphics, sf::Vector2i(640, 480), path,
                                                        this->_size, this->_tileSize);
@@ -980,7 +997,7 @@ void l2d_internal::Level::saveMap(std::string name) {
     //Background
     tx2::XMLElement* pBackground = document.NewElement("background");
     tx2::XMLElement* pBackgroundLayers = document.NewElement("layers");
-    for (auto i = 0; i < this->_background.getLayers().size(); ++i) {
+    for (unsigned int i = 0; i < this->_background.getLayers().size(); ++i) {
         tx2::XMLElement* pBackgroundLayer = document.NewElement("layer");
         pBackgroundLayer->SetAttribute("id", i);
         pBackgroundLayer->SetAttribute("path", this->_background.getLayers()[i].getPath().c_str());
