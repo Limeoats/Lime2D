@@ -20,6 +20,7 @@ extern "C" {
 #include <stack>
 #include <sstream>
 #include <cstring>
+#include "../libext/imgui.h"
 
 namespace l2d_internal {
 
@@ -67,6 +68,7 @@ namespace l2d_internal {
         void addNewAnimationToAnimationFile(std::string fileName, std::string animationName);
         void removeAnimationFromAnimationFile(std::string fileName, std::string animationName);
         std::vector<const char*> getObjectTypesForList();
+        sf::Color getColor(const ImVec4 &c);
 
         class NotImplementedException : public std::logic_error {
         public:

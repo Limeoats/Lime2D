@@ -182,6 +182,10 @@ std::vector<const char*> l2d_internal::utils::getObjectTypesForList() {
     return std::vector<const char*> {"Collision", "Other"};
 }
 
+sf::Color l2d_internal::utils::getColor(const ImVec4 &c) {
+    return sf::Color(c.x * 255, c.y * 255, c.z * 255, c.w * 255);
+}
+
 /*
  * Graphics
  */
