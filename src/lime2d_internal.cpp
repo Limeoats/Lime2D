@@ -19,6 +19,8 @@
 
 #define tx2 tinyxml2
 
+l2d_internal::TileType l2d_internal::TileType::Default =  l2d_internal::TileType("", sf::Color::White);
+
 
 /*
  * Utils
@@ -184,6 +186,10 @@ std::vector<const char*> l2d_internal::utils::getObjectTypesForList() {
 
 sf::Color l2d_internal::utils::getColor(const ImVec4 &c) {
     return sf::Color(c.x * 255, c.y * 255, c.z * 255, c.w * 255);
+}
+
+sf::Color l2d_internal::utils::getColor(const std::string &intValue) {
+    return sf::Color(static_cast<sf::Uint32>(std::stoll(intValue)));
 }
 
 /*

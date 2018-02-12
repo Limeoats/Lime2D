@@ -69,6 +69,7 @@ namespace l2d_internal {
         void removeAnimationFromAnimationFile(std::string fileName, std::string animationName);
         std::vector<const char*> getObjectTypesForList();
         sf::Color getColor(const ImVec4 &c);
+        sf::Color getColor(const std::string &intValue);
 
         class NotImplementedException : public std::logic_error {
         public:
@@ -89,6 +90,17 @@ namespace l2d_internal {
             MessageType = type;
             Command = command;
             Message = message;
+        }
+    };
+
+    struct TileType {
+    public:
+        std::string Name;
+        sf::Color Color;
+        static TileType Default;
+        TileType(std::string name, sf::Color color) {
+            Name = name;
+            Color = color;
         }
     };
 

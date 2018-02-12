@@ -45,12 +45,20 @@ l2d::Editor::Editor(bool enabled, sf::RenderWindow *window) :
         _currentMapEditorMode(l2d_internal::MapEditorMode::Object),
         _currentEvent(),
         _selectedShape(nullptr),
-        _currentWindowType(l2d_internal::WindowTypes::None) {
+        _currentWindowType(l2d_internal::WindowTypes::None),
+        _currentTileType(l2d_internal::TileType::Default)
+{
     this->_enabled = enabled;
     ImGui::SFML::Init(*window);
     this->_window = window;
-    this->_tileTypes = l2d_internal::utils::splitVector(l2d_internal::utils::split(l2d_internal::utils::getConfigValue("tile_types"), ","), "|", 0);
-    this->_currentTileType = !this->_tileTypes.empty() ? this->_tileTypes[0] : "";
+
+    auto tts = l2d_internal::utils::split(l2d_internal::utils::getConfigValue("tile_types"), ",");
+    for (const auto &tt : tts) {
+        auto v = l2d_internal::utils::split(tt, "|");
+        this->_tileTypes.emplace_back(v[0], l2d_internal::utils::getColor(v[1]));
+    }
+
+    this->_currentTileType = !this->_tileTypes.empty() ? this->_tileTypes[0] : l2d_internal::TileType::Default;
     if (!this->_ambientLight.loadFromFile("content/shaders/ambient.frag", sf::Shader::Fragment)) {
         return;
     }
@@ -80,9 +88,12 @@ std::string l2d::Editor::getLevelName() {
 }
 
 void l2d::Editor::nextTileType() {
-    this->_currentTileType = [&](std::string current) -> std::string {
-        if (this->_tileTypes.size() <= 0) return "";
-        auto it = std::find(this->_tileTypes.begin(), this->_tileTypes.end(), current);
+    this->_currentTileType = [&](l2d_internal::TileType current) -> l2d_internal::TileType {
+        if (this->_tileTypes.size() <= 0) return l2d_internal::TileType::Default;
+        auto it = std::find_if(this->_tileTypes.begin(), this->_tileTypes.end(), [&](l2d_internal::TileType other) {
+            return other.Color == current.Color && other.Name == current.Name;
+
+        });
         if (it != this->_tileTypes.end()) {
             auto index = std::distance(this->_tileTypes.begin(), it);
             if (index == this->_tileTypes.size() - 1) return this->_tileTypes[0];
@@ -865,8 +876,14 @@ void l2d::Editor::update(sf::Time t) {
                                 this->_currentWindowType = l2d_internal::WindowTypes::None;
                                 configWindowVisible = false;
                                 startStatusTimer("Configurations saved successfully!", 200);
-                                this->_tileTypes = l2d_internal::utils::splitVector(l2d_internal::utils::split(l2d_internal::utils::getConfigValue("tile_types"), ","), "|", 0);
-                                this->_currentTileType = this->_tileTypes.size() > 0 ? this->_tileTypes[0] : "";
+
+                                auto tts = l2d_internal::utils::split(l2d_internal::utils::getConfigValue("tile_types"), ",");
+                                for (const auto &tt : tts) {
+                                    auto v = l2d_internal::utils::split(tt, "|");
+                                    this->_tileTypes.emplace_back(v[0], l2d_internal::utils::getColor(v[1]));
+                                }
+
+                                this->_currentTileType = this->_tileTypes.size() > 0 ? this->_tileTypes[0] : l2d_internal::TileType::Default;
                                 this->nextTileType();
                             }
                         } else {
@@ -2162,7 +2179,7 @@ void l2d::Editor::update(sf::Time t) {
                    this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_currentDrawShape == l2d_internal::DrawShapes::Line ? " - Line" :
                    this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object && this->_currentDrawShape == l2d_internal::DrawShapes::None ? " - Select" : "");
             if (this->_currentMapEditorMode == l2d_internal::MapEditorMode::TileType) {
-                ss << " - " << this->_currentTileType;
+                ss << " - " << this->_currentTileType.Name;
             }
             currentFeature = ss.str();
         }

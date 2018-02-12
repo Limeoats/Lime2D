@@ -40,8 +40,8 @@ namespace l2d {
         bool _showConsole;
 
         int _menuClicks;
-        std::vector<std::string> _tileTypes;
-        std::string _currentTileType;
+        std::vector<l2d_internal::TileType> _tileTypes;
+        l2d_internal::TileType _currentTileType;
 
         sf::Vector2f _lastFrameMousePos;
 
