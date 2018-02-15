@@ -192,6 +192,10 @@ sf::Color l2d_internal::utils::getColor(const std::string &intValue) {
     return sf::Color(static_cast<sf::Uint32>(std::stoll(intValue)));
 }
 
+sf::Color l2d_internal::utils::getColor(const long long &intValue) {
+    return getColor(std::to_string(intValue));
+}
+
 /*
  * Graphics
  */

@@ -96,7 +96,7 @@ void l2d::Editor::nextTileType() {
         });
         if (it != this->_tileTypes.end()) {
             auto index = std::distance(this->_tileTypes.begin(), it);
-            if (index == this->_tileTypes.size() - 1) return this->_tileTypes[0];
+            if (index == (int)this->_tileTypes.size() - 1) return this->_tileTypes[0];
             else return this->_tileTypes[index + 1];
         }
         return this->_tileTypes[0];
@@ -551,7 +551,6 @@ void l2d::Editor::update(sf::Time t) {
         static bool newMapExistsOverwriteVisible = false;
         static bool tilesetWindowVisible = false;
         static bool backgroundWindowVisible = false;
-        static bool tileTypeWindowVisible = false;
         static bool lightEditorWindowVisible = false;
         static bool newAnimatedSpriteWindowVisible = false;
         static bool newAnimationWindowVisible = false;
@@ -681,13 +680,13 @@ void l2d::Editor::update(sf::Time t) {
 
             ImGui::SetNextWindowPosCenter();
             ImGui::SetNextWindowSize(ImVec2(480, 380));
-            static std::string configureMapErrorText = "";
+            static std::string configureMapErrorText;
             ImGui::Begin("Configure", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
             ImGui::PushID("ConfigureMapPath");
             ImGui::Text("Map path");
             static char mapPath[500] = "";
-            if (l2d_internal::utils::getConfigValue("map_path") != "" && !loaded) {
+            if (!l2d_internal::utils::getConfigValue("map_path").empty() && !loaded) {
                 strcpy(mapPath, l2d_internal::utils::getConfigValue("map_path").c_str());
             }
             ImGui::PushItemWidth(300);
@@ -699,7 +698,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::PushID("ConfigureTilesetPath");
             ImGui::Text("Tileset path");
             static char tilesetPath[500] = "";
-            if (l2d_internal::utils::getConfigValue("tileset_path") != "" && !loaded) {
+            if (!l2d_internal::utils::getConfigValue("tileset_path").empty() && !loaded) {
                 strcpy(tilesetPath, l2d_internal::utils::getConfigValue("tileset_path").c_str());
             }
             ImGui::PushItemWidth(300);
@@ -712,8 +711,8 @@ void l2d::Editor::update(sf::Time t) {
 
             ImGui::PushID("ConfigureSpriteScale");
             ImGui::Text("Sprite scale");
-            static float spriteScaleX = l2d_internal::utils::getConfigValue("sprite_scale_x") == "" ? 1.0f : std::stof(l2d_internal::utils::getConfigValue("sprite_scale_x"));
-            static float spriteScaleY = l2d_internal::utils::getConfigValue("sprite_scale_y") == "" ? 1.0f : std::stof(l2d_internal::utils::getConfigValue("sprite_scale_y"));
+            static float spriteScaleX = l2d_internal::utils::getConfigValue("sprite_scale_x").empty() ? 1.0f : std::stof(l2d_internal::utils::getConfigValue("sprite_scale_x"));
+            static float spriteScaleY = l2d_internal::utils::getConfigValue("sprite_scale_y").empty() ? 1.0f : std::stof(l2d_internal::utils::getConfigValue("sprite_scale_y"));
             ImGui::InputFloat("x", &spriteScaleX, 0.1f, 0.0f, 2);
             ImGui::InputFloat("y", &spriteScaleY, 0.1f, 0.0f, 2);
             ImGui::Separator();
@@ -721,8 +720,8 @@ void l2d::Editor::update(sf::Time t) {
 
             ImGui::PushID("ConfigureTileScale");
             ImGui::Text("Tile scale");
-            static float tileScaleX = l2d_internal::utils::getConfigValue("tile_scale_x") == "" ? 1.0f : std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"));
-            static float tileScaleY = l2d_internal::utils::getConfigValue("tile_scale_y") == "" ? 1.0f : std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"));
+            static float tileScaleX = l2d_internal::utils::getConfigValue("tile_scale_x").empty() ? 1.0f : std::stof(l2d_internal::utils::getConfigValue("tile_scale_x"));
+            static float tileScaleY = l2d_internal::utils::getConfigValue("tile_scale_y").empty() ? 1.0f : std::stof(l2d_internal::utils::getConfigValue("tile_scale_y"));
             ImGui::InputFloat("x", &tileScaleX, 0.1f, 0.0f, 2);
             ImGui::InputFloat("y", &tileScaleY, 0.1f, 0.0f, 2);
             ImGui::Separator();
@@ -730,8 +729,8 @@ void l2d::Editor::update(sf::Time t) {
 
             ImGui::PushID("ConfigureScreenSize");
             ImGui::Text("Screen size");
-            static int screenSizeX = l2d_internal::utils::getConfigValue("screen_size_x") == "" ? 1 : std::stoi(l2d_internal::utils::getConfigValue("screen_size_x"));
-            static int screenSizeY = l2d_internal::utils::getConfigValue("screen_size_y") == "" ? 1 : std::stoi(l2d_internal::utils::getConfigValue("screen_size_y"));
+            static int screenSizeX = l2d_internal::utils::getConfigValue("screen_size_x").empty() ? 1 : std::stoi(l2d_internal::utils::getConfigValue("screen_size_x"));
+            static int screenSizeY = l2d_internal::utils::getConfigValue("screen_size_y").empty() ? 1 : std::stoi(l2d_internal::utils::getConfigValue("screen_size_y"));
             ImGui::InputInt("x", &screenSizeX, 5);
             ImGui::InputInt("y", &screenSizeY, 5);
             ImGui::Separator();
@@ -740,7 +739,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::PushID("ConfigureSpritesPath");
             ImGui::Text("Sprite path");
             static char spritePath[500] = "";
-            if (l2d_internal::utils::getConfigValue("sprite_path") != "" && !loaded) {
+            if (!l2d_internal::utils::getConfigValue("sprite_path").empty() && !loaded) {
                 strcpy(spritePath, l2d_internal::utils::getConfigValue("sprite_path").c_str());
             }
             ImGui::PushItemWidth(300);
@@ -752,7 +751,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::PushID("ConfigureAnimationPath");
             ImGui::Text("Animation path");
             static char animationPath[500] = "";
-            if (l2d_internal::utils::getConfigValue("animation_path") != "" && !loaded) {
+            if (!l2d_internal::utils::getConfigValue("animation_path").empty() && !loaded) {
                 strcpy(animationPath, l2d_internal::utils::getConfigValue("animation_path").c_str());
             }
             ImGui::PushItemWidth(300);
@@ -764,7 +763,7 @@ void l2d::Editor::update(sf::Time t) {
             ImGui::PushID("ConfigureCameraPanAmount");
             ImGui::Text("Camera pan factor");
             static float cameraPanFactor =
-                    l2d_internal::utils::getConfigValue("camera_pan_factor") == "" ? 4.0f : std::stof(l2d_internal::utils::getConfigValue("camera_pan_factor"));
+                    l2d_internal::utils::getConfigValue("camera_pan_factor").empty() ? 4.0f : std::stof(l2d_internal::utils::getConfigValue("camera_pan_factor"));
             ImGui::InputFloat("", &cameraPanFactor, 0.25f, 0.0f, 2);
             ImGui::Separator();
             ImGui::PopID();
@@ -783,7 +782,7 @@ void l2d::Editor::update(sf::Time t) {
             };
 
             std::vector<TileTypeAndColor> tileTypesAndColors;
-            for (int i = 0; i < typeList.size(); ++i) {
+            for (size_t i = 0; i < typeList.size(); ++i) {
                 auto v = l2d_internal::utils::split(typeList[i], "|");
                 tileTypesAndColors.emplace_back(v[0], v[1]);
                 std::string id = "button_" + typeList[i];
@@ -799,7 +798,7 @@ void l2d::Editor::update(sf::Time t) {
                 std::string ettcColor = "EditTileTypeColor_" + tileTypesAndColors[i].Name;
                 ImGui::PushID(ettcColor.c_str());
                 ImGui::PushItemWidth(200);
-                ImVec4 editTileTypeColor = ImVec4(sf::Color(static_cast<sf::Uint32>(std::stoll(tileTypesAndColors[i].Color))));
+                ImVec4 editTileTypeColor = l2d_internal::utils::getColor(tileTypesAndColors[i].Color);
 
                 if (ImGui::ColorButton(("EditTileTypeColor_" + tileTypesAndColors[i].Name).c_str(), editTileTypeColor, false)) {
                     editExistingTileTypeColorWindowVisible = true;
@@ -1458,6 +1457,14 @@ void l2d::Editor::update(sf::Time t) {
                 ImGui::End();
             }
 
+        }
+
+
+        // TileType editor
+        if (this->_level.isLoaded() && this->_currentMapEditorMode == l2d_internal::MapEditorMode::TileType) {
+            if (this->_currentTileType != l2d_internal::TileType::Default) {
+                // TODO: implement drawing the tile types
+            }
         }
 
         if (lightEditorWindowVisible && this->_currentMapEditorMode == l2d_internal::MapEditorMode::Object) {

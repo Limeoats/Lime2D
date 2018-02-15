@@ -70,6 +70,7 @@ namespace l2d_internal {
         std::vector<const char*> getObjectTypesForList();
         sf::Color getColor(const ImVec4 &c);
         sf::Color getColor(const std::string &intValue);
+        sf::Color getColor(const long long &intValue);
 
         class NotImplementedException : public std::logic_error {
         public:
@@ -101,6 +102,13 @@ namespace l2d_internal {
         TileType(std::string name, sf::Color color) {
             Name = name;
             Color = color;
+        }
+        bool operator==(const TileType &other) const {
+            return Name == other.Name && Color == other.Color;
+        }
+
+        bool operator!=(const TileType &other) const {
+            return !(*this == other);
         }
     };
 
