@@ -27,8 +27,11 @@ If you have any trouble getting Lime2D working or have any questions, please go 
 ### Issues
 If you find any bugs or you think of a feature that should be added to Lime2D, please [Create an Issue](https://github.com/Limeoats/Lime2D/issues) in this repository. Label it appropriately and I will begin working on it as soon as possible.
 
-### Support
-If you'd like to support Lime2D, please go to the [Limeoats Patreon page](http://www.patreon.com/Limeoats) and become a patron. All support is greatly appreciated.
+## Support
+
+If you find Lime2D helpful and would like to say thank you, feel free to click the button below and buy me a coffee!
+
+<a href='https://ko-fi.com/Q5Q8FGABI' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
 ### License
 This project is under the [Apache License](https://github.com/Limeoats/Lime2D/blob/master/LICENSE.md).
