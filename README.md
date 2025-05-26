@@ -2,7 +2,7 @@
 ![build](https://travis-ci.org/Limeoats/Lime2D.svg?branch=master)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/Limeoats/Lime2D/blob/master/LICENSE.md)
 
-[Lime2D](http://www.limeoats.com/lime2d) is an open source in-game map/animation editor for 2D C++ game development projects.
+[Lime2D](http://www.limeoats.net/lime2d) is an open source in-game map/animation editor for 2D C++ game development projects.
 
 Since it is an in-game editor, you can edit maps in real-time with your player, collisions, and everything else being rendered. 
 You can then switch out of the editor and automatically see your updated map / animations. This will make for extremely efficient 2D level creation.
@@ -20,7 +20,7 @@ You can download the most recent version of the library and header files by goin
 I've created a video tutorial showing the process of getting Lime2D integrated with your game. There is also a text version for those of you who don't want to follow an entire video.
 
 - [Video](https://www.youtube.com/watch?v=iHNyOIGB0PE)
-- [Text version of the guide](http://www.limeoats.com/lime2d-setup-guide.html)
+- [Text version of the guide](http://www.limeoats.net/lime2d-setup-guide.html)
 
 If you have any trouble getting Lime2D working or have any questions, please go to [http://www.limeoats.com/lime2d](http://www.limeoats.com/lime2d) and post at the bottom of the page.
 
@@ -37,5 +37,5 @@ If you find Lime2D helpful and would like to say thank you, feel free to click t
 This project is under the [Apache License](https://github.com/Limeoats/Lime2D/blob/master/LICENSE.md).
  
 ### Links
-* [http://www.limeoats.com/Lime2D](http://www.limeoats.com/lime2d)
-* [http://www.patreon.com/Limeoats](http://www.patreon.com/Limeoats)
+* [http://www.limeoats.com/Lime2D](http://www.limeoats.net/lime2d)
+* [http://www.patreon.com/Limeoats](http://www.patreon.net/Limeoats)
